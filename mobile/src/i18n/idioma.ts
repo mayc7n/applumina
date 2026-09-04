@@ -5,6 +5,10 @@ const portuguesBrasil = {
   "comum.preparando": "Preparando seu Lumina…",
   "comum.tentarNovamente": "Tentar novamente",
   "comum.erroPadrao": "Não foi possível concluir a ação. Tente novamente.",
+  "comum.entrar": "Entrar",
+  "comum.criarConta": "Criar conta",
+  "comum.offline": "Sem conexão. Alterações serão enviadas quando a internet voltar.",
+  "comum.notificacoes": "Notificações",
   "autenticacao.voltar": "Voltar",
   "autenticacao.email": "E-mail",
   "autenticacao.emailPlaceholder": "voce@exemplo.com",
@@ -30,6 +34,14 @@ const portuguesBrasil = {
   "login.criarConta": "Criar conta",
   "login.erro":
     "Não foi possível entrar. Verifique seus dados e tente novamente.",
+  "login.erroCredenciais": "E-mail ou senha incorretos.",
+  "login.erroConexao":
+    "Não foi possível conectar ao Lumina. Verifique sua internet e tente novamente.",
+  "login.erroTimeout": "A conexão demorou mais que o esperado.",
+  "login.erroIndisponivel":
+    "O Lumina está temporariamente indisponível. Tente novamente em instantes.",
+  "login.erroConfiguracao":
+    "O aplicativo ainda não foi configurado para conectar ao Lumina.",
   "cadastro.destaque": "Comece com clareza",
   "cadastro.titulo": "Crie sua conta",
   "cadastro.descricao": "Organize tarefas, hábitos e metas em um só lugar.",
@@ -45,11 +57,43 @@ const portuguesBrasil = {
     "Não foi possível criar sua conta. Revise os dados e tente novamente.",
   "navegacao.inicio": "Início",
   "navegacao.tarefas": "Tarefas",
+  "navegacao.treinos": "Treinos",
+  "navegacao.amigos": "Amigos",
   "navegacao.conta": "Conta",
   "inicio.bomDia": "Bom dia",
   "inicio.boaTarde": "Boa tarde",
   "inicio.boaNoite": "Boa noite",
   "inicio.subtitulo": "Este é seu ritmo de hoje.",
+  "inicio.visitanteSaudacao": "Olá",
+  "inicio.visitanteSubtitulo": "Explore no seu ritmo. Entre apenas quando quiser salvar.",
+  "inicio.hoje": "Hoje",
+  "inicio.visitanteTitulo": "Conheça o Lumina antes de criar sua conta.",
+  "inicio.visitanteDescricao":
+    "Veja como tarefas, treinos e apoio entre amigos cabem na sua rotina. Nenhum dado fictício será exibido.",
+  "inicio.acaoExplorar": "Explorar treinos",
+  "inicio.acaoTarefa": "Ver tarefa",
+  "inicio.acaoTreino": "Registrar atividade",
+  "inicio.pendenteTitulo": "Seu próximo passo está claro.",
+  "inicio.pendenteDescricao": "Continue: {titulo}",
+  "inicio.semRegistroTitulo": "Pronto para registrar seu dia?",
+  "inicio.semRegistroDescricao":
+    "Uma atividade curta já conta. Você escolhe o ritmo.",
+  "inicio.progressoTitulo": "Sua semana",
+  "inicio.diasAtivos": "{quantidade} de 7 dias com registros.",
+  "inicio.resumoSemana":
+    "{tarefas} tarefas concluídas · {minutos} min de foco",
+  "inicio.semanaVazia": "Nenhum registro nesta semana. Comece quando fizer sentido.",
+  "inicio.constanciaTitulo": "Constância sem culpa",
+  "inicio.retomada": "Uma pausa não apaga seu caminho.",
+  "inicio.primeiroPasso": "Seu primeiro registro pode ser pequeno e ainda assim valer.",
+  "inicio.amigosTitulo": "Amigos em movimento",
+  "inicio.amigosVazio":
+    "Adicione amigos para acompanhar conquistas compartilhadas por escolha.",
+  "inicio.verAmigos": "Ver amigos",
+  "inicio.proximoTitulo": "Próximo passo",
+  "inicio.proximoTarefa": "Você tem uma tarefa pendente para hoje.",
+  "inicio.proximoLivre": "Seu dia está livre. Você pode registrar uma atividade quando quiser.",
+  "inicio.proximoExplicacao": "Sugestão baseada apenas nos seus registros de hoje.",
   "inicio.tarefasHoje": "Tarefas hoje",
   "inicio.sequencia": "Sequência",
   "inicio.focoSemana": "Foco na semana",
@@ -71,6 +115,9 @@ const portuguesBrasil = {
   "tarefas.erroDescricao": "Não foi possível carregar suas tarefas.",
   "tarefas.erroCriar": "Não foi possível criar a tarefa.",
   "tarefas.erroAlternar": "Não foi possível atualizar a tarefa.",
+  "tarefas.visitanteTitulo": "Explore tarefas sem compromisso",
+  "tarefas.visitanteDescricao":
+    "Entre quando quiser criar, editar e sincronizar suas tarefas com segurança.",
   "tarefas.concluir": "Marcar {titulo} como concluída",
   "tarefas.reabrir": "Marcar {titulo} como pendente",
   "conta.titulo": "Conta",
@@ -87,6 +134,27 @@ const portuguesBrasil = {
     "Você precisará informar seus dados para entrar novamente.",
   "conta.cancelar": "Cancelar",
   "conta.confirmar": "Sair",
+  "conta.visitanteTitulo": "Você está explorando sem conta",
+  "conta.visitanteDescricao":
+    "Crie uma conta somente quando quiser salvar e sincronizar seus registros.",
+  "treinos.titulo": "Treinos",
+  "treinos.vazioTitulo": "Nenhum treino registrado",
+  "treinos.vazioDescricao":
+    "Registre modalidade, data e duração quando estiver pronto.",
+  "treinos.visitanteDescricao":
+    "Explore modalidades agora. Para salvar um treino, entre ou crie uma conta.",
+  "treinos.modalidadePassos": "Caminhada e corrida",
+  "treinos.modalidadeForca": "Musculação e mobilidade",
+  "treinos.modalidadeEsportes": "Ciclismo e esportes coletivos",
+  "treinos.modalidadeOutras": "Natação e atividades personalizadas",
+  "amigos.titulo": "Amigos",
+  "amigos.vazioTitulo": "Sua rede começa com pessoas próximas",
+  "amigos.vazioDescricao":
+    "Adicione amigos para acompanhar somente o que eles escolherem compartilhar.",
+  "amigos.visitanteDescricao":
+    "Conheça a rede privada. Busca e interações exigem uma conta.",
+  "amigos.privacidade":
+    "Privacidade padrão: Somente eu. Compartilhar sempre será opcional.",
 } as const;
 
 type ChaveTraducao = keyof typeof portuguesBrasil;
@@ -95,6 +163,10 @@ const ingles: Record<ChaveTraducao, string> = {
   "comum.preparando": "Preparing your Lumina…",
   "comum.tentarNovamente": "Try again",
   "comum.erroPadrao": "We could not complete this action. Try again.",
+  "comum.entrar": "Sign in",
+  "comum.criarConta": "Create account",
+  "comum.offline": "Offline. Changes will be sent when your connection returns.",
+  "comum.notificacoes": "Notifications",
   "autenticacao.voltar": "Back",
   "autenticacao.email": "Email",
   "autenticacao.emailPlaceholder": "you@example.com",
@@ -119,6 +191,14 @@ const ingles: Record<ChaveTraducao, string> = {
   "login.semConta": "Do not have an account yet?",
   "login.criarConta": "Create account",
   "login.erro": "Could not sign in. Check your details and try again.",
+  "login.erroCredenciais": "Incorrect email or password.",
+  "login.erroConexao":
+    "Could not connect to Lumina. Check your internet connection and try again.",
+  "login.erroTimeout": "The connection took longer than expected.",
+  "login.erroIndisponivel":
+    "Lumina is temporarily unavailable. Try again in a moment.",
+  "login.erroConfiguracao":
+    "The app has not been configured to connect to Lumina yet.",
   "cadastro.destaque": "Start with clarity",
   "cadastro.titulo": "Create your account",
   "cadastro.descricao": "Organize tasks, habits, and goals in one place.",
@@ -134,11 +214,43 @@ const ingles: Record<ChaveTraducao, string> = {
     "Could not create your account. Review your details and try again.",
   "navegacao.inicio": "Home",
   "navegacao.tarefas": "Tasks",
+  "navegacao.treinos": "Workouts",
+  "navegacao.amigos": "Friends",
   "navegacao.conta": "Account",
   "inicio.bomDia": "Good morning",
   "inicio.boaTarde": "Good afternoon",
   "inicio.boaNoite": "Good evening",
   "inicio.subtitulo": "Here is your pace today.",
+  "inicio.visitanteSaudacao": "Hello",
+  "inicio.visitanteSubtitulo": "Explore at your pace. Sign in only when you want to save.",
+  "inicio.hoje": "Today",
+  "inicio.visitanteTitulo": "Get to know Lumina before creating an account.",
+  "inicio.visitanteDescricao":
+    "See how tasks, workouts, and support from friends can fit your routine. No fictional data will be shown.",
+  "inicio.acaoExplorar": "Explore workouts",
+  "inicio.acaoTarefa": "View task",
+  "inicio.acaoTreino": "Log activity",
+  "inicio.pendenteTitulo": "Your next step is clear.",
+  "inicio.pendenteDescricao": "Continue: {titulo}",
+  "inicio.semRegistroTitulo": "Ready to record your day?",
+  "inicio.semRegistroDescricao":
+    "A short activity still counts. You set the pace.",
+  "inicio.progressoTitulo": "Your week",
+  "inicio.diasAtivos": "Records on {quantidade} of 7 days.",
+  "inicio.resumoSemana":
+    "{tarefas} tasks completed · {minutos} focus min",
+  "inicio.semanaVazia": "No records this week. Start when it feels right.",
+  "inicio.constanciaTitulo": "Consistency without guilt",
+  "inicio.retomada": "A pause does not erase your progress.",
+  "inicio.primeiroPasso": "Your first record can be small and still matter.",
+  "inicio.amigosTitulo": "Friends in motion",
+  "inicio.amigosVazio":
+    "Add friends to follow achievements they choose to share.",
+  "inicio.verAmigos": "View friends",
+  "inicio.proximoTitulo": "Next step",
+  "inicio.proximoTarefa": "You have a pending task for today.",
+  "inicio.proximoLivre": "Your day is clear. You can log an activity whenever you want.",
+  "inicio.proximoExplicacao": "Suggested only from today's records.",
   "inicio.tarefasHoje": "Tasks today",
   "inicio.sequencia": "Streak",
   "inicio.focoSemana": "Focus this week",
@@ -160,6 +272,9 @@ const ingles: Record<ChaveTraducao, string> = {
   "tarefas.erroDescricao": "Could not load your tasks.",
   "tarefas.erroCriar": "Could not create the task.",
   "tarefas.erroAlternar": "Could not update the task.",
+  "tarefas.visitanteTitulo": "Explore tasks with no commitment",
+  "tarefas.visitanteDescricao":
+    "Sign in when you want to create, edit, and securely sync your tasks.",
   "tarefas.concluir": "Mark {titulo} as completed",
   "tarefas.reabrir": "Mark {titulo} as pending",
   "conta.titulo": "Account",
@@ -176,6 +291,27 @@ const ingles: Record<ChaveTraducao, string> = {
     "You will need your credentials to sign in again.",
   "conta.cancelar": "Cancel",
   "conta.confirmar": "Sign out",
+  "conta.visitanteTitulo": "You are exploring without an account",
+  "conta.visitanteDescricao":
+    "Create an account only when you want to save and sync your records.",
+  "treinos.titulo": "Workouts",
+  "treinos.vazioTitulo": "No workouts recorded",
+  "treinos.vazioDescricao":
+    "Record activity, date, and duration when you are ready.",
+  "treinos.visitanteDescricao":
+    "Explore activities now. Sign in or create an account when you want to save a workout.",
+  "treinos.modalidadePassos": "Walking and running",
+  "treinos.modalidadeForca": "Strength training and mobility",
+  "treinos.modalidadeEsportes": "Cycling and team sports",
+  "treinos.modalidadeOutras": "Swimming and custom activities",
+  "amigos.titulo": "Friends",
+  "amigos.vazioTitulo": "Your circle starts with people close to you",
+  "amigos.vazioDescricao":
+    "Add friends to follow only what they choose to share.",
+  "amigos.visitanteDescricao":
+    "Explore the private network. Search and interactions require an account.",
+  "amigos.privacidade":
+    "Default privacy: Only me. Sharing will always be optional.",
 };
 
 type VariaveisTraducao = Record<string, string | number>;
