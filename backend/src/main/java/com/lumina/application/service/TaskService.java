@@ -101,9 +101,13 @@ public class TaskService {
             .description(trimToNull(request.description()))
             .priority(parseOptionalEnum(TaskPriority.class, request.priority(), TaskPriority.NONE, "prioridade"))
             .dueDate(parseDate(request.dueDate(), "data de vencimento"))
+            .dueTime(parseTime(request.dueTime(), "horário de vencimento"))
             .scheduledFor(parseDate(request.scheduledFor(), "data agendada"))
             .estimatedMins(validateMinutes(request.estimatedMins()))
             .projectId(parseUuid(request.projectId(), "projeto"))
+            .labels(validateLabels(userId, request.labelIds()))
+            .recurrenceType(parseOptionalEnum(RecurrenceType.class, request.recurrenceType(), RecurrenceType.NONE, "recorrência"))
+            .reminderAt(parseInstant(request.reminderAt(), "lembrete"))
             .inbox(request.projectId() == null)
             .build();
         return toResponse(taskRepository.save(task));
@@ -120,20 +124,29 @@ public class TaskService {
         if (request.priority() != null) task.setPriority(parseEnum(TaskPriority.class, request.priority(), "prioridade"));
         if (request.status() != null) applyStatus(task, parseEnum(TaskStatus.class, request.status(), "status"));
         if (request.dueDate() != null) task.setDueDate(parseDate(request.dueDate(), "data de vencimento"));
+        if (request.dueTime() != null) task.setDueTime(parseTime(request.dueTime(), "horário de vencimento"));
         if (request.scheduledFor() != null) task.setScheduledFor(parseDate(request.scheduledFor(), "data agendada"));
         if (request.estimatedMins() != null) task.setEstimatedMins(validateMinutes(request.estimatedMins()));
         if (request.projectId() != null) {
             validateProject(userId, request.projectId());
-            task.setProjectId(parseUuid(request.projectId(), "projeto"));
-            task.setInbox(false);
+            UUID projectId = parseUuid(request.projectId(), "projeto");
+            task.setProjectId(projectId);
+            task.setInbox(projectId == null);
         }
+        if (request.labelIds() != null) task.setLabels(validateLabels(userId, request.labelIds()));
+        if (request.recurrenceType() != null) {
+            task.setRecurrenceType(parseEnum(RecurrenceType.class, request.recurrenceType(), "recorrência"));
+        }
+        if (request.reminderAt() != null) task.setReminderAt(parseInstant(request.reminderAt(), "lembrete"));
         return toResponse(task);
     }
 
     @Transactional
     public TaskResponse toggleComplete(UUID userId, UUID taskId) {
         Task task = getTask(userId, taskId);
-        applyStatus(task, task.isCompleted() ? TaskStatus.TODO : TaskStatus.DONE);
+        boolean completing = !task.isCompleted();
+        applyStatus(task, completing ? TaskStatus.DONE : TaskStatus.TODO);
+        if (completing) createNextRecurrence(task);
         return toResponse(task);
     }
 
@@ -171,7 +184,7 @@ public class TaskService {
             .user(userRepository.getReferenceById(userId))
             .name(name)
             .description(trimToNull(request.description()))
-            .color(StringUtils.hasText(request.color()) ? request.color() : "#6366f1")
+            .color(StringUtils.hasText(request.color()) ? request.color() : "#C63C24")
             .icon(trimToNull(request.icon()))
             .orderIndex(order)
             .build());
@@ -198,7 +211,7 @@ public class TaskService {
         Label label = labelRepository.save(Label.builder()
             .user(userRepository.getReferenceById(userId))
             .name(name)
-            .color(StringUtils.hasText(request.color()) ? request.color() : "#6366f1")
+            .color(StringUtils.hasText(request.color()) ? request.color() : "#C63C24")
             .icon(trimToNull(request.icon()))
             .build());
         return new LabelResponse(label.getId().toString(), label.getName(), label.getColor(), label.getIcon());
@@ -230,10 +243,12 @@ public class TaskService {
         return TaskResponse.builder()
             .id(task.getId().toString()).title(task.getTitle()).description(task.getDescription())
             .status(task.getStatus().name()).priority(task.getPriority().name())
-            .dueDate(string(task.getDueDate())).scheduledFor(string(task.getScheduledFor()))
+            .dueDate(string(task.getDueDate())).dueTime(string(task.getDueTime())).scheduledFor(string(task.getScheduledFor()))
             .estimatedMins(task.getEstimatedMins())
             .projectId(task.getProjectId() != null ? task.getProjectId().toString() : null)
+            .labelIds(task.getLabels().stream().map(label -> label.getId().toString()).sorted().toList())
             .recurrenceType(task.getRecurrenceType().name())
+            .reminderAt(string(task.getReminderAt()))
             .completedAt(string(task.getCompletedAt()))
             .createdAt(string(task.getCreatedAt())).updatedAt(string(task.getUpdatedAt()))
             .build();
@@ -249,6 +264,81 @@ public class TaskService {
         if (!StringUtils.hasText(value)) return null;
         try { return LocalDate.parse(value); }
         catch (DateTimeException exception) { throw validation("Valor inválido para " + field); }
+    }
+
+    private LocalTime parseTime(String value, String field) {
+        if (!StringUtils.hasText(value)) return null;
+        try { return LocalTime.parse(value); }
+        catch (DateTimeException exception) { throw validation("Valor inválido para " + field); }
+    }
+
+    private Instant parseInstant(String value, String field) {
+        if (!StringUtils.hasText(value)) return null;
+        try { return Instant.parse(value); }
+        catch (DateTimeException exception) { throw validation("Valor inválido para " + field); }
+    }
+
+    private Set<Label> validateLabels(UUID userId, List<String> labelIds) {
+        if (labelIds == null || labelIds.isEmpty()) return new LinkedHashSet<>();
+        Set<UUID> ids = new LinkedHashSet<>();
+        for (String value : labelIds) {
+            UUID id = parseUuid(value, "etiqueta");
+            if (id == null) throw validation("Valor inválido para etiqueta");
+            ids.add(id);
+        }
+        List<Label> labels = labelRepository.findAllByIdInAndUserId(new ArrayList<>(ids), userId);
+        if (labels.size() != ids.size()) throw new ResourceNotFoundException("Etiqueta não encontrada");
+        return new LinkedHashSet<>(labels);
+    }
+
+    private void createNextRecurrence(Task task) {
+        RecurrenceType recurrenceType = task.getRecurrenceType();
+        if (recurrenceType == RecurrenceType.NONE || recurrenceType == RecurrenceType.CUSTOM) return;
+
+        UUID sourceId = task.getRecurrenceSourceId() != null ? task.getRecurrenceSourceId() : task.getId();
+        LocalDate nextScheduled = advance(task.getScheduledFor(), recurrenceType);
+        LocalDate nextDue = advance(task.getDueDate(), recurrenceType);
+        if (nextScheduled == null && nextDue == null) nextScheduled = advance(LocalDate.now(), recurrenceType);
+
+        boolean exists = nextScheduled != null
+            ? taskRepository.existsByRecurrenceSourceIdAndScheduledForAndDeletedAtIsNull(sourceId, nextScheduled)
+            : taskRepository.existsByRecurrenceSourceIdAndDueDateAndDeletedAtIsNull(sourceId, nextDue);
+        if (exists) return;
+
+        LocalDate currentReference = task.getScheduledFor() != null ? task.getScheduledFor()
+            : task.getDueDate() != null ? task.getDueDate() : LocalDate.now();
+        LocalDate nextReference = nextScheduled != null ? nextScheduled : nextDue;
+        long shiftedDays = java.time.temporal.ChronoUnit.DAYS.between(currentReference, nextReference);
+
+        taskRepository.save(Task.builder()
+            .user(task.getUser())
+            .projectId(task.getProjectId())
+            .title(task.getTitle())
+            .description(task.getDescription())
+            .priority(task.getPriority())
+            .dueDate(nextDue)
+            .dueTime(task.getDueTime())
+            .scheduledFor(nextScheduled)
+            .estimatedMins(task.getEstimatedMins())
+            .recurrenceType(recurrenceType)
+            .recurrenceSourceId(sourceId)
+            .reminderAt(task.getReminderAt() != null
+                ? task.getReminderAt().plus(shiftedDays, java.time.temporal.ChronoUnit.DAYS)
+                : null)
+            .labels(new LinkedHashSet<>(task.getLabels()))
+            .inbox(task.isInbox())
+            .build());
+    }
+
+    private LocalDate advance(LocalDate date, RecurrenceType recurrenceType) {
+        if (date == null) return null;
+        return switch (recurrenceType) {
+            case DAILY -> date.plusDays(1);
+            case WEEKLY -> date.plusWeeks(1);
+            case MONTHLY -> date.plusMonths(1);
+            case YEARLY -> date.plusYears(1);
+            case NONE, CUSTOM -> date;
+        };
     }
 
     private UUID parseUuid(String value, String field) {

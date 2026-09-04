@@ -9,7 +9,16 @@ import java.util.List;
 import java.util.UUID;
 
 public record UpdateTaskRequest(
-    String title, String description, String priority, String status,
-    String dueDate, String scheduledFor, Integer estimatedMins,
-    String projectId, List<String> labelIds
+    @Size(max = 500) String title,
+    @Size(max = 10_000) String description,
+    String priority,
+    String status,
+    String dueDate,
+    String dueTime,
+    String scheduledFor,
+    @Positive @Max(10_080) Integer estimatedMins,
+    String projectId,
+    @Size(max = 50) List<String> labelIds,
+    String recurrenceType,
+    String reminderAt
 ) {}

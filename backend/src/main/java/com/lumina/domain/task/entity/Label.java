@@ -15,6 +15,6 @@ public class Label {
     @Id @UuidGenerator @Column(name="id",updatable=false,nullable=false) private UUID id;
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="user_id",nullable=false) private User user;
     @Column(name="name",nullable=false,length=50) private String name;
-    @Column(name="color",nullable=false,length=20) @Builder.Default private String color="#6366f1";
+    @Column(name="color",nullable=false,length=20) @Builder.Default private String color="#C63C24";
     @Column(name="icon",length=50) private String icon;
 }

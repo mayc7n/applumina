@@ -15,7 +15,9 @@ public record CreateTaskRequest(
     String dueDate,
     String dueTime,
     String scheduledFor,
-    @Positive @Max(525_600) Integer estimatedMins,
+    @Positive @Max(10_080) Integer estimatedMins,
     String projectId,
-    @Size(max = 50) List<String> labelIds
+    @Size(max = 50) List<String> labelIds,
+    String recurrenceType,
+    String reminderAt
 ) {}
