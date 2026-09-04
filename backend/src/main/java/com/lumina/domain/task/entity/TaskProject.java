@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
 
+import static com.lumina.shared.PaletaLumina.COR_MARCA_PADRAO;
+
 @Entity @Table(name="task_projects")
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor @EqualsAndHashCode(of="id")
 public class TaskProject {
@@ -16,7 +18,7 @@ public class TaskProject {
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="user_id",nullable=false) private User user;
     @Column(name="name",nullable=false,length=100) private String name;
     @Column(name="description",length=500) private String description;
-    @Column(name="color",nullable=false,length=20) @Builder.Default private String color="#C63C24";
+    @Column(name="color",nullable=false,length=20) @Builder.Default private String color=COR_MARCA_PADRAO;
     @Column(name="icon",length=50) private String icon;
     @Column(name="order_index",nullable=false) @Builder.Default private int orderIndex=0;
     @Column(name="archived_at") private Instant archivedAt;

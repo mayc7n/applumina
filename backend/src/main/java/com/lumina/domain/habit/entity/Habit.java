@@ -11,6 +11,8 @@ import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
 
+import static com.lumina.shared.PaletaLumina.COR_MARCA_PADRAO;
+
 @Entity @Table(name="habits")
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor @EqualsAndHashCode(of="id")
 public class Habit {
@@ -19,7 +21,7 @@ public class Habit {
     @Column(name="name",nullable=false,length=200) private String name;
     @Column(name="description",length=500) private String description;
     @Column(name="icon",length=50) private String icon;  // Lucide icon key, e.g. "flame"
-    @Column(name="color",nullable=false,length=20) @Builder.Default private String color="#6366f1";
+    @Column(name="color",nullable=false,length=20) @Builder.Default private String color=COR_MARCA_PADRAO;
     @Enumerated(EnumType.STRING) @JdbcTypeCode(SqlTypes.NAMED_ENUM) @Column(name="habit_type",nullable=false) @Builder.Default private HabitType habitType=HabitType.BUILD;
     @Enumerated(EnumType.STRING) @JdbcTypeCode(SqlTypes.NAMED_ENUM) @Column(name="frequency",nullable=false) @Builder.Default private HabitFrequency frequency=HabitFrequency.DAILY;
     @Column(name="frequency_days",columnDefinition="integer[]") @Builder.Default private List<Integer> frequencyDays=List.of(1,2,3,4,5,6,7);

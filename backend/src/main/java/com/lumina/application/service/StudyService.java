@@ -18,6 +18,8 @@ import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+import static com.lumina.shared.PaletaLumina.COR_MARCA_PADRAO;
+
 @Service
 @RequiredArgsConstructor
 public class StudyService {
@@ -40,7 +42,7 @@ public class StudyService {
         StudySubject subject = subjectRepository.save(StudySubject.builder()
             .user(userRepository.getReferenceById(userId)).name(request.name().trim())
             .description(trimToNull(request.description()))
-            .color(StringUtils.hasText(request.color()) ? request.color().trim() : "#6366f1")
+            .color(StringUtils.hasText(request.color()) ? request.color().trim() : COR_MARCA_PADRAO)
             .icon(StringUtils.hasText(request.icon()) ? request.icon().trim() : "graduation-cap")
             .goalHours(goalHours).build());
         return toSubject(subject);
