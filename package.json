@@ -1,0 +1,11 @@
+{
+  "name": "applumina",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix mobile start",
+    "start:go": "npm --prefix mobile run start:go",
+    "android": "npm --prefix mobile run android",
+    "ios": "npm --prefix mobile run ios",
+    "check": "npm --prefix mobile run check"
+  }
+}
