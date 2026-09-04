@@ -4,7 +4,9 @@ import {
   Text,
   TextInput,
   View,
+  type StyleProp,
   type TextInputProps,
+  type ViewStyle,
 } from "react-native";
 
 import { useTemaApp } from "@/theme/theme";
@@ -14,16 +16,17 @@ interface FormFieldProps extends TextInputProps {
   erro?: string;
   inicio?: ReactNode;
   fim?: ReactNode;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export const FormField = forwardRef<TextInput, FormFieldProps>(
   function FormField(
-    { rotulo, erro, inicio, fim, style, ...props },
+    { rotulo, erro, inicio, fim, containerStyle, style, ...props },
     referencia,
   ) {
     const tema = useTemaApp();
     return (
-      <View style={styles.wrapper}>
+      <View style={[styles.wrapper, containerStyle]}>
         <Text style={[styles.label, { color: tema.cores.texto }]}>
           {rotulo}
         </Text>

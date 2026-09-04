@@ -65,10 +65,13 @@ export interface Task {
   status: string;
   priority: string;
   dueDate?: string;
+  dueTime?: string;
   scheduledFor?: string;
   estimatedMins?: number;
   projectId?: string;
+  labelIds: string[];
   recurrenceType: string;
+  reminderAt?: string;
   completedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -79,9 +82,32 @@ export interface CreateTaskInput {
   description?: string;
   priority?: string;
   dueDate?: string;
+  dueTime?: string;
   scheduledFor?: string;
   estimatedMins?: number;
   projectId?: string;
+  labelIds?: string[];
+  recurrenceType?: string;
+  reminderAt?: string;
+}
+
+export type UpdateTaskInput = Partial<CreateTaskInput> & { status?: string };
+
+export interface TaskProject {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  icon?: string;
+  orderIndex: number;
+  taskCount: number;
+}
+
+export interface TaskLabel {
+  id: string;
+  name: string;
+  color: string;
+  icon?: string;
 }
 
 export interface Habit {

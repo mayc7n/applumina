@@ -16,7 +16,7 @@ public record UpdateTaskRequest(
     String dueDate,
     String dueTime,
     String scheduledFor,
-    @Positive @Max(10_080) Integer estimatedMins,
+    @Min(0) @Max(10_080) Integer estimatedMins,
     String projectId,
     @Size(max = 50) List<String> labelIds,
     String recurrenceType,

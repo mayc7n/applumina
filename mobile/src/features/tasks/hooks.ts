@@ -1,29 +1,30 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import { apiTarefas } from "@/lib/api/resources";
 import type {
   CreateTaskInput,
-  DashboardData,
-  PagedResponse,
-  Task,
+  UpdateTaskInput,
 } from "@/types/api";
 
 export const chaveTarefas = ["tarefas"] as const;
 export const chavePainel = ["painel"] as const;
-
-function alternarTarefa(tarefa: Task): Task {
-  const concluida = tarefa.status === "DONE";
-  return {
-    ...tarefa,
-    status: concluida ? "TODO" : "DONE",
-    completedAt: concluida ? undefined : new Date().toISOString(),
-  };
-}
+export const chaveProjetosTarefa = ["projetos-tarefa"] as const;
+export const chaveEtiquetasTarefa = ["etiquetas-tarefa"] as const;
 
 export function useListaTarefas(habilitada = true) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: chaveTarefas,
-    queryFn: apiTarefas.listar,
+    queryFn: ({ pageParam }) => apiTarefas.listar(pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (ultimaPagina) =>
+      ultimaPagina.number + 1 < ultimaPagina.totalPages
+        ? ultimaPagina.number + 1
+        : undefined,
     enabled: habilitada,
   });
 }
@@ -39,55 +40,79 @@ export function useCriarTarefa() {
   });
 }
 
+export function useTarefa(id?: string, habilitada = true) {
+  return useQuery({
+    queryKey: [...chaveTarefas, id],
+    queryFn: () => apiTarefas.obter(id as string),
+    enabled: Boolean(id) && habilitada,
+  });
+}
+
+export function useEditarTarefa() {
+  const clienteConsultas = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, entrada }: { id: string; entrada: UpdateTaskInput }) =>
+      apiTarefas.editar(id, entrada),
+    onSuccess: (tarefa) => {
+      clienteConsultas.setQueryData([...chaveTarefas, tarefa.id], tarefa);
+      void clienteConsultas.invalidateQueries({ queryKey: chaveTarefas });
+      void clienteConsultas.invalidateQueries({ queryKey: chavePainel });
+    },
+  });
+}
+
+export function useExcluirTarefa() {
+  const clienteConsultas = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiTarefas.excluir(id),
+    onSuccess: () => {
+      void clienteConsultas.invalidateQueries({ queryKey: chaveTarefas });
+      void clienteConsultas.invalidateQueries({ queryKey: chavePainel });
+    },
+  });
+}
+
 export function useAlternarTarefa() {
   const clienteConsultas = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => apiTarefas.alternarConclusao(id),
-    onMutate: async (id) => {
-      await Promise.all([
-        clienteConsultas.cancelQueries({ queryKey: chaveTarefas }),
-        clienteConsultas.cancelQueries({ queryKey: chavePainel }),
-      ]);
-      const paginaAnterior =
-        clienteConsultas.getQueryData<PagedResponse<Task>>(chaveTarefas);
-      const painelAnterior =
-        clienteConsultas.getQueryData<DashboardData>(chavePainel);
-
-      clienteConsultas.setQueryData<PagedResponse<Task>>(
-        chaveTarefas,
-        (pagina) =>
-          pagina
-            ? {
-                ...pagina,
-                content: pagina.content.map((tarefa) =>
-                  tarefa.id === id ? alternarTarefa(tarefa) : tarefa,
-                ),
-              }
-            : pagina,
-      );
-      clienteConsultas.setQueryData<DashboardData>(chavePainel, (painel) =>
-        painel
-          ? {
-              ...painel,
-              todayTasks: painel.todayTasks.map((tarefa) =>
-                tarefa.id === id ? alternarTarefa(tarefa) : tarefa,
-              ),
-            }
-          : painel,
-      );
-      return { paginaAnterior, painelAnterior };
-    },
-    onError: (_erro, _id, contexto) => {
-      if (contexto?.paginaAnterior) {
-        clienteConsultas.setQueryData(chaveTarefas, contexto.paginaAnterior);
-      }
-      if (contexto?.painelAnterior) {
-        clienteConsultas.setQueryData(chavePainel, contexto.painelAnterior);
-      }
-    },
-    onSettled: () => {
+    onSuccess: () => {
       void clienteConsultas.invalidateQueries({ queryKey: chaveTarefas });
       void clienteConsultas.invalidateQueries({ queryKey: chavePainel });
     },
+  });
+}
+
+export function useProjetosTarefa(habilitada = true) {
+  return useQuery({
+    queryKey: chaveProjetosTarefa,
+    queryFn: apiTarefas.listarProjetos,
+    enabled: habilitada,
+  });
+}
+
+export function useCriarProjetoTarefa() {
+  const clienteConsultas = useQueryClient();
+  return useMutation({
+    mutationFn: apiTarefas.criarProjeto,
+    onSuccess: () =>
+      clienteConsultas.invalidateQueries({ queryKey: chaveProjetosTarefa }),
+  });
+}
+
+export function useEtiquetasTarefa(habilitada = true) {
+  return useQuery({
+    queryKey: chaveEtiquetasTarefa,
+    queryFn: apiTarefas.listarEtiquetas,
+    enabled: habilitada,
+  });
+}
+
+export function useCriarEtiquetaTarefa() {
+  const clienteConsultas = useQueryClient();
+  return useMutation({
+    mutationFn: apiTarefas.criarEtiqueta,
+    onSuccess: () =>
+      clienteConsultas.invalidateQueries({ queryKey: chaveEtiquetasTarefa }),
   });
 }

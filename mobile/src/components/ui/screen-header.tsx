@@ -6,13 +6,15 @@ import { useTemaApp } from "@/theme/theme";
 interface ScreenHeaderProps {
   titulo: string;
   subtitulo?: string;
+  inicio?: ReactNode;
   acao?: ReactNode;
 }
 
-export function ScreenHeader({ titulo, subtitulo, acao }: ScreenHeaderProps) {
+export function ScreenHeader({ titulo, subtitulo, inicio, acao }: ScreenHeaderProps) {
   const tema = useTemaApp();
   return (
     <View style={styles.container}>
+      {inicio}
       <View style={styles.textos}>
         <Text
           accessibilityRole="header"

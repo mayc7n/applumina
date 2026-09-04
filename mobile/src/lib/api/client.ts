@@ -126,6 +126,15 @@ export async function atualizarParcialApi<T>(
   return extrairDados(resposta.data);
 }
 
+export async function atualizarApi<T>(url: string, dados?: unknown): Promise<T> {
+  const resposta = await clienteApi.put<ApiEnvelope<T>>(url, dados);
+  return extrairDados(resposta.data);
+}
+
+export async function excluirApi(url: string): Promise<void> {
+  await clienteApi.delete(url);
+}
+
 export async function enviarPublico<T>(
   url: string,
   dados?: unknown,
