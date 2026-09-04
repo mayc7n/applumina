@@ -2,6 +2,7 @@ import { describe, expect, test } from '@jest/globals';
 
 import {
   criarEsquemaCadastro,
+  criarEsquemaAlteracaoSenha,
   criarEsquemaExclusaoConta,
   criarEsquemaLogin,
 } from './schemas';
@@ -52,6 +53,26 @@ describe('esquemas de autenticação', () => {
     expect(esquema.safeParse({
       confirmation: 'user@example.com',
       password: 'senha-segura',
+    }).success).toBe(true);
+  });
+
+  test('exige confirmação e uma senha nova diferente da atual', () => {
+    const esquema = criarEsquemaAlteracaoSenha(traduzir);
+
+    expect(esquema.safeParse({
+      currentPassword: 'senha-segura',
+      newPassword: 'senha-segura',
+      confirmPassword: 'senha-segura',
+    }).success).toBe(false);
+    expect(esquema.safeParse({
+      currentPassword: 'senha-segura',
+      newPassword: 'senha-nova-segura',
+      confirmPassword: 'outra-senha',
+    }).success).toBe(false);
+    expect(esquema.safeParse({
+      currentPassword: 'senha-segura',
+      newPassword: 'senha-nova-segura',
+      confirmPassword: 'senha-nova-segura',
     }).success).toBe(true);
   });
 });

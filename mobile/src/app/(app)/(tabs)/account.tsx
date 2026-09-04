@@ -334,6 +334,11 @@ export default function TelaConta() {
             {traduzir("conta.privacidadeTitulo")}
           </Text>
           <AppButton
+            rotulo={traduzir("conta.alterarSenha")}
+            variante="secondary"
+            onPress={() => router.push("/change-password")}
+          />
+          <AppButton
             rotulo={traduzir("conta.excluirConta")}
             variante="danger"
             onPress={() => router.push("/delete-account")}

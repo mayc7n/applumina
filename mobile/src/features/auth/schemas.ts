@@ -45,10 +45,33 @@ export function criarEsquemaExclusaoConta(traduzir: Traduzir) {
   });
 }
 
+export function criarEsquemaAlteracaoSenha(traduzir: Traduzir) {
+  return z
+    .object({
+      currentPassword: z.string().min(1, traduzir("validacao.senhaObrigatoria")),
+      newPassword: z
+        .string()
+        .min(8, traduzir("validacao.senhaMinimo"))
+        .max(128, traduzir("validacao.senhaMaximo")),
+      confirmPassword: z.string(),
+    })
+    .refine((valores) => valores.newPassword === valores.confirmPassword, {
+      message: traduzir("validacao.senhasDiferentes"),
+      path: ["confirmPassword"],
+    })
+    .refine((valores) => valores.currentPassword !== valores.newPassword, {
+      message: traduzir("validacao.senhaNovaDiferente"),
+      path: ["newPassword"],
+    });
+}
+
 export type FormularioLogin = z.infer<ReturnType<typeof criarEsquemaLogin>>;
 export type FormularioCadastro = z.infer<
   ReturnType<typeof criarEsquemaCadastro>
 >;
 export type FormularioExclusaoConta = z.infer<
   ReturnType<typeof criarEsquemaExclusaoConta>
+>;
+export type FormularioAlteracaoSenha = z.infer<
+  ReturnType<typeof criarEsquemaAlteracaoSenha>
 >;

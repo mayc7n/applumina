@@ -41,6 +41,20 @@ public class UserController {
         return ApiResponse.success(userService.updatePreferences(principal.getUserId(), request));
     }
 
+    @PatchMapping("/me/password")
+    public ApiResponse<Void> changePassword(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @Valid @RequestBody ChangePasswordRequest request
+    ) {
+        userService.changePassword(
+            principal.getUserId(),
+            principal.getSessionId(),
+            request.currentPassword(),
+            request.newPassword()
+        );
+        return ApiResponse.success(null, "Senha alterada");
+    }
+
     @GetMapping(value = "/me/export", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<byte[]> export(@AuthenticationPrincipal UserPrincipal principal) {
         return ResponseEntity.ok()

@@ -25,6 +25,7 @@ const portuguesBrasil = {
   "validacao.senhaMinimo": "Use pelo menos 8 caracteres.",
   "validacao.senhaMaximo": "Use no máximo 128 caracteres.",
   "validacao.senhasDiferentes": "As senhas não coincidem.",
+  "validacao.senhaNovaDiferente": "Escolha uma senha diferente da atual.",
   "login.destaque": "Bem-vindo de volta",
   "login.titulo": "Entre na sua conta",
   "login.descricao":
@@ -226,6 +227,7 @@ const portuguesBrasil = {
   "conta.visitanteDescricao":
     "Crie uma conta somente quando quiser salvar e sincronizar seus registros.",
   "conta.privacidadeTitulo": "Privacidade e dados",
+  "conta.alterarSenha": "Alterar senha",
   "conta.excluirConta": "Excluir minha conta",
   "exclusao.titulo": "Excluir conta",
   "exclusao.subtitulo": "Uma decisão permanente, protegida por confirmação.",
@@ -247,6 +249,24 @@ const portuguesBrasil = {
   "exclusao.erroIndisponivel":
     "O Lumina está temporariamente indisponível. Tente novamente em instantes.",
   "exclusao.erro": "Não foi possível excluir sua conta.",
+  "senha.titulo": "Alterar senha",
+  "senha.subtitulo": "Confirme sua identidade antes de criar uma nova senha.",
+  "senha.avisoTitulo": "Os outros aparelhos serão desconectados",
+  "senha.avisoDescricao":
+    "Este aparelho continuará conectado. Nos demais, será necessário entrar com a nova senha.",
+  "senha.atual": "Senha atual",
+  "senha.nova": "Nova senha",
+  "senha.confirmarNova": "Confirmar nova senha",
+  "senha.acao": "Salvar nova senha",
+  "senha.sucessoTitulo": "Senha alterada",
+  "senha.sucessoDescricao": "Sua nova senha já está protegendo a conta.",
+  "senha.erroCredenciais": "A senha atual está incorreta.",
+  "senha.erroConexao":
+    "Não foi possível conectar ao Lumina. Verifique sua internet e tente novamente.",
+  "senha.erroTimeout": "A conexão demorou mais que o esperado.",
+  "senha.erroIndisponivel":
+    "O Lumina está temporariamente indisponível. Tente novamente em instantes.",
+  "senha.erro": "Não foi possível alterar sua senha.",
   "treinos.titulo": "Treinos",
   "treinos.vazioTitulo": "Nenhum treino registrado",
   "treinos.vazioDescricao":
@@ -293,6 +313,7 @@ const ingles: Record<ChaveTraducao, string> = {
   "validacao.senhaMinimo": "Use at least 8 characters.",
   "validacao.senhaMaximo": "Use at most 128 characters.",
   "validacao.senhasDiferentes": "Passwords do not match.",
+  "validacao.senhaNovaDiferente": "Choose a password different from your current one.",
   "login.destaque": "Welcome back",
   "login.titulo": "Sign in to your account",
   "login.descricao":
@@ -493,6 +514,7 @@ const ingles: Record<ChaveTraducao, string> = {
   "conta.visitanteDescricao":
     "Create an account only when you want to save and sync your records.",
   "conta.privacidadeTitulo": "Privacy and data",
+  "conta.alterarSenha": "Change password",
   "conta.excluirConta": "Delete my account",
   "exclusao.titulo": "Delete account",
   "exclusao.subtitulo": "A permanent decision protected by confirmation.",
@@ -514,6 +536,24 @@ const ingles: Record<ChaveTraducao, string> = {
   "exclusao.erroIndisponivel":
     "Lumina is temporarily unavailable. Try again in a moment.",
   "exclusao.erro": "We could not delete your account.",
+  "senha.titulo": "Change password",
+  "senha.subtitulo": "Confirm your identity before creating a new password.",
+  "senha.avisoTitulo": "Other devices will be signed out",
+  "senha.avisoDescricao":
+    "This device will remain signed in. Other devices will need the new password.",
+  "senha.atual": "Current password",
+  "senha.nova": "New password",
+  "senha.confirmarNova": "Confirm new password",
+  "senha.acao": "Save new password",
+  "senha.sucessoTitulo": "Password changed",
+  "senha.sucessoDescricao": "Your new password is now protecting the account.",
+  "senha.erroCredenciais": "The current password is incorrect.",
+  "senha.erroConexao":
+    "Could not connect to Lumina. Check your internet connection and try again.",
+  "senha.erroTimeout": "The connection took longer than expected.",
+  "senha.erroIndisponivel":
+    "Lumina is temporarily unavailable. Try again in a moment.",
+  "senha.erro": "We could not change your password.",
   "treinos.titulo": "Workouts",
   "treinos.vazioTitulo": "No workouts recorded",
   "treinos.vazioDescricao":

@@ -9,6 +9,7 @@ import {
 
 import type {
   CreateTaskInput,
+  ChangePasswordInput,
   DashboardData,
   DeleteAccountInput,
   LoginInput,
@@ -36,6 +37,8 @@ export const apiAutenticacaoMobile = {
 
 export const apiUsuarios = {
   atual: () => obterApi<User>("/users/me"),
+  alterarSenha: (entrada: ChangePasswordInput) =>
+    atualizarParcialApi<void>("/users/me/password", entrada),
   excluir: (entrada: DeleteAccountInput) =>
     excluirApi("/users/me", entrada),
 };
