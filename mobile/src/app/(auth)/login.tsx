@@ -13,7 +13,7 @@ import {
   type FormularioLogin,
 } from "@/features/auth/schemas";
 import { useIdioma } from "@/i18n/idioma";
-import { obterMensagemErroApi } from "@/lib/api/errors";
+import { classificarFalhaApi } from "@/lib/api/errors";
 import { useArmazenamentoAutenticacao } from "@/store/auth-store";
 import { useTemaApp } from "@/theme/theme";
 
@@ -40,8 +40,18 @@ export default function TelaLogin() {
       await entrar(valores);
       router.replace("/home");
     } catch (erro) {
+      const mensagens = {
+        credenciais: traduzir("login.erroCredenciais"),
+        semConexao: traduzir("login.erroConexao"),
+        timeout: traduzir("login.erroTimeout"),
+        indisponivel: traduzir("login.erroIndisponivel"),
+        configuracao: __DEV__
+          ? traduzir("login.erroConfiguracao")
+          : traduzir("login.erro"),
+        desconhecido: traduzir("login.erro"),
+      } as const;
       definirErro("root", {
-        message: obterMensagemErroApi(erro, traduzir("login.erro"), false),
+        message: mensagens[classificarFalhaApi(erro)],
       });
     }
   }

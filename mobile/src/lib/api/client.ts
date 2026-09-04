@@ -33,6 +33,11 @@ let promessaRenovacao: Promise<void> | null = null;
 
 function garantirApiConfigurada(): void {
   if (!urlApiConfigurada) throw new ErroConfiguracaoApi();
+  if (!__DEV__ && urlApiConfigurada.startsWith("http://")) {
+    throw new ErroConfiguracaoApi(
+      "A API deve usar HTTPS fora do build local de desenvolvimento.",
+    );
+  }
 }
 
 function extrairDados<T>(conteudo: ApiEnvelope<T>): T {

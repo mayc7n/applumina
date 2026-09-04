@@ -40,11 +40,8 @@ public class AuthService {
         String email = normalizeEmail(request.email());
         String username = request.username().trim().toLowerCase(Locale.ROOT);
 
-        if (userRepository.existsByEmail(email)) {
-            throw new ConflictException("Já existe uma conta com este e-mail");
-        }
-        if (userRepository.existsByUsername(username)) {
-            throw new ConflictException("Este nome de usuário já está em uso");
+        if (userRepository.existsByEmail(email) || userRepository.existsByUsername(username)) {
+            throw new ConflictException("Não foi possível usar estes dados para criar a conta");
         }
 
         User user = User.builder()

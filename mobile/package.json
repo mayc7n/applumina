@@ -42,10 +42,10 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start --dev-client",
-    "start:go": "expo start --go",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
+    "start": "APP_VARIANT=development expo start --dev-client",
+    "start:go": "APP_VARIANT=development expo start --go",
+    "android": "APP_VARIANT=development expo run:android",
+    "ios": "APP_VARIANT=development expo run:ios",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "jest --runInBand",
