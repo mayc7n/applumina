@@ -40,6 +40,9 @@ export interface ChangePasswordInput {
   newPassword: string;
 }
 
+export interface ForgotPasswordInput { email: string; }
+export interface ResetPasswordInput { token: string; newPassword: string; }
+
 export interface User {
   id: string;
   email: string;

@@ -65,6 +65,19 @@ export function criarEsquemaAlteracaoSenha(traduzir: Traduzir) {
     });
 }
 
+export function criarEsquemaRecuperacaoSenha(traduzir: Traduzir) {
+  return z.object({ email: z.string().trim().email(traduzir("validacao.email")) });
+}
+
+export function criarEsquemaRedefinicaoSenha(traduzir: Traduzir) {
+  return z.object({
+    newPassword: z.string().min(8, traduzir("validacao.senhaMinimo")).max(128, traduzir("validacao.senhaMaximo")),
+    confirmPassword: z.string(),
+  }).refine((valores) => valores.newPassword === valores.confirmPassword, {
+    message: traduzir("validacao.senhasDiferentes"), path: ["confirmPassword"],
+  });
+}
+
 export type FormularioLogin = z.infer<ReturnType<typeof criarEsquemaLogin>>;
 export type FormularioCadastro = z.infer<
   ReturnType<typeof criarEsquemaCadastro>
@@ -75,3 +88,5 @@ export type FormularioExclusaoConta = z.infer<
 export type FormularioAlteracaoSenha = z.infer<
   ReturnType<typeof criarEsquemaAlteracaoSenha>
 >;
+export type FormularioRecuperacaoSenha = z.infer<ReturnType<typeof criarEsquemaRecuperacaoSenha>>;
+export type FormularioRedefinicaoSenha = z.infer<ReturnType<typeof criarEsquemaRedefinicaoSenha>>;

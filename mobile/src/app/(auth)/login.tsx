@@ -135,6 +135,15 @@ export default function TelaLogin() {
           carregando={enviando}
           onPress={tratarEnvio(enviar)}
         />
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => router.push("/forgot-password")}
+          style={styles.linkSenha}
+        >
+          <Text style={[styles.link, { color: tema.cores.marca }]}>
+            {traduzir("login.esqueciSenha")}
+          </Text>
+        </Pressable>
         <View style={styles.rodape}>
           <Text style={{ color: tema.cores.textoSecundario }}>
             {traduzir("login.semConta")}
@@ -164,4 +173,5 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   link: { fontWeight: "700" },
+  linkSenha: { alignItems: "center", justifyContent: "center", minHeight: 44 },
 });

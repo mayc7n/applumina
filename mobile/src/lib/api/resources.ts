@@ -12,9 +12,11 @@ import type {
   ChangePasswordInput,
   DashboardData,
   DeleteAccountInput,
+  ForgotPasswordInput,
   LoginInput,
   PagedResponse,
   RegisterInput,
+  ResetPasswordInput,
   Task,
   TaskLabel,
   TaskProject,
@@ -29,6 +31,10 @@ export const apiAutenticacaoMobile = {
     enviarPublico<TokenPair>("/auth/mobile/login", entrada),
   cadastrar: (entrada: RegisterInput) =>
     enviarPublico<TokenPair>("/auth/mobile/register", entrada),
+  solicitarRedefinicao: (entrada: ForgotPasswordInput) =>
+    enviarPublico<void>("/auth/forgot-password", entrada),
+  redefinirSenha: (entrada: ResetPasswordInput) =>
+    enviarPublico<void>("/auth/reset-password", entrada),
   sair: (tokenRenovacao: string) =>
     enviarPublico<void>("/auth/mobile/logout", {
       refreshToken: tokenRenovacao,

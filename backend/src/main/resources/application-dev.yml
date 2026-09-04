@@ -26,8 +26,8 @@ spring:
 
   # Dev mail — MailHog or log only
   mail:
-    host: localhost
-    port: 1025
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
     username: ''
     password: ''
     properties:

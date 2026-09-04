@@ -30,6 +30,8 @@ spring:
     max-request-size: 2MB
 
 lumina:
+  auth.password-reset-url: ${PASSWORD_RESET_URL:lumina://reset-password}
+  mail.from: ${MAIL_FROM:no-reply@lumina.app}
   security:
     jwt:
       secret: ${JWT_SECRET:change-this-secret-minimum-32-characters-long}

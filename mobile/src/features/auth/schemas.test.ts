@@ -3,6 +3,8 @@ import { describe, expect, test } from '@jest/globals';
 import {
   criarEsquemaCadastro,
   criarEsquemaAlteracaoSenha,
+  criarEsquemaRecuperacaoSenha,
+  criarEsquemaRedefinicaoSenha,
   criarEsquemaExclusaoConta,
   criarEsquemaLogin,
 } from './schemas';
@@ -73,6 +75,17 @@ describe('esquemas de autenticação', () => {
       currentPassword: 'senha-segura',
       newPassword: 'senha-nova-segura',
       confirmPassword: 'senha-nova-segura',
+    }).success).toBe(true);
+  });
+
+  test('valida pedido e redefinição de senha', () => {
+    expect(criarEsquemaRecuperacaoSenha(traduzir).safeParse({ email: 'invalido' }).success).toBe(false);
+    expect(criarEsquemaRecuperacaoSenha(traduzir).safeParse({ email: 'user@example.com' }).success).toBe(true);
+    expect(criarEsquemaRedefinicaoSenha(traduzir).safeParse({
+      newPassword: 'senha-segura', confirmPassword: 'outra',
+    }).success).toBe(false);
+    expect(criarEsquemaRedefinicaoSenha(traduzir).safeParse({
+      newPassword: 'senha-segura', confirmPassword: 'senha-segura',
     }).success).toBe(true);
   });
 });

@@ -70,6 +70,18 @@ public class AuthController {
         return ApiResponse.success(null, "Sessão encerrada");
     }
 
+    @PostMapping("/forgot-password")
+    public ApiResponse<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.requestPasswordReset(request.email());
+        return ApiResponse.success(null, "Se a conta puder ser recuperada, enviaremos as instruções");
+    }
+
+    @PostMapping("/reset-password")
+    public ApiResponse<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.token(), request.newPassword());
+        return ApiResponse.success(null, "Senha redefinida");
+    }
+
     @GetMapping("/sessions")
     public ApiResponse<List<UserSessionResponse>> sessions(
         @AuthenticationPrincipal UserPrincipal principal
