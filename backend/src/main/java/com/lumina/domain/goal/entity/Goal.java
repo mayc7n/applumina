@@ -11,6 +11,8 @@ import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
 
+import static com.lumina.shared.PaletaLumina.COR_MARCA_PADRAO;
+
 @Entity @Table(name="goals")
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor @EqualsAndHashCode(of="id")
 public class Goal {
@@ -19,7 +21,7 @@ public class Goal {
     @Column(name="title",nullable=false,length=200) private String title;
     @Column(name="description",columnDefinition="TEXT") private String description;
     @Column(name="icon",length=50) private String icon;  // Lucide icon key
-    @Column(name="color",nullable=false,length=20) @Builder.Default private String color="#8b5cf6";
+    @Column(name="color",nullable=false,length=20) @Builder.Default private String color=COR_MARCA_PADRAO;
     @Enumerated(EnumType.STRING) @JdbcTypeCode(SqlTypes.NAMED_ENUM) @Column(name="status",nullable=false) @Builder.Default private GoalStatus status=GoalStatus.ACTIVE;
     @Enumerated(EnumType.STRING) @JdbcTypeCode(SqlTypes.NAMED_ENUM) @Column(name="period",nullable=false) @Builder.Default private GoalPeriod period=GoalPeriod.YEARLY;
     @Column(name="start_date",nullable=false) @Builder.Default private LocalDate startDate=LocalDate.now();

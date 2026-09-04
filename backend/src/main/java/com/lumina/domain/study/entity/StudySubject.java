@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+import static com.lumina.shared.PaletaLumina.COR_MARCA_PADRAO;
+
 @Entity
 @Table(name = "study_subjects")
 @Getter
@@ -25,7 +27,7 @@ public class StudySubject {
     private User user;
     @Column(name = "name", nullable = false, length = 200) private String name;
     @Column(name = "description", length = 500) private String description;
-    @Column(name = "color", nullable = false, length = 20) @Builder.Default private String color = "#6366f1";
+    @Column(name = "color", nullable = false, length = 20) @Builder.Default private String color = COR_MARCA_PADRAO;
     @Column(name = "icon", length = 50) private String icon;
     @Column(name = "goal_hours", precision = 6, scale = 1) private BigDecimal goalHours;
     @Column(name = "is_archived", nullable = false) @Builder.Default private boolean archived = false;

@@ -17,6 +17,8 @@ import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
 
+import static com.lumina.shared.PaletaLumina.COR_MARCA_PADRAO;
+
 @Service
 @RequiredArgsConstructor
 public class HabitService {
@@ -50,7 +52,7 @@ public class HabitService {
             .name(request.name().trim())
             .description(trimToNull(request.description()))
             .icon(StringUtils.hasText(request.icon()) ? request.icon().trim() : "flame")
-            .color(StringUtils.hasText(request.color()) ? request.color().trim() : "#6366f1")
+            .color(StringUtils.hasText(request.color()) ? request.color().trim() : COR_MARCA_PADRAO)
             .habitType(parseOptionalEnum(HabitType.class, request.habitType(), HabitType.BUILD, "tipo"))
             .frequency(parseOptionalEnum(HabitFrequency.class, request.frequency(), HabitFrequency.DAILY, "frequência"))
             .frequencyDays(validateDays(request.frequencyDays()))

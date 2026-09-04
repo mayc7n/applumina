@@ -9,12 +9,14 @@ import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
 
+import static com.lumina.shared.PaletaLumina.COR_MARCA_PADRAO;
+
 @Entity @Table(name="labels")
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor @EqualsAndHashCode(of="id")
 public class Label {
     @Id @UuidGenerator @Column(name="id",updatable=false,nullable=false) private UUID id;
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="user_id",nullable=false) private User user;
     @Column(name="name",nullable=false,length=50) private String name;
-    @Column(name="color",nullable=false,length=20) @Builder.Default private String color="#C63C24";
+    @Column(name="color",nullable=false,length=20) @Builder.Default private String color=COR_MARCA_PADRAO;
     @Column(name="icon",length=50) private String icon;
 }

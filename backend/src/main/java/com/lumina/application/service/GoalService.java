@@ -16,6 +16,8 @@ import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
 
+import static com.lumina.shared.PaletaLumina.COR_MARCA_PADRAO;
+
 @Service
 @RequiredArgsConstructor
 public class GoalService {
@@ -64,7 +66,7 @@ public class GoalService {
             .user(userRepository.getReferenceById(userId))
             .title(request.title().trim()).description(trimToNull(request.description()))
             .icon(StringUtils.hasText(request.icon()) ? request.icon().trim() : "target")
-            .color(StringUtils.hasText(request.color()) ? request.color().trim() : "#8b5cf6")
+            .color(StringUtils.hasText(request.color()) ? request.color().trim() : COR_MARCA_PADRAO)
             .period(parseEnum(GoalPeriod.class, request.period(), "período"))
             .startDate(startDate).endDate(endDate).targetValue(target)
             .unit(trimToNull(request.unit())).isPublic(Boolean.TRUE.equals(request.isPublic())).build());

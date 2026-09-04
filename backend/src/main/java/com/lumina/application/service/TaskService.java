@@ -18,6 +18,8 @@ import org.springframework.util.StringUtils;
 import java.time.*;
 import java.util.*;
 
+import static com.lumina.shared.PaletaLumina.COR_MARCA_PADRAO;
+
 @Service
 @RequiredArgsConstructor
 public class TaskService {
@@ -186,7 +188,7 @@ public class TaskService {
             .user(userRepository.getReferenceById(userId))
             .name(name)
             .description(trimToNull(request.description()))
-            .color(StringUtils.hasText(request.color()) ? request.color() : "#C63C24")
+            .color(StringUtils.hasText(request.color()) ? request.color() : COR_MARCA_PADRAO)
             .icon(trimToNull(request.icon()))
             .orderIndex(order)
             .build());
@@ -213,7 +215,7 @@ public class TaskService {
         Label label = labelRepository.save(Label.builder()
             .user(userRepository.getReferenceById(userId))
             .name(name)
-            .color(StringUtils.hasText(request.color()) ? request.color() : "#C63C24")
+            .color(StringUtils.hasText(request.color()) ? request.color() : COR_MARCA_PADRAO)
             .icon(trimToNull(request.icon()))
             .build());
         return new LabelResponse(label.getId().toString(), label.getName(), label.getColor(), label.getIcon());
