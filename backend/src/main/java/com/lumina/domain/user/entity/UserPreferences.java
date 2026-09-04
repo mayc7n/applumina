@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 
+import static com.lumina.shared.PaletaLumina.COR_MARCA_PADRAO;
+
 @Entity
 @Table(name = "user_preferences")
 @Getter
@@ -20,7 +22,7 @@ import java.util.*;
 public class UserPreferences {
     @Id @Column(name = "user_id", nullable = false) private UUID userId;
     @Column(name = "theme", nullable = false, length = 20) @Builder.Default private String theme = "system";
-    @Column(name = "accent_color", nullable = false, length = 20) @Builder.Default private String accentColor = "indigo";
+    @Column(name = "accent_color", nullable = false, length = 20) @Builder.Default private String accentColor = COR_MARCA_PADRAO;
     @Column(name = "week_starts_on", nullable = false) @Builder.Default private short weekStartsOn = 1;
     @Column(name = "daily_goal_hours", nullable = false, precision = 4, scale = 1) @Builder.Default private BigDecimal dailyGoalHours = BigDecimal.valueOf(4);
     @JdbcTypeCode(SqlTypes.JSON) @Column(name = "notification_settings", nullable = false, columnDefinition = "jsonb")
