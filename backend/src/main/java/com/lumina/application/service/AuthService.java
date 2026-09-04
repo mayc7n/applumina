@@ -115,6 +115,10 @@ public class AuthService {
             storedToken.revoke();
             throw invalidRefreshToken();
         }
+        if (!storedToken.getUser().isActive()) {
+            revokeAll(storedToken.getUser().getId());
+            throw invalidRefreshToken();
+        }
 
         UUID tokenSessionId = jwtService.extractSessionId(rawToken);
         if (session != null && (!session.isUsable() || !session.getId().equals(tokenSessionId))) {

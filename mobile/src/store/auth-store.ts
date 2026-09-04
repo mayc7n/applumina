@@ -8,7 +8,13 @@ import {
   registrarAoExpirarSessao,
   salvarParTokens,
 } from "@/lib/auth/session";
-import type { LoginInput, RegisterInput, TokenPair, User } from "@/types/api";
+import type {
+  DeleteAccountInput,
+  LoginInput,
+  RegisterInput,
+  TokenPair,
+  User,
+} from "@/types/api";
 
 type EstadoAutenticacao = "inicializando" | "autenticado" | "naoAutenticado";
 
@@ -19,6 +25,7 @@ interface AuthState {
   entrar: (entrada: LoginInput) => Promise<void>;
   cadastrar: (entrada: RegisterInput) => Promise<void>;
   sair: () => Promise<void>;
+  excluirConta: (entrada: DeleteAccountInput) => Promise<void>;
   marcarNaoAutenticado: () => void;
 }
 
@@ -77,6 +84,15 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
       if (refreshToken) await apiAutenticacaoMobile.sair(refreshToken);
     } finally {
       await limparSessao();
+      definir({ estado: "naoAutenticado", usuario: null });
+    }
+  },
+
+  excluirConta: async (entrada) => {
+    await apiUsuarios.excluir(entrada);
+    try {
+      await limparSessao();
+    } finally {
       definir({ estado: "naoAutenticado", usuario: null });
     }
   },

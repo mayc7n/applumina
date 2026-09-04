@@ -38,7 +38,17 @@ export function criarEsquemaCadastro(traduzir: Traduzir) {
     });
 }
 
+export function criarEsquemaExclusaoConta(traduzir: Traduzir) {
+  return z.object({
+    confirmation: z.string().trim().email(traduzir("validacao.email")),
+    password: z.string().min(1, traduzir("validacao.senhaObrigatoria")),
+  });
+}
+
 export type FormularioLogin = z.infer<ReturnType<typeof criarEsquemaLogin>>;
 export type FormularioCadastro = z.infer<
   ReturnType<typeof criarEsquemaCadastro>
+>;
+export type FormularioExclusaoConta = z.infer<
+  ReturnType<typeof criarEsquemaExclusaoConta>
 >;

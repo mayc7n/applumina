@@ -145,8 +145,8 @@ export async function atualizarApi<T>(url: string, dados?: unknown): Promise<T> 
   return extrairDados(resposta.data);
 }
 
-export async function excluirApi(url: string): Promise<void> {
-  await clienteApi.delete(url);
+export async function excluirApi(url: string, dados?: unknown): Promise<void> {
+  await clienteApi.delete(url, { data: dados });
 }
 
 export async function enviarPublico<T>(

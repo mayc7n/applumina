@@ -11,15 +11,19 @@ import com.lumina.domain.user.entity.User;
 import com.lumina.domain.user.entity.UserPreferences;
 import com.lumina.domain.user.repository.UserRepository;
 import com.lumina.domain.user.repository.UserPreferencesRepository;
+import com.lumina.domain.user.repository.RefreshTokenRepository;
+import com.lumina.domain.user.repository.UserSessionRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.DateTimeException;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -28,8 +32,11 @@ import java.util.*;
 public class UserService {
     private final UserRepository userRepository;
     private final UserPreferencesRepository preferencesRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final UserSessionRepository userSessionRepository;
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public UserResponse getCurrentUser(UUID userId) {
@@ -104,12 +111,36 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteAccount(UUID userId, String confirmation) {
+    public void deleteAccount(UUID userId, String confirmation, String password) {
         User user = getUser(userId);
-        if (!user.getEmail().equalsIgnoreCase(confirmation)) {
+        if (!user.getEmail().equalsIgnoreCase(confirmation.trim())) {
             throw validation("Confirmação de e-mail inválida");
         }
-        user.softDelete();
+        if (user.getPasswordHash() == null) {
+            throw new BusinessException(
+                "PROVIDER_REAUTH_REQUIRED",
+                "Confirme sua identidade com o provedor conectado",
+                HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throw new BusinessException(
+                "INVALID_CREDENTIALS",
+                "Senha incorreta",
+                HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+        Instant now = Instant.now();
+        refreshTokenRepository.revokeAllActiveByUserId(userId, now);
+        userSessionRepository.revokeAllByUserId(userId);
+        jdbcTemplate.update(
+            "INSERT INTO audit_logs (user_id, action, entity_type, entity_id) VALUES (?, ?, ?, ?)",
+            userId,
+            "ACCOUNT_DELETED",
+            "USER",
+            userId
+        );
+        userRepository.delete(user);
     }
 
     private User getUser(UUID userId) {

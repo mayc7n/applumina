@@ -55,6 +55,10 @@ public class UserController {
     public void delete(
         @AuthenticationPrincipal UserPrincipal principal, @Valid @RequestBody DeleteAccountRequest request
     ) {
-        userService.deleteAccount(principal.getUserId(), request.confirmation());
+        userService.deleteAccount(
+            principal.getUserId(),
+            request.confirmation(),
+            request.password()
+        );
     }
 }

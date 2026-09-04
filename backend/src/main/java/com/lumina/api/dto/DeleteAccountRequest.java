@@ -4,4 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record DeleteAccountRequest(@NotBlank @Email @Size(max = 255) String confirmation) {}
+public record DeleteAccountRequest(
+    @NotBlank @Email @Size(max = 255) String confirmation,
+    @NotBlank @Size(max = 128) String password
+) {}

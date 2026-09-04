@@ -225,6 +225,28 @@ const portuguesBrasil = {
   "conta.visitanteTitulo": "Você está explorando sem conta",
   "conta.visitanteDescricao":
     "Crie uma conta somente quando quiser salvar e sincronizar seus registros.",
+  "conta.privacidadeTitulo": "Privacidade e dados",
+  "conta.excluirConta": "Excluir minha conta",
+  "exclusao.titulo": "Excluir conta",
+  "exclusao.subtitulo": "Uma decisão permanente, protegida por confirmação.",
+  "exclusao.alertaTitulo": "Seus dados serão removidos",
+  "exclusao.alertaDescricao":
+    "O Lumina excluirá seu perfil, registros, amizades e sessões. Esta ação não pode ser desfeita.",
+  "exclusao.confirmacaoInstrucao":
+    "Digite o e-mail da conta e sua senha atual para continuar.",
+  "exclusao.emailConfirmacao": "E-mail da conta",
+  "exclusao.acao": "Excluir conta permanentemente",
+  "exclusao.confirmarTitulo": "Excluir sua conta?",
+  "exclusao.confirmarDescricao":
+    "Esta é a confirmação final. Seus dados serão removidos permanentemente.",
+  "exclusao.confirmar": "Excluir permanentemente",
+  "exclusao.erroCredenciais": "O e-mail ou a senha não conferem.",
+  "exclusao.erroConexao":
+    "Não foi possível conectar ao Lumina. Verifique sua internet e tente novamente.",
+  "exclusao.erroTimeout": "A conexão demorou mais que o esperado.",
+  "exclusao.erroIndisponivel":
+    "O Lumina está temporariamente indisponível. Tente novamente em instantes.",
+  "exclusao.erro": "Não foi possível excluir sua conta.",
   "treinos.titulo": "Treinos",
   "treinos.vazioTitulo": "Nenhum treino registrado",
   "treinos.vazioDescricao":
@@ -470,6 +492,28 @@ const ingles: Record<ChaveTraducao, string> = {
   "conta.visitanteTitulo": "You are exploring without an account",
   "conta.visitanteDescricao":
     "Create an account only when you want to save and sync your records.",
+  "conta.privacidadeTitulo": "Privacy and data",
+  "conta.excluirConta": "Delete my account",
+  "exclusao.titulo": "Delete account",
+  "exclusao.subtitulo": "A permanent decision protected by confirmation.",
+  "exclusao.alertaTitulo": "Your data will be removed",
+  "exclusao.alertaDescricao":
+    "Lumina will delete your profile, records, friendships, and sessions. This action cannot be undone.",
+  "exclusao.confirmacaoInstrucao":
+    "Enter the account email and your current password to continue.",
+  "exclusao.emailConfirmacao": "Account email",
+  "exclusao.acao": "Delete account permanently",
+  "exclusao.confirmarTitulo": "Delete your account?",
+  "exclusao.confirmarDescricao":
+    "This is the final confirmation. Your data will be permanently removed.",
+  "exclusao.confirmar": "Delete permanently",
+  "exclusao.erroCredenciais": "The email or password does not match.",
+  "exclusao.erroConexao":
+    "Could not connect to Lumina. Check your internet connection and try again.",
+  "exclusao.erroTimeout": "The connection took longer than expected.",
+  "exclusao.erroIndisponivel":
+    "Lumina is temporarily unavailable. Try again in a moment.",
+  "exclusao.erro": "We could not delete your account.",
   "treinos.titulo": "Workouts",
   "treinos.vazioTitulo": "No workouts recorded",
   "treinos.vazioDescricao":
