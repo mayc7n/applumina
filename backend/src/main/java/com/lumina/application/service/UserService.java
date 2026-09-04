@@ -143,6 +143,53 @@ public class UserService {
         userRepository.delete(user);
     }
 
+    @Transactional
+    public void changePassword(
+        UUID userId,
+        UUID currentSessionId,
+        String currentPassword,
+        String newPassword
+    ) {
+        User user = getUser(userId);
+        if (user.getPasswordHash() == null) {
+            throw new BusinessException(
+                "PROVIDER_REAUTH_REQUIRED",
+                "Confirme sua identidade com o provedor conectado",
+                HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new BusinessException(
+                "INVALID_CREDENTIALS",
+                "Senha atual incorreta",
+                HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+        if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+            throw validation("Escolha uma senha diferente da atual");
+        }
+        if (currentSessionId == null || userSessionRepository
+            .findByIdAndUserIdAndActiveTrue(currentSessionId, userId).isEmpty()) {
+            throw new BusinessException(
+                "INVALID_SESSION",
+                "Sessão expirada. Entre novamente.",
+                HttpStatus.UNAUTHORIZED
+            );
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        Instant now = Instant.now();
+        refreshTokenRepository.revokeAllActiveExceptSession(userId, currentSessionId, now);
+        userSessionRepository.revokeOthers(userId, currentSessionId);
+        jdbcTemplate.update(
+            "INSERT INTO audit_logs (user_id, action, entity_type, entity_id) VALUES (?, ?, ?, ?)",
+            userId,
+            "PASSWORD_CHANGED",
+            "USER",
+            userId
+        );
+    }
+
     private User getUser(UUID userId) {
         return userRepository.findActiveById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));

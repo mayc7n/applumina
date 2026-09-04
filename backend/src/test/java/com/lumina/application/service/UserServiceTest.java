@@ -3,6 +3,8 @@ package com.lumina.application.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lumina.api.middleware.GlobalExceptionHandler.BusinessException;
 import com.lumina.domain.user.entity.User;
+import com.lumina.domain.user.entity.DeviceType;
+import com.lumina.domain.user.entity.UserSession;
 import com.lumina.domain.user.entity.UserStatus;
 import com.lumina.domain.user.repository.RefreshTokenRepository;
 import com.lumina.domain.user.repository.UserPreferencesRepository;
@@ -104,5 +106,81 @@ class UserServiceTest {
             "USER",
             user.getId()
         );
+    }
+
+    @Test
+    void changesPasswordAndClosesOnlyTheOtherSessions() {
+        UUID currentSessionId = UUID.randomUUID();
+        UserSession currentSession = UserSession.builder()
+            .id(currentSessionId)
+            .user(user)
+            .deviceType(DeviceType.MOBILE_ANDROID)
+            .tokenHash("session-hash")
+            .expiresAt(Instant.now().plusSeconds(600))
+            .build();
+        when(userSessionRepository.findByIdAndUserIdAndActiveTrue(currentSessionId, user.getId()))
+            .thenReturn(Optional.of(currentSession));
+        when(passwordEncoder.matches("senha-atual", "password-hash")).thenReturn(true);
+        when(passwordEncoder.matches("senha-nova", "password-hash")).thenReturn(false);
+        when(passwordEncoder.encode("senha-nova")).thenReturn("new-password-hash");
+
+        userService.changePassword(
+            user.getId(),
+            currentSessionId,
+            "senha-atual",
+            "senha-nova"
+        );
+
+        assertThat(user.getPasswordHash()).isEqualTo("new-password-hash");
+        verify(refreshTokenRepository).revokeAllActiveExceptSession(
+            eq(user.getId()),
+            eq(currentSessionId),
+            any(Instant.class)
+        );
+        verify(userSessionRepository).revokeOthers(user.getId(), currentSessionId);
+        verify(jdbcTemplate).update(
+            "INSERT INTO audit_logs (user_id, action, entity_type, entity_id) VALUES (?, ?, ?, ?)",
+            user.getId(),
+            "PASSWORD_CHANGED",
+            "USER",
+            user.getId()
+        );
+    }
+
+    @Test
+    void preservesPasswordWhenCurrentPasswordIsWrong() {
+        UUID currentSessionId = UUID.randomUUID();
+        when(passwordEncoder.matches("senha-incorreta", "password-hash")).thenReturn(false);
+
+        assertThatThrownBy(() -> userService.changePassword(
+            user.getId(),
+            currentSessionId,
+            "senha-incorreta",
+            "senha-nova"
+        ))
+            .isInstanceOf(BusinessException.class)
+            .hasMessage("Senha atual incorreta");
+
+        assertThat(user.getPasswordHash()).isEqualTo("password-hash");
+        verify(refreshTokenRepository, never()).revokeAllActiveExceptSession(any(), any(), any());
+        verify(userSessionRepository, never()).revokeOthers(any(), any());
+    }
+
+    @Test
+    void rejectsReusingTheCurrentPassword() {
+        UUID currentSessionId = UUID.randomUUID();
+        when(passwordEncoder.matches("mesma-senha", "password-hash")).thenReturn(true);
+
+        assertThatThrownBy(() -> userService.changePassword(
+            user.getId(),
+            currentSessionId,
+            "mesma-senha",
+            "mesma-senha"
+        ))
+            .isInstanceOf(BusinessException.class)
+            .hasMessage("Escolha uma senha diferente da atual");
+
+        assertThat(user.getPasswordHash()).isEqualTo("password-hash");
+        verifyNoInteractions(refreshTokenRepository, userSessionRepository);
     }
 }

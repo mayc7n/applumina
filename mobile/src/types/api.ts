@@ -35,6 +35,11 @@ export interface DeleteAccountInput {
   password: string;
 }
 
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface User {
   id: string;
   email: string;
