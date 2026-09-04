@@ -126,7 +126,9 @@ public class TaskService {
         if (request.dueDate() != null) task.setDueDate(parseDate(request.dueDate(), "data de vencimento"));
         if (request.dueTime() != null) task.setDueTime(parseTime(request.dueTime(), "horário de vencimento"));
         if (request.scheduledFor() != null) task.setScheduledFor(parseDate(request.scheduledFor(), "data agendada"));
-        if (request.estimatedMins() != null) task.setEstimatedMins(validateMinutes(request.estimatedMins()));
+        if (request.estimatedMins() != null) {
+            task.setEstimatedMins(request.estimatedMins() == 0 ? null : validateMinutes(request.estimatedMins()));
+        }
         if (request.projectId() != null) {
             validateProject(userId, request.projectId());
             UUID projectId = parseUuid(request.projectId(), "projeto");

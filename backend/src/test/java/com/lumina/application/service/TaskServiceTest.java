@@ -100,14 +100,16 @@ class TaskServiceTest {
         UUID projectId = UUID.randomUUID();
         task.setProjectId(projectId);
         task.setInbox(false);
+        task.setEstimatedMins(30);
         when(taskRepository.findByIdAndUserIdAndDeletedAtIsNull(taskId, userId)).thenReturn(Optional.of(task));
         UpdateTaskRequest request = new UpdateTaskRequest(
-            null, null, null, null, null, null, null, null, "", null, null, null
+            null, null, null, null, null, null, null, 0, "", null, null, null
         );
 
         var response = taskService.update(userId, taskId, request);
 
         assertThat(response.projectId()).isNull();
+        assertThat(response.estimatedMins()).isNull();
         assertThat(task.isInbox()).isTrue();
         verifyNoInteractions(projectRepository);
     }
