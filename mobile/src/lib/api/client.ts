@@ -1,4 +1,5 @@
 import { create, type InternalAxiosRequestConfig } from "axios";
+import { Platform } from "react-native";
 
 import {
   limparSessao,
@@ -10,23 +11,36 @@ import {
 import type { ApiEnvelope, TokenPair } from "@/types/api";
 
 import { ErroConfiguracaoApi } from "./errors";
+import { criarCabecalhosAparelho } from "./device";
 
 const urlApiConfigurada = process.env.EXPO_PUBLIC_API_URL?.trim().replace(
   /\/$/,
   "",
 );
 const urlApiIndisponivel = "https://invalid.lumina.local/api";
+const cabecalhosAparelho = criarCabecalhosAparelho(
+  Platform.OS,
+  Platform.Version,
+);
 
 const clienteApi = create({
   baseURL: urlApiConfigurada || urlApiIndisponivel,
   timeout: 15_000,
-  headers: { Accept: "application/json", "Content-Type": "application/json" },
+  headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    ...cabecalhosAparelho,
+  },
 });
 
 const transporteAutenticacao = create({
   baseURL: urlApiConfigurada || urlApiIndisponivel,
   timeout: 15_000,
-  headers: { Accept: "application/json", "Content-Type": "application/json" },
+  headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    ...cabecalhosAparelho,
+  },
 });
 
 let promessaRenovacao: Promise<void> | null = null;

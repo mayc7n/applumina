@@ -8,6 +8,8 @@ import com.lumina.api.dto.MobileAuthTokenResponse;
 import com.lumina.api.dto.RefreshTokenRequest;
 import com.lumina.api.dto.RegisterRequest;
 import com.lumina.application.service.AuthService;
+import com.lumina.application.service.AuthSessionContext;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;
@@ -27,23 +29,29 @@ public class MobileAuthController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<MobileAuthTokenResponse>> register(
-        @Valid @RequestBody RegisterRequest request
+        @Valid @RequestBody RegisterRequest request,
+        HttpServletRequest httpRequest
     ) {
-        return tokenResponse(authService.register(request), HttpStatus.CREATED);
+        return tokenResponse(authService.register(request, sessionContext(httpRequest)), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<MobileAuthTokenResponse>> login(
-        @Valid @RequestBody LoginRequest request
+        @Valid @RequestBody LoginRequest request,
+        HttpServletRequest httpRequest
     ) {
-        return tokenResponse(authService.login(request), HttpStatus.OK);
+        return tokenResponse(authService.login(request, sessionContext(httpRequest)), HttpStatus.OK);
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<MobileAuthTokenResponse>> refresh(
-        @Valid @RequestBody RefreshTokenRequest request
+        @Valid @RequestBody RefreshTokenRequest request,
+        HttpServletRequest httpRequest
     ) {
-        return tokenResponse(authService.refresh(request.refreshToken()), HttpStatus.OK);
+        return tokenResponse(
+            authService.refresh(request.refreshToken(), sessionContext(httpRequest)),
+            HttpStatus.OK
+        );
     }
 
     @PostMapping("/logout")
@@ -64,5 +72,13 @@ public class MobileAuthController {
             .cacheControl(CacheControl.noStore())
             .header(HttpHeaders.PRAGMA, "no-cache")
             .body(body);
+    }
+
+    private AuthSessionContext sessionContext(HttpServletRequest request) {
+        return AuthSessionContext.mobile(
+            request.getHeader("X-Device-Type"),
+            request.getHeader("X-Device-Name"),
+            request.getHeader(HttpHeaders.USER_AGENT)
+        );
     }
 }

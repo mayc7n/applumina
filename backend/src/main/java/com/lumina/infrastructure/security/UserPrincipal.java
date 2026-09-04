@@ -5,6 +5,7 @@ import java.util.UUID;
 @Getter @Builder @AllArgsConstructor
 public class UserPrincipal {
     private final UUID userId;
+    private final UUID sessionId;
     private final String email;
     private final String role;
     public boolean isAdmin() { return "ADMIN".equals(role) || "SUPER_ADMIN".equals(role); }

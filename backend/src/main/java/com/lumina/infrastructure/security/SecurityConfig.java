@@ -88,7 +88,8 @@ public class SecurityConfig {
         config.setAllowedOrigins(Arrays.stream(allowedOrigins.split(",")).map(String::trim).toList());
         config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         config.setAllowedHeaders(List.of(
-            "Authorization", "Content-Type", "Accept", "X-Requested-With", "X-Lumina-Legacy-Session"
+            "Authorization", "Content-Type", "Accept", "X-Requested-With", "X-Lumina-Legacy-Session",
+            "X-Device-Type", "X-Device-Name"
         ));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
