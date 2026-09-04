@@ -27,10 +27,15 @@ services:
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MAIL_FROM: no-reply@lumina.local
+      PASSWORD_RESET_URL: lumina://reset-password
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
       rabbitmq: {condition: service_healthy}
+      mailpit: {condition: service_started}
     networks: [lumina-net]
     healthcheck:
       test: ["CMD","curl","-f","http://localhost:8080/api/actuator/health"]
@@ -86,3 +91,10 @@ services:
       interval: 15s
       timeout: 10s
       retries: 5
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_BIND_ADDRESS:-127.0.0.1}:8025:8025"
+    networks: [lumina-net]

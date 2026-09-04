@@ -11,6 +11,7 @@ public class RedisService {
     private final RedisTemplate<String,String> redisTemplate;
     public void set(String k,String v,Duration ttl){ redisTemplate.opsForValue().set(k,v,ttl); }
     public String get(String k){ return redisTemplate.opsForValue().get(k); }
+    public String getAndDelete(String k){ return redisTemplate.opsForValue().getAndDelete(k); }
     public boolean exists(String k){ return Boolean.TRUE.equals(redisTemplate.hasKey(k)); }
     public void delete(String k){ redisTemplate.delete(k); }
     public void deletePattern(String pattern){ try{ Set<String> ks=redisTemplate.keys(pattern); if(ks!=null&&!ks.isEmpty()) redisTemplate.delete(ks); }catch(Exception e){log.warn("Failed delete pattern: {}",pattern);} }

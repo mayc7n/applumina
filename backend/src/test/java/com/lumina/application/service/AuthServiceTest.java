@@ -14,6 +14,8 @@ import com.lumina.domain.user.repository.RefreshTokenRepository;
 import com.lumina.domain.user.repository.UserRepository;
 import com.lumina.domain.user.repository.UserSessionRepository;
 import com.lumina.infrastructure.security.JwtService;
+import com.lumina.infrastructure.cache.RedisService;
+import com.lumina.infrastructure.messaging.EventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -44,6 +47,9 @@ class AuthServiceTest {
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private AuthenticationManager authenticationManager;
     @Mock private JwtService jwtService;
+    @Mock private RedisService redisService;
+    @Mock private EventPublisher eventPublisher;
+    @Mock private JdbcTemplate jdbcTemplate;
 
     private AuthService authService;
     private RegisterRequest request;
@@ -56,7 +62,10 @@ class AuthServiceTest {
             userSessionRepository,
             passwordEncoder,
             authenticationManager,
-            jwtService
+            jwtService,
+            redisService,
+            eventPublisher,
+            jdbcTemplate
         );
         request = new RegisterRequest(
             "pessoa@example.com",
@@ -247,6 +256,61 @@ class AuthServiceTest {
             .hasMessage("Sessão não encontrada");
 
         verifyNoInteractions(refreshTokenRepository);
+    }
+
+    @Test
+    void passwordRecoveryDoesNotRevealAnUnknownEmail() {
+        when(userRepository.findByEmailAndDeletedAtIsNull("ausente@example.com"))
+            .thenReturn(Optional.empty());
+
+        authService.requestPasswordReset(" AUSENTE@example.com ");
+
+        verifyNoInteractions(redisService, eventPublisher);
+    }
+
+    @Test
+    void passwordRecoveryIssuesAnOpaqueShortLivedToken() {
+        User recoverableUser = activeUser(UUID.randomUUID());
+        recoverableUser.setPasswordHash("password-hash");
+        when(userRepository.findByEmailAndDeletedAtIsNull("pessoa@example.com"))
+            .thenReturn(Optional.of(recoverableUser));
+
+        authService.requestPasswordReset("pessoa@example.com");
+
+        verify(redisService).set(
+            org.mockito.ArgumentMatchers.startsWith("password-reset:token:"),
+            eq(recoverableUser.getId().toString()),
+            eq(java.time.Duration.ofMinutes(15))
+        );
+        verify(eventPublisher).publishEmail(
+            eq(recoverableUser.getEmail()),
+            eq(recoverableUser.getDisplayName()),
+            eq("password-reset"),
+            org.mockito.ArgumentMatchers.argThat(vars -> vars.get("url").contains("token="))
+        );
+    }
+
+    @Test
+    void passwordResetConsumesTokenAndClosesEverySession() {
+        UUID userId = UUID.randomUUID();
+        User recoverableUser = activeUser(userId);
+        recoverableUser.setPasswordHash("old-hash");
+        when(redisService.getAndDelete(anyString())).thenReturn(userId.toString());
+        when(userRepository.findActiveById(userId)).thenReturn(Optional.of(recoverableUser));
+        when(passwordEncoder.encode("nova-senha-segura")).thenReturn("new-hash");
+
+        authService.resetPassword("opaque-token", "nova-senha-segura");
+
+        assertThat(recoverableUser.getPasswordHash()).isEqualTo("new-hash");
+        verify(refreshTokenRepository).revokeAllActiveByUserId(eq(userId), any(Instant.class));
+        verify(userSessionRepository).revokeAllByUserId(userId);
+        verify(jdbcTemplate).update(
+            "INSERT INTO audit_logs (user_id, action, entity_type, entity_id) VALUES (?, ?, ?, ?)",
+            userId,
+            "PASSWORD_RESET",
+            "USER",
+            userId
+        );
     }
 
     private void assertGenericRegistrationConflict() {

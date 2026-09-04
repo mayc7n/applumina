@@ -12,7 +12,10 @@ import com.lumina.domain.user.repository.RefreshTokenRepository;
 import com.lumina.domain.user.repository.UserRepository;
 import com.lumina.domain.user.repository.UserSessionRepository;
 import com.lumina.infrastructure.security.JwtService;
+import com.lumina.infrastructure.cache.RedisService;
+import com.lumina.infrastructure.messaging.EventPublisher;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -20,11 +23,17 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.Instant;
+import java.time.Duration;
+import java.util.Base64;
+import java.util.Map;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
@@ -32,6 +41,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -39,6 +49,15 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final RedisService redisService;
+    private final EventPublisher eventPublisher;
+    private final JdbcTemplate jdbcTemplate;
+
+    @Value("${lumina.auth.password-reset-url:lumina://reset-password}")
+    private String passwordResetUrl = "lumina://reset-password";
+
+    private static final Duration PASSWORD_RESET_TTL = Duration.ofMinutes(15);
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Transactional
     public AuthTokenResponse register(RegisterRequest request) {
@@ -181,6 +200,57 @@ public class AuthService {
         session.revoke();
     }
 
+    public void requestPasswordReset(String rawEmail) {
+        String email = normalizeEmail(rawEmail);
+        try {
+            userRepository.findByEmailAndDeletedAtIsNull(email)
+                .filter(User::isActive)
+                .filter(user -> user.getPasswordHash() != null)
+                .ifPresent(user -> {
+                    byte[] bytes = new byte[32];
+                    SECURE_RANDOM.nextBytes(bytes);
+                    String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+                    String tokenHash = hash(token);
+                    String userKey = "password-reset:user:" + user.getId();
+                    String previousHash = redisService.get(userKey);
+                    if (previousHash != null) redisService.delete("password-reset:token:" + previousHash);
+                    redisService.set("password-reset:token:" + tokenHash, user.getId().toString(), PASSWORD_RESET_TTL);
+                    redisService.set(userKey, tokenHash, PASSWORD_RESET_TTL);
+                    eventPublisher.publishEmail(
+                        user.getEmail(),
+                        user.getDisplayName(),
+                        "password-reset",
+                        Map.of("url", passwordResetUrl + "?token=" + token, "locale", user.getLocale())
+                    );
+                });
+        } catch (RuntimeException exception) {
+            log.warn("Password recovery request could not be queued");
+        }
+    }
+
+    @Transactional
+    public void resetPassword(String rawToken, String newPassword) {
+        String tokenHash = hash(rawToken);
+        String userIdValue = redisService.getAndDelete("password-reset:token:" + tokenHash);
+        if (userIdValue == null) throw invalidPasswordResetToken();
+
+        UUID userId;
+        try {
+            userId = UUID.fromString(userIdValue);
+        } catch (IllegalArgumentException exception) {
+            throw invalidPasswordResetToken();
+        }
+        User user = userRepository.findActiveById(userId)
+            .orElseThrow(this::invalidPasswordResetToken);
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        redisService.delete("password-reset:user:" + userId);
+        revokeAll(userId);
+        jdbcTemplate.update(
+            "INSERT INTO audit_logs (user_id, action, entity_type, entity_id) VALUES (?, ?, ?, ?)",
+            userId, "PASSWORD_RESET", "USER", userId
+        );
+    }
+
     private AuthTokenResponse issueTokenPair(User user, UserSession existingSession, AuthSessionContext context) {
         AuthSessionContext safeContext = context != null ? context : AuthSessionContext.unknown();
         UserSession session = existingSession;
@@ -244,6 +314,14 @@ public class AuthService {
             "INVALID_REFRESH_TOKEN",
             "Sessão expirada. Entre novamente.",
             HttpStatus.UNAUTHORIZED
+        );
+    }
+
+    private BusinessException invalidPasswordResetToken() {
+        return new BusinessException(
+            "INVALID_PASSWORD_RESET_TOKEN",
+            "Este link expirou ou já foi utilizado",
+            HttpStatus.UNPROCESSABLE_ENTITY
         );
     }
 

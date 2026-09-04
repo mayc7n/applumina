@@ -1,12 +1,7 @@
 package com.lumina.api.dto;
 
-import jakarta.validation.constraints.*;
-import lombok.Builder;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public record ResetPasswordRequest(
     @NotBlank @Size(max = 2_048) String token,
