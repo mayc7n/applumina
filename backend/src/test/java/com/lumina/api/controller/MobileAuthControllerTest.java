@@ -5,6 +5,9 @@ import com.lumina.api.dto.AuthTokenResponse;
 import com.lumina.api.dto.LoginRequest;
 import com.lumina.api.dto.LogoutRequest;
 import com.lumina.application.service.AuthService;
+import com.lumina.application.service.AuthSessionContext;
+import com.lumina.domain.user.entity.DeviceType;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,9 +35,17 @@ class MobileAuthControllerTest {
     @Test
     void returnsTokenPairOnlyFromDedicatedMobileEndpoint() throws Exception {
         LoginRequest request = new LoginRequest("user@example.com", "strong-password");
-        when(authService.login(request)).thenReturn(tokens());
+        MockHttpServletRequest httpRequest = new MockHttpServletRequest();
+        httpRequest.addHeader("X-Device-Type", "MOBILE_ANDROID");
+        httpRequest.addHeader("X-Device-Name", "Pixel de teste");
+        httpRequest.addHeader(HttpHeaders.USER_AGENT, "Lumina/teste");
+        when(authService.login(request, new AuthSessionContext(
+            DeviceType.MOBILE_ANDROID,
+            "Pixel de teste",
+            "Lumina/teste"
+        ))).thenReturn(tokens());
 
-        var response = controller.login(request);
+        var response = controller.login(request, httpRequest);
         String json = new ObjectMapper().findAndRegisterModules().writeValueAsString(response.getBody());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);

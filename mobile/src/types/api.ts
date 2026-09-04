@@ -50,6 +50,15 @@ export interface User {
   accentColor?: string;
 }
 
+export interface UserSession {
+  id: string;
+  deviceType: "WEB" | "MOBILE_IOS" | "MOBILE_ANDROID" | "DESKTOP";
+  deviceName?: string;
+  lastUsedAt: string;
+  createdAt: string;
+  current: boolean;
+}
+
 export interface PagedResponse<T> {
   content: T[];
   totalElements: number;

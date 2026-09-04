@@ -19,6 +19,7 @@ import type {
   TokenPair,
   UpdateTaskInput,
   User,
+  UserSession,
 } from "@/types/api";
 
 export const apiAutenticacaoMobile = {
@@ -34,6 +35,12 @@ export const apiAutenticacaoMobile = {
 
 export const apiUsuarios = {
   atual: () => obterApi<User>("/users/me"),
+};
+
+export const apiSessoes = {
+  listar: () => obterApi<UserSession[]>("/auth/sessions"),
+  encerrarOutras: () => excluirApi("/auth/sessions/others"),
+  encerrar: (id: string) => excluirApi(`/auth/sessions/${id}`),
 };
 
 export const apiPainel = {

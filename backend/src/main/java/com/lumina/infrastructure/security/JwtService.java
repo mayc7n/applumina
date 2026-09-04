@@ -26,18 +26,19 @@ public class JwtService {
         this.refreshExpMs = refreshExpMs;
     }
 
-    public String generateAccessToken(UUID userId, String email, String role, String plan) {
+    public String generateAccessToken(UUID userId, String email, String role, String plan, UUID sessionId) {
         Instant now = Instant.now();
         return Jwts.builder().id(UUID.randomUUID().toString()).subject(userId.toString())
-            .claim("email", email).claim("role", role).claim("plan", plan).claim("type","access")
+            .claim("email", email).claim("role", role).claim("plan", plan)
+            .claim("sessionId", sessionId.toString()).claim("type","access")
             .issuedAt(Date.from(now)).expiration(Date.from(now.plusMillis(accessExpMs)))
             .signWith(secretKey).compact();
     }
 
-    public String generateRefreshToken(UUID userId) {
+    public String generateRefreshToken(UUID userId, UUID sessionId) {
         Instant now = Instant.now();
         return Jwts.builder().id(UUID.randomUUID().toString()).subject(userId.toString())
-            .claim("type","refresh").issuedAt(Date.from(now))
+            .claim("sessionId", sessionId.toString()).claim("type","refresh").issuedAt(Date.from(now))
             .expiration(Date.from(now.plusMillis(refreshExpMs))).signWith(secretKey).compact();
     }
 
@@ -53,6 +54,10 @@ public class JwtService {
     public String extractUserId(String token)  { return extractClaim(token, Claims::getSubject); }
     public String extractEmail(String token)   { return extractClaim(token, c -> c.get("email",String.class)); }
     public String extractRole(String token)    { return extractClaim(token, c -> c.get("role",String.class)); }
+    public UUID extractSessionId(String token) {
+        String value = extractClaim(token, c -> c.get("sessionId", String.class));
+        return value == null ? null : UUID.fromString(value);
+    }
     public Instant extractExpiration(String token) { return extractClaim(token, c -> c.getExpiration().toInstant()); }
     public long getAccessExpirationSeconds() { return accessExpMs / 1000; }
     public long getRefreshExpirationSeconds() { return refreshExpMs / 1000; }

@@ -193,6 +193,26 @@ const portuguesBrasil = {
   "conta.sessaoTitulo": "Sessão protegida",
   "conta.sessaoDescricao":
     "Sua credencial é guardada pelo Keychain ou Keystore deste aparelho.",
+  "conta.aparelhosTitulo": "Aparelhos conectados",
+  "conta.aparelhosDescricao":
+    "Revise onde sua conta está aberta e encerre acessos que não reconhecer.",
+  "conta.aparelhoAtual": "Este aparelho",
+  "conta.ultimaAtividade": "Última atividade: {data}",
+  "conta.encerrarAparelho": "Encerrar sessão em {aparelho}",
+  "conta.encerrarOutras": "Encerrar outras sessões",
+  "conta.encerrarOutrasTitulo": "Encerrar as outras sessões?",
+  "conta.encerrarOutrasDescricao":
+    "Sua sessão atual continuará aberta. Os outros aparelhos precisarão entrar novamente.",
+  "conta.encerrarUmaTitulo": "Encerrar esta sessão?",
+  "conta.encerrarUmaDescricao":
+    "O aparelho {aparelho} precisará entrar novamente.",
+  "conta.sessoesEncerradas": "As outras sessões foram encerradas.",
+  "conta.sessaoEncerrada": "A sessão foi encerrada.",
+  "conta.sessoesErroTitulo": "Aparelhos indisponíveis",
+  "conta.sessoesErroDescricao":
+    "Não foi possível carregar suas sessões com segurança.",
+  "conta.sessoesErroAcao": "Não foi possível encerrar a sessão.",
+  "conta.nenhumaOutraSessao": "Nenhum outro aparelho conectado.",
   "conta.idiomaTitulo": "Idioma",
   "conta.idiomaSistema":
     "O Lumina acompanha o idioma do aparelho: Português (Brasil) ou English.",
@@ -418,6 +438,26 @@ const ingles: Record<ChaveTraducao, string> = {
   "conta.sessaoTitulo": "Protected session",
   "conta.sessaoDescricao":
     "Your credential is stored in this device's Keychain or Keystore.",
+  "conta.aparelhosTitulo": "Connected devices",
+  "conta.aparelhosDescricao":
+    "Review where your account is signed in and close access you do not recognize.",
+  "conta.aparelhoAtual": "This device",
+  "conta.ultimaAtividade": "Last active: {data}",
+  "conta.encerrarAparelho": "Sign out {aparelho}",
+  "conta.encerrarOutras": "Sign out other devices",
+  "conta.encerrarOutrasTitulo": "Sign out other devices?",
+  "conta.encerrarOutrasDescricao":
+    "This session will remain open. Other devices will need to sign in again.",
+  "conta.encerrarUmaTitulo": "Sign out this device?",
+  "conta.encerrarUmaDescricao":
+    "{aparelho} will need to sign in again.",
+  "conta.sessoesEncerradas": "Other sessions were signed out.",
+  "conta.sessaoEncerrada": "The session was signed out.",
+  "conta.sessoesErroTitulo": "Devices unavailable",
+  "conta.sessoesErroDescricao":
+    "We could not securely load your sessions.",
+  "conta.sessoesErroAcao": "We could not sign out this device.",
+  "conta.nenhumaOutraSessao": "No other connected devices.",
   "conta.idiomaTitulo": "Language",
   "conta.idiomaSistema":
     "Lumina follows your device language: Português (Brasil) or English.",
