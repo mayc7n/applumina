@@ -30,6 +30,11 @@ export interface RegisterInput {
   password: string;
 }
 
+export interface DeleteAccountInput {
+  confirmation: string;
+  password: string;
+}
+
 export interface User {
   id: string;
   email: string;

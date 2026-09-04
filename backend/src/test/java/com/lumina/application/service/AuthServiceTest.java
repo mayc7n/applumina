@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.never;
@@ -166,6 +167,29 @@ class AuthServiceTest {
 
         verify(refreshTokenRepository, never()).revokeAllActiveByUserId(any(), any());
         verify(userSessionRepository, never()).revokeAllByUserId(any());
+    }
+
+    @Test
+    void doesNotRenewADeletedAccount() {
+        UUID userId = UUID.randomUUID();
+        User deletedUser = activeUser(userId);
+        deletedUser.setStatus(UserStatus.DELETED);
+        RefreshToken storedToken = RefreshToken.builder()
+            .user(deletedUser)
+            .tokenHash("stored-hash")
+            .expiresAt(Instant.now().plusSeconds(600))
+            .build();
+        when(jwtService.isValid("deleted-refresh")).thenReturn(true);
+        when(jwtService.isRefreshToken("deleted-refresh")).thenReturn(true);
+        when(refreshTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(storedToken));
+        when(jwtService.extractUserId("deleted-refresh")).thenReturn(userId.toString());
+
+        assertThatThrownBy(() -> authService.refresh("deleted-refresh"))
+            .isInstanceOf(BusinessException.class)
+            .hasMessage("Sessão expirada. Entre novamente.");
+
+        verify(refreshTokenRepository).revokeAllActiveByUserId(eq(userId), any(Instant.class));
+        verify(userSessionRepository).revokeAllByUserId(userId);
     }
 
     @Test

@@ -150,7 +150,10 @@ export default function TelaConta() {
           text: traduzir("conta.confirmar"),
           style: "destructive",
           onPress: () => {
-            void sair().finally(() => router.replace("/login"));
+            void sair().finally(() => {
+              clienteConsulta.clear();
+              router.replace("/login");
+            });
           },
         },
       ],
@@ -326,6 +329,16 @@ export default function TelaConta() {
           titulo={traduzir("conta.idiomaTitulo")}
           descricao={traduzir("conta.idiomaSistema")}
         />
+        <View style={styles.zonaPrivacidade}>
+          <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
+            {traduzir("conta.privacidadeTitulo")}
+          </Text>
+          <AppButton
+            rotulo={traduzir("conta.excluirConta")}
+            variante="danger"
+            onPress={() => router.push("/delete-account")}
+          />
+        </View>
         <AppButton
           rotulo={traduzir("conta.sair")}
           variante="secondary"
@@ -507,4 +520,5 @@ const styles = StyleSheet.create({
   semOutras: { fontSize: 13, lineHeight: 19, paddingVertical: 13 },
   avisoSessao: { alignItems: "center", flexDirection: "row", gap: 8 },
   mensagemSessao: { flex: 1, fontSize: 13, lineHeight: 19 },
+  zonaPrivacidade: { gap: 12, marginTop: 8 },
 });

@@ -1,6 +1,10 @@
 import { describe, expect, test } from '@jest/globals';
 
-import { criarEsquemaCadastro, criarEsquemaLogin } from './schemas';
+import {
+  criarEsquemaCadastro,
+  criarEsquemaExclusaoConta,
+  criarEsquemaLogin,
+} from './schemas';
 
 type Traduzir = Parameters<typeof criarEsquemaLogin>[0];
 
@@ -38,5 +42,16 @@ describe('esquemas de autenticação', () => {
     });
 
     expect(resultado.success).toBe(false);
+  });
+
+  test('exige e-mail válido e senha para excluir a conta', () => {
+    const esquema = criarEsquemaExclusaoConta(traduzir);
+
+    expect(esquema.safeParse({ confirmation: 'invalido', password: '' }).success)
+      .toBe(false);
+    expect(esquema.safeParse({
+      confirmation: 'user@example.com',
+      password: 'senha-segura',
+    }).success).toBe(true);
   });
 });
