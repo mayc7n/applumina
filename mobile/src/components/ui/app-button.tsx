@@ -45,8 +45,15 @@ export function AppButton({
       style={(estadoPressao) => [
         styles.button,
         {
-          backgroundColor: corFundo,
-          opacity: disabled ? 0.45 : estadoPressao.pressed ? 0.8 : 1,
+          backgroundColor:
+            estadoPressao.pressed && variante === "primary"
+              ? tema.cores.marcaPressionada
+              : estadoPressao.pressed && variante === "secondary"
+                ? tema.cores.borda
+                : corFundo,
+          borderColor:
+            variante === "secondary" ? tema.cores.bordaForte : corFundo,
+          opacity: disabled ? 0.45 : 1,
         },
         typeof style === "function" ? style(estadoPressao) : style,
       ]}
@@ -65,6 +72,7 @@ const styles = StyleSheet.create({
   button: {
     alignItems: "center",
     borderRadius: 12,
+    borderWidth: 1,
     justifyContent: "center",
     minHeight: 48,
     paddingHorizontal: 18,

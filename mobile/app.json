@@ -27,7 +27,7 @@
       "package": "app.lumina.productivity",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#F5F3FF",
+        "backgroundColor": "#FFFDFC",
         "foregroundImage": "./assets/adaptive-icon.png"
       },
       "predictiveBackGestureEnabled": true
@@ -37,12 +37,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#6D5CE7",
+          "backgroundColor": "#FFFDFC",
           "image": "./assets/splash-icon.png",
           "imageWidth": 160,
           "dark": {
-            "backgroundColor": "#101014",
-            "image": "./assets/splash-icon.png"
+            "backgroundColor": "#13110F",
+            "image": "./assets/splash-icon-dark.png"
           }
         }
       ],

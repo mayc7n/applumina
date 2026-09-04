@@ -1,5 +1,11 @@
 import { Tabs } from "expo-router";
-import { CheckSquare2, Home, UserRound } from "lucide-react-native";
+import {
+  CheckSquare2,
+  Dumbbell,
+  Home,
+  UserRound,
+  UsersRound,
+} from "lucide-react-native";
 
 import { useIdioma } from "@/i18n/idioma";
 import { useTemaApp } from "@/theme/theme";
@@ -40,6 +46,24 @@ export default function LayoutAbas() {
           title: traduzir("navegacao.tarefas"),
           tabBarIcon: ({ color: cor, size: tamanho }) => (
             <CheckSquare2 color={cor} size={tamanho} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="workouts"
+        options={{
+          title: traduzir("navegacao.treinos"),
+          tabBarIcon: ({ color: cor, size: tamanho }) => (
+            <Dumbbell color={cor} size={tamanho} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="friends"
+        options={{
+          title: traduzir("navegacao.amigos"),
+          tabBarIcon: ({ color: cor, size: tamanho }) => (
+            <UsersRound color={cor} size={tamanho} />
           ),
         }}
       />

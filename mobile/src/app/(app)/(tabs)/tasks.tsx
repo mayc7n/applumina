@@ -25,14 +25,19 @@ import {
 } from "@/features/tasks/hooks";
 import { useIdioma } from "@/i18n/idioma";
 import { obterMensagemErroApi } from "@/lib/api/errors";
+import { useArmazenamentoAutenticacao } from "@/store/auth-store";
 import { useTemaApp } from "@/theme/theme";
+import { router } from "expo-router";
 
 export default function TelaTarefas() {
   const tema = useTemaApp();
   const { traduzir } = useIdioma();
   const [titulo, definirTitulo] = useState("");
   const [erroAcao, definirErroAcao] = useState("");
-  const consulta = useListaTarefas();
+  const autenticado = useArmazenamentoAutenticacao(
+    (armazenamento) => armazenamento.estado === "autenticado",
+  );
+  const consulta = useListaTarefas(autenticado);
   const criar = useCriarTarefa();
   const alternar = useAlternarTarefa();
   const tarefas = useMemo(
@@ -46,6 +51,30 @@ export default function TelaTarefas() {
     }),
     [tarefas],
   );
+
+  if (!autenticado) {
+    return (
+      <SafeAreaView
+        edges={["top", "left", "right"]}
+        style={[styles.tela, { backgroundColor: tema.cores.fundo }]}
+      >
+        <View style={styles.conteudoVisitante}>
+          <ScreenHeader titulo={traduzir("tarefas.titulo")} />
+          <FeedbackState
+            aoAgir={() => router.push("/login")}
+            descricao={traduzir("tarefas.visitanteDescricao")}
+            rotuloAcao={traduzir("comum.entrar")}
+            titulo={traduzir("tarefas.visitanteTitulo")}
+          />
+          <AppButton
+            onPress={() => router.push("/register")}
+            rotulo={traduzir("comum.criarConta")}
+            variante="secondary"
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   async function criarTarefa(): Promise<void> {
     const tituloLimpo = titulo.trim();
@@ -201,6 +230,13 @@ export default function TelaTarefas() {
 const styles = StyleSheet.create({
   tela: { flex: 1 },
   conteudo: {
+    gap: 22,
+    paddingBottom: 32,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+  },
+  conteudoVisitante: {
+    flex: 1,
     gap: 22,
     paddingBottom: 32,
     paddingHorizontal: 20,

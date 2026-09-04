@@ -1,4 +1,3 @@
-import { Image } from "expo-image";
 import type { PropsWithChildren } from "react";
 import {
   KeyboardAvoidingView,
@@ -10,6 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { LuminaMark } from "@/components/brand/lumina-mark";
 import { useTemaApp } from "@/theme/theme";
 
 interface AuthShellProps extends PropsWithChildren {
@@ -40,11 +40,7 @@ export function AuthShell({
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.brandRow}>
-            <Image
-              accessibilityLabel="Logotipo Lumina"
-              source={require("../../../assets/icon.png")}
-              style={styles.logo}
-            />
+            <LuminaMark tamanho={42} />
             <Text style={[styles.brand, { color: tema.cores.texto }]}>
               Lumina
             </Text>
@@ -90,7 +86,6 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 44,
   },
-  logo: { borderRadius: 12, height: 40, width: 40 },
   brand: { fontSize: 21, fontWeight: "800", letterSpacing: -0.4 },
   heading: { gap: 8, marginBottom: 28 },
   eyebrow: { fontSize: 14, fontWeight: "700" },

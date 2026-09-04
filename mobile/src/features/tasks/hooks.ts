@@ -20,8 +20,12 @@ function alternarTarefa(tarefa: Task): Task {
   };
 }
 
-export function useListaTarefas() {
-  return useQuery({ queryKey: chaveTarefas, queryFn: apiTarefas.listar });
+export function useListaTarefas(habilitada = true) {
+  return useQuery({
+    queryKey: chaveTarefas,
+    queryFn: apiTarefas.listar,
+    enabled: habilitada,
+  });
 }
 
 export function useCriarTarefa() {
