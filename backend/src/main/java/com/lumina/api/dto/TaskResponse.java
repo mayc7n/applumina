@@ -13,5 +13,6 @@ public record TaskResponse(
     String id, String title, String description, String status,
     String priority, String dueDate, String dueTime, String scheduledFor,
     Integer estimatedMins, Integer actualMins, String projectId,
-    String recurrenceType, String completedAt, String createdAt, String updatedAt
+    List<String> labelIds, String recurrenceType, String reminderAt,
+    String completedAt, String createdAt, String updatedAt
 ) {}

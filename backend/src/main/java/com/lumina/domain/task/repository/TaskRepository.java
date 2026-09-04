@@ -25,6 +25,8 @@ public interface TaskRepository extends JpaRepository<Task,UUID>, JpaSpecificati
     long countByUserIdAndDeletedAtIsNull(UUID userId);
     long countByProjectIdAndDeletedAtIsNull(UUID projectId);
     List<Task> findAllByIdInAndUserId(List<UUID> ids, UUID userId);
+    boolean existsByRecurrenceSourceIdAndScheduledForAndDeletedAtIsNull(UUID sourceId, LocalDate scheduledFor);
+    boolean existsByRecurrenceSourceIdAndDueDateAndDeletedAtIsNull(UUID sourceId, LocalDate dueDate);
 
     @Query("SELECT COUNT(t) FROM Task t WHERE t.user.id=:uid AND t.status='DONE' AND CAST(t.completedAt AS date)=:date")
     long countCompletedToday(@Param("uid") UUID uid, @Param("date") LocalDate date);

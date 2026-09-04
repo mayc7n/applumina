@@ -23,9 +23,15 @@ public class Task {
     @Enumerated(EnumType.STRING) @JdbcTypeCode(SqlTypes.NAMED_ENUM) @Column(name="status",nullable=false) @Builder.Default private TaskStatus status=TaskStatus.TODO;
     @Enumerated(EnumType.STRING) @JdbcTypeCode(SqlTypes.NAMED_ENUM) @Column(name="priority",nullable=false) @Builder.Default private TaskPriority priority=TaskPriority.NONE;
     @Column(name="due_date") private LocalDate dueDate;
+    @Column(name="due_time") private LocalTime dueTime;
     @Column(name="scheduled_for") private LocalDate scheduledFor;
     @Column(name="estimated_mins") private Integer estimatedMins;
     @Enumerated(EnumType.STRING) @JdbcTypeCode(SqlTypes.NAMED_ENUM) @Column(name="recurrence_type",nullable=false) @Builder.Default private RecurrenceType recurrenceType=RecurrenceType.NONE;
+    @Column(name="reminder_at") private Instant reminderAt;
+    @Column(name="recurrence_source_id") private UUID recurrenceSourceId;
+    @ManyToMany(fetch=FetchType.LAZY)
+    @JoinTable(name="task_labels",joinColumns=@JoinColumn(name="task_id"),inverseJoinColumns=@JoinColumn(name="label_id"))
+    @Builder.Default private Set<Label> labels=new LinkedHashSet<>();
     @Column(name="order_index",nullable=false) @Builder.Default private int orderIndex=0;
     @Column(name="is_inbox",nullable=false) @Builder.Default private boolean inbox=false;
     @Column(name="completed_at") private Instant completedAt;
