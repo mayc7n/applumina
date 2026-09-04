@@ -18,6 +18,49 @@ export default function TelaConta() {
   const sair = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.sair,
   );
+  const autenticado = useArmazenamentoAutenticacao(
+    (armazenamento) => armazenamento.estado === "autenticado",
+  );
+
+  if (!autenticado) {
+    return (
+      <SafeAreaView
+        edges={["top", "left", "right"]}
+        style={[styles.tela, { backgroundColor: tema.cores.fundo }]}
+      >
+        <ScrollView contentContainerStyle={styles.conteudo}>
+          <ScreenHeader titulo={traduzir("conta.titulo")} />
+          <View
+            style={[
+              styles.visitante,
+              {
+                backgroundColor: tema.cores.marcaSuave,
+                borderColor: tema.cores.marcaContorno,
+              },
+            ]}
+          >
+            <Text style={[styles.nome, { color: tema.cores.texto }]}>
+              {traduzir("conta.visitanteTitulo")}
+            </Text>
+            <Text
+              style={[styles.descricaoCartao, { color: tema.cores.textoSecundario }]}
+            >
+              {traduzir("conta.visitanteDescricao")}
+            </Text>
+          </View>
+          <AppButton
+            onPress={() => router.push("/login")}
+            rotulo={traduzir("comum.entrar")}
+          />
+          <AppButton
+            onPress={() => router.push("/register")}
+            rotulo={traduzir("comum.criarConta")}
+            variante="secondary"
+          />
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   function confirmarSaida(): void {
     Alert.alert(
@@ -146,6 +189,12 @@ const styles = StyleSheet.create({
     gap: 14,
     marginBottom: 8,
     padding: 18,
+  },
+  visitante: {
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 8,
+    padding: 20,
   },
   avatar: {
     alignItems: "center",

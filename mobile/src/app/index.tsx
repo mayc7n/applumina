@@ -9,5 +9,5 @@ export default function InicioRoteamento() {
   );
 
   if (estado === "inicializando") return <LoadingScreen />;
-  return <Redirect href={estado === "autenticado" ? "/home" : "/login"} />;
+  return <Redirect href="/home" />;
 }

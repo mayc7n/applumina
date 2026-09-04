@@ -108,5 +108,19 @@ export interface DashboardData {
   focusStats: FocusStats;
   streak: number;
   longestStreak: number;
+  weeklyData: {
+    date: string;
+    tasksCompleted: number;
+    habitRate: number;
+    focusMins: number;
+    productivityScore: number;
+  }[];
+  recentActivity: {
+    id: string;
+    type: string;
+    description: string;
+    icon: string;
+    occurredAt: string;
+  }[];
   moodCheckedIn: boolean;
 }
