@@ -1,0 +1,43 @@
+##############################################
+# Lumina — Production Profile
+##############################################
+
+spring:
+  jpa:
+    properties:
+      hibernate:
+        format_sql: false
+        generate_statistics: false
+
+  flyway:
+    validate-on-migrate: true
+    out-of-order: false
+
+lumina:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+    cookies:
+      secure: true
+  rate-limit:
+    enabled: true
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.lumina: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+
+server:
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false

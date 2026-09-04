@@ -1,0 +1,156 @@
+name: lumina
+
+networks:
+  public:
+  private:
+
+volumes:
+  caddy-data:
+  caddy-config:
+  postgres-data:
+  redis-data:
+  rabbitmq-data:
+
+services:
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?Defina DOMAIN no arquivo .env.production}
+      ACME_EMAIL: ${ACME_EMAIL:?Defina ACME_EMAIL no arquivo .env.production}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./infrastructure/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - public
+      - private
+
+  backend:
+    image: ${BACKEND_IMAGE:-ghcr.io/mayc7n/lumina-backend:latest}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-lumina}
+      DB_USERNAME: ${DB_APP_USERNAME:-lumina_app}
+      DB_PASSWORD: ${DB_APP_PASSWORD:?Defina DB_APP_PASSWORD no arquivo .env.production}
+      SPRING_FLYWAY_USER: ${DB_MIGRATION_USERNAME:-lumina_owner}
+      SPRING_FLYWAY_PASSWORD: ${DB_MIGRATION_PASSWORD:?Defina DB_MIGRATION_PASSWORD no arquivo .env.production}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Defina REDIS_PASSWORD no arquivo .env.production}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-lumina}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?Defina RABBITMQ_PASSWORD no arquivo .env.production}
+      RABBITMQ_VHOST: /lumina
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no arquivo .env.production}
+      CORS_ALLOWED_ORIGINS: https://${DOMAIN:?Defina DOMAIN no arquivo .env.production}
+      JAVA_OPTS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -Djava.security.egd=file:/dev/./urandom
+    expose:
+      - "8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      database-bootstrap:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - private
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-lumina}
+      POSTGRES_USER: ${DB_MIGRATION_USERNAME:-lumina_owner}
+      POSTGRES_PASSWORD: ${DB_MIGRATION_PASSWORD:?Defina DB_MIGRATION_PASSWORD no arquivo .env.production}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - private
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_MIGRATION_USERNAME:-lumina_owner} -d ${DB_NAME:-lumina}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  database-bootstrap:
+    image: postgres:16-alpine
+    restart: "no"
+    environment:
+      DB_NAME: ${DB_NAME:-lumina}
+      DB_MIGRATION_USERNAME: ${DB_MIGRATION_USERNAME:-lumina_owner}
+      DB_MIGRATION_PASSWORD: ${DB_MIGRATION_PASSWORD:?Defina DB_MIGRATION_PASSWORD no arquivo .env.production}
+      DB_APP_USERNAME: ${DB_APP_USERNAME:-lumina_app}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?Defina DB_APP_PASSWORD no arquivo .env.production}
+    volumes:
+      - ./infrastructure/postgres/bootstrap-app-role.sh:/bootstrap-app-role.sh:ro
+    command: ["sh", "/bootstrap-app-role.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - private
+
+  redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --requirepass
+      - ${REDIS_PASSWORD:?Defina REDIS_PASSWORD no arquivo .env.production}
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - private
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-lumina}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Defina RABBITMQ_PASSWORD no arquivo .env.production}
+      RABBITMQ_DEFAULT_VHOST: /lumina
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - private
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
