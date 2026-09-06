@@ -51,8 +51,11 @@ public class SocialController {
     }
 
     @PostMapping("/friends/request/{requestId}/accept")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void accept(@AuthenticationPrincipal UserPrincipal principal, @PathVariable UUID requestId) {
+    public ApiResponse<Void> accept(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable UUID requestId
+    ) {
         socialService.accept(principal.getUserId(), requestId);
+        return ApiResponse.success(null);
     }
 }
