@@ -331,6 +331,7 @@ const portuguesBrasil = {
   "treinos.minutos": "{quantidade} min",
   "treinos.voltar": "Voltar para treinos",
   "amigos.titulo": "Amigos",
+  "amigos.subtitulo": "Uma rede pequena, privada e escolhida por você.",
   "amigos.vazioTitulo": "Sua rede começa com pessoas próximas",
   "amigos.vazioDescricao":
     "Adicione amigos para acompanhar somente o que eles escolherem compartilhar.",
@@ -338,6 +339,26 @@ const portuguesBrasil = {
     "Conheça a rede privada. Busca e interações exigem uma conta.",
   "amigos.privacidade":
     "Privacidade padrão: Somente eu. Compartilhar sempre será opcional.",
+  "amigos.buscarPessoas": "Buscar pessoas",
+  "amigos.buscaPlaceholder": "Nome ou usuário",
+  "amigos.buscar": "Buscar",
+  "amigos.buscaMinima": "Digite pelo menos 2 caracteres.",
+  "amigos.solicitacoes": "Solicitações recebidas",
+  "amigos.resultados": "Resultados da busca",
+  "amigos.seusAmigos": "Seus amigos",
+  "amigos.adicionar": "Adicionar",
+  "amigos.aceitar": "Aceitar",
+  "amigos.pendente": "Pendente",
+  "amigos.recebida": "Recebida",
+  "amigos.jaAmigos": "Amigos",
+  "amigos.online": "Online agora",
+  "amigos.semResultados": "Nenhuma pessoa encontrada.",
+  "amigos.erroTitulo": "Rede indisponível",
+  "amigos.erroDescricao": "Não foi possível carregar sua rede privada.",
+  "amigos.erroBuscaTitulo": "Busca indisponível",
+  "amigos.erroBuscaDescricao": "Não foi possível buscar pessoas.",
+  "amigos.erroSolicitar": "Não foi possível enviar a solicitação.",
+  "amigos.erroAceitar": "Não foi possível aceitar a solicitação.",
 } as const;
 
 type ChaveTraducao = keyof typeof portuguesBrasil;
@@ -671,6 +692,7 @@ const ingles: Record<ChaveTraducao, string> = {
   "treinos.minutos": "{quantidade} min",
   "treinos.voltar": "Back to workouts",
   "amigos.titulo": "Friends",
+  "amigos.subtitulo": "A small, private circle chosen by you.",
   "amigos.vazioTitulo": "Your circle starts with people close to you",
   "amigos.vazioDescricao":
     "Add friends to follow only what they choose to share.",
@@ -678,6 +700,26 @@ const ingles: Record<ChaveTraducao, string> = {
     "Explore the private network. Search and interactions require an account.",
   "amigos.privacidade":
     "Default privacy: Only me. Sharing will always be optional.",
+  "amigos.buscarPessoas": "Find people",
+  "amigos.buscaPlaceholder": "Name or username",
+  "amigos.buscar": "Search",
+  "amigos.buscaMinima": "Enter at least 2 characters.",
+  "amigos.solicitacoes": "Received requests",
+  "amigos.resultados": "Search results",
+  "amigos.seusAmigos": "Your friends",
+  "amigos.adicionar": "Add",
+  "amigos.aceitar": "Accept",
+  "amigos.pendente": "Pending",
+  "amigos.recebida": "Received",
+  "amigos.jaAmigos": "Friends",
+  "amigos.online": "Online now",
+  "amigos.semResultados": "No people found.",
+  "amigos.erroTitulo": "Network unavailable",
+  "amigos.erroDescricao": "We could not load your private circle.",
+  "amigos.erroBuscaTitulo": "Search unavailable",
+  "amigos.erroBuscaDescricao": "We could not find people.",
+  "amigos.erroSolicitar": "We could not send the friend request.",
+  "amigos.erroAceitar": "We could not accept the friend request.",
 };
 
 type VariaveisTraducao = Record<string, string | number>;

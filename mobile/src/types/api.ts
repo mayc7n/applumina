@@ -147,6 +147,27 @@ export interface CreateWorkoutInput {
   notes?: string;
 }
 
+export type FriendshipStatus =
+  | "PENDING_SENT"
+  | "PENDING_RECEIVED"
+  | "ACCEPTED";
+
+export interface SocialUser {
+  id: string;
+  displayName: string;
+  username: string;
+  avatarUrl?: string;
+  isOnline: boolean;
+  streak: number;
+  friendshipStatus: FriendshipStatus | null;
+}
+
+export interface FriendRequest {
+  id: string;
+  user: SocialUser;
+  createdAt: string;
+}
+
 export interface TaskProject {
   id: string;
   name: string;

@@ -26,6 +26,8 @@ import type {
   UserSession,
   Workout,
   CreateWorkoutInput,
+  FriendRequest,
+  SocialUser,
 } from "@/types/api";
 
 export const apiAutenticacaoMobile = {
@@ -83,4 +85,16 @@ export const apiTreinos = {
   listar: () => obterApi<Workout[]>("/workouts"),
   criar: (entrada: CreateWorkoutInput) =>
     enviarApi<Workout>("/workouts", entrada),
+};
+
+export const apiAmigos = {
+  listar: () => obterApi<SocialUser[]>("/social/friends"),
+  listarSolicitacoes: () =>
+    obterApi<FriendRequest[]>("/social/friends/requests"),
+  buscar: (query: string) =>
+    obterApi<SocialUser[]>("/social/users", { query }),
+  solicitar: (userId: string) =>
+    enviarApi<FriendRequest>("/social/friends/request", { userId }),
+  aceitar: (requestId: string) =>
+    enviarApi<void>(`/social/friends/request/${requestId}/accept`),
 };
