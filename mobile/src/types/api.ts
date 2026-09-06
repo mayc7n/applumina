@@ -115,6 +115,38 @@ export interface CreateTaskInput {
 
 export type UpdateTaskInput = Partial<CreateTaskInput> & { status?: string };
 
+export type WorkoutType =
+  | "WALKING"
+  | "RUNNING"
+  | "STRENGTH"
+  | "CYCLING"
+  | "SWIMMING"
+  | "MARTIAL_ARTS"
+  | "TEAM_SPORT"
+  | "YOGA"
+  | "MOBILITY"
+  | "PILATES"
+  | "CUSTOM";
+
+export interface Workout {
+  id: string;
+  type: WorkoutType;
+  customActivity?: string;
+  activityDate: string;
+  durationMins: number;
+  notes?: string;
+  privacy: "PRIVATE" | "FRIENDS";
+  createdAt?: string;
+}
+
+export interface CreateWorkoutInput {
+  type: WorkoutType;
+  customActivity?: string;
+  activityDate: string;
+  durationMins: number;
+  notes?: string;
+}
+
 export interface TaskProject {
   id: string;
   name: string;

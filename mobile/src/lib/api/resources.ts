@@ -24,6 +24,8 @@ import type {
   UpdateTaskInput,
   User,
   UserSession,
+  Workout,
+  CreateWorkoutInput,
 } from "@/types/api";
 
 export const apiAutenticacaoMobile = {
@@ -75,4 +77,10 @@ export const apiTarefas = {
   listarEtiquetas: () => obterApi<TaskLabel[]>("/tasks/labels"),
   criarEtiqueta: (name: string) =>
     enviarApi<TaskLabel>("/tasks/labels", { name }),
+};
+
+export const apiTreinos = {
+  listar: () => obterApi<Workout[]>("/workouts"),
+  criar: (entrada: CreateWorkoutInput) =>
+    enviarApi<Workout>("/workouts", entrada),
 };
