@@ -34,7 +34,7 @@ public class SocialService {
     public List<FriendRequestResponse> pending(UUID userId) {
         return friendshipRepository.findPendingForUser(userId, PageRequest.of(0, 100)).stream()
             .map(request -> new FriendRequestResponse(
-                request.getId().toString(), toSocialUser(request.getRequester(), "PENDING"),
+                request.getId().toString(), toSocialUser(request.getRequester(), "PENDING_RECEIVED"),
                 request.getCreatedAt().toString()))
             .toList();
     }

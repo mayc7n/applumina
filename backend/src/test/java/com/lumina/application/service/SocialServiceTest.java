@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,5 +95,24 @@ class SocialServiceTest {
         verify(friendshipRepository).findPendingForUser(eq(userId), requestsPage.capture());
         assertThat(friendsPage.getValue().getPageSize()).isEqualTo(100);
         assertThat(requestsPage.getValue().getPageSize()).isEqualTo(100);
+    }
+
+    @Test
+    void marksListedRequestsAsReceived() {
+        Friendship request = Friendship.builder()
+            .id(UUID.randomUUID())
+            .requester(otherUser)
+            .addressee(user)
+            .status("PENDING")
+            .createdAt(Instant.parse("2030-06-10T12:00:00Z"))
+            .build();
+        when(friendshipRepository.findPendingForUser(eq(userId), any(Pageable.class)))
+            .thenReturn(List.of(request));
+
+        var pending = socialService.pending(userId);
+
+        assertThat(pending).singleElement()
+            .extracting(response -> response.user().friendshipStatus())
+            .isEqualTo("PENDING_RECEIVED");
     }
 }
