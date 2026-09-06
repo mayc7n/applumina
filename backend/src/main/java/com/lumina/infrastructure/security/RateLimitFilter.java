@@ -46,14 +46,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        boolean authEndpoint = request.getServletPath().startsWith("/auth/");
-        String key = clientAddress(request) + (authEndpoint ? ":auth" : ":api");
-        ClientBucket client = buckets.computeIfAbsent(key, ignored -> createBucket(authEndpoint));
+        RateLimitPolicy policy = policyFor(request.getServletPath());
+        String key = clientAddress(request) + ":" + policy.name();
+        ClientBucket client = buckets.computeIfAbsent(key, ignored -> createBucket(policy));
         client.lastSeen = Instant.now();
 
         if (!client.bucket.tryConsume(1)) {
             response.setStatus(429);
-            response.setHeader("Retry-After", "60");
+            response.setHeader("Retry-After", Long.toString(client.retryAfter.toSeconds()));
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             objectMapper.writeValue(
                 response.getOutputStream(),
@@ -66,11 +66,20 @@ public class RateLimitFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private ClientBucket createBucket(boolean authEndpoint) {
-        long capacity = authEndpoint ? 10 : 120;
+    private RateLimitPolicy policyFor(String path) {
+        if ("/auth/forgot-password".equals(path)) {
+            return new RateLimitPolicy("password-recovery", 5, Duration.ofMinutes(15));
+        }
+        if (path.startsWith("/auth/")) {
+            return new RateLimitPolicy("auth", 10, Duration.ofMinutes(1));
+        }
+        return new RateLimitPolicy("api", 120, Duration.ofMinutes(1));
+    }
+
+    private ClientBucket createBucket(RateLimitPolicy policy) {
         Bandwidth limit = Bandwidth.builder()
-            .capacity(capacity)
-            .refillGreedy(capacity, Duration.ofMinutes(1))
+            .capacity(policy.capacity())
+            .refillGreedy(policy.capacity(), policy.refillPeriod())
             .build();
         if (buckets.size() >= MAX_CLIENTS) {
             evictExpiredEntries();
@@ -78,7 +87,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 buckets.keySet().stream().findFirst().ifPresent(buckets::remove);
             }
         }
-        return new ClientBucket(Bucket.builder().addLimit(limit).build());
+        return new ClientBucket(Bucket.builder().addLimit(limit).build(), policy.refillPeriod());
     }
 
     private void evictExpiredEntries() {
@@ -87,17 +96,19 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private String clientAddress(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) return forwarded.split(",", 2)[0].trim();
         return request.getRemoteAddr();
     }
 
+    private record RateLimitPolicy(String name, long capacity, Duration refillPeriod) {}
+
     private static final class ClientBucket {
         private final Bucket bucket;
+        private final Duration retryAfter;
         private volatile Instant lastSeen = Instant.now();
 
-        private ClientBucket(Bucket bucket) {
+        private ClientBucket(Bucket bucket, Duration retryAfter) {
             this.bucket = bucket;
+            this.retryAfter = retryAfter;
         }
     }
 }
