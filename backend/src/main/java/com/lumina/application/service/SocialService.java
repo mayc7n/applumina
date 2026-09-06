@@ -26,13 +26,13 @@ public class SocialService {
 
     @Transactional(readOnly = true)
     public List<SocialUserResponse> friends(UUID userId) {
-        return friendshipRepository.findAcceptedByUserId(userId).stream()
+        return friendshipRepository.findAcceptedByUserId(userId, PageRequest.of(0, 100)).stream()
             .map(friendship -> toSocialUser(other(friendship, userId), "ACCEPTED")).toList();
     }
 
     @Transactional(readOnly = true)
     public List<FriendRequestResponse> pending(UUID userId) {
-        return friendshipRepository.findPendingForUser(userId).stream()
+        return friendshipRepository.findPendingForUser(userId, PageRequest.of(0, 100)).stream()
             .map(request -> new FriendRequestResponse(
                 request.getId().toString(), toSocialUser(request.getRequester(), "PENDING"),
                 request.getCreatedAt().toString()))
@@ -43,8 +43,8 @@ public class SocialService {
     public List<SocialUserResponse> search(UUID userId, String query) {
         if (query == null || query.trim().length() < 2) return List.of();
         return userRepository.searchActiveUsers(userId, query.trim(), PageRequest.of(0, 20)).stream()
-            .map(user -> toSocialUser(user, friendshipRepository.findBetween(userId, user.getId())
-                .map(Friendship::getStatus).orElse(null)))
+            .map(user -> toSocialUser(user, friendshipStatus(
+                friendshipRepository.findBetween(userId, user.getId()).orElse(null), userId)))
             .toList();
     }
 
@@ -70,7 +70,7 @@ public class SocialService {
 
     @Transactional(readOnly = true)
     public List<SocialFeedItemResponse> feed(UUID userId) {
-        List<UUID> friendIds = friendshipRepository.findAcceptedByUserId(userId).stream()
+        List<UUID> friendIds = friendshipRepository.findAcceptedByUserId(userId, PageRequest.of(0, 100)).stream()
             .map(friendship -> other(friendship, userId).getId()).toList();
         if (friendIds.isEmpty()) return List.of();
         return taskRepository.findRecentCompletedByUsers(friendIds, PageRequest.of(0, 30)).stream()
@@ -83,6 +83,15 @@ public class SocialService {
 
     private User other(Friendship friendship, UUID userId) {
         return friendship.getRequester().getId().equals(userId) ? friendship.getAddressee() : friendship.getRequester();
+    }
+
+    private String friendshipStatus(Friendship friendship, UUID userId) {
+        if (friendship == null || !"PENDING".equals(friendship.getStatus())) {
+            return friendship == null ? null : friendship.getStatus();
+        }
+        return friendship.getRequester().getId().equals(userId)
+            ? "PENDING_SENT"
+            : "PENDING_RECEIVED";
     }
 
     private SocialUserResponse toSocialUser(User user, String status) {
