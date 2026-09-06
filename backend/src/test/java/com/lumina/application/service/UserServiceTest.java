@@ -25,6 +25,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -182,5 +183,27 @@ class UserServiceTest {
 
         assertThat(user.getPasswordHash()).isEqualTo("password-hash");
         verifyNoInteractions(refreshTokenRepository, userSessionRepository);
+    }
+
+    @Test
+    void includesWorkoutsInDataExport() {
+        UserService exportService = new UserService(
+            userRepository,
+            preferencesRepository,
+            refreshTokenRepository,
+            userSessionRepository,
+            jdbcTemplate,
+            new ObjectMapper().findAndRegisterModules(),
+            passwordEncoder
+        );
+        when(jdbcTemplate.queryForList(anyString(), eq(user.getId())))
+            .thenReturn(java.util.List.of());
+
+        exportService.exportData(user.getId());
+
+        verify(jdbcTemplate).queryForList(
+            "SELECT * FROM workouts WHERE user_id = ?",
+            user.getId()
+        );
     }
 }

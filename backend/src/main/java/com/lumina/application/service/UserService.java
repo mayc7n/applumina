@@ -101,7 +101,7 @@ public class UserService {
         List<String> tables = List.of(
             "tasks", "task_projects", "labels", "habits", "habit_completions",
             "goals", "goal_check_ins", "journal_entries", "books", "book_reading_logs",
-            "focus_sessions", "study_subjects", "study_sessions"
+            "focus_sessions", "study_subjects", "study_sessions", "workouts"
         );
         for (String table : tables) {
             export.put(table, jdbcTemplate.queryForList("SELECT * FROM " + table + " WHERE user_id = ?", userId));
