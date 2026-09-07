@@ -1,6 +1,7 @@
 package com.lumina.domain.workout.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -11,5 +12,7 @@ import com.lumina.domain.workout.entity.Workout;
 
 @Repository
 public interface WorkoutRepository extends JpaRepository<Workout, UUID> {
+    Optional<Workout> findByIdAndUserId(UUID id, UUID userId);
+
     List<Workout> findByUserIdOrderByActivityDateDescCreatedAtDesc(UUID userId, Pageable pageable);
 }

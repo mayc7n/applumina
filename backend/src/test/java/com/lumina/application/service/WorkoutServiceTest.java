@@ -8,7 +8,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +22,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 
 import com.lumina.api.dto.CreateWorkoutRequest;
+import com.lumina.api.dto.UpdateWorkoutRequest;
+import com.lumina.api.dto.WorkoutResponse;
 import com.lumina.api.middleware.GlobalExceptionHandler.BusinessException;
+import com.lumina.api.middleware.GlobalExceptionHandler.ResourceNotFoundException;
+import com.lumina.domain.user.entity.User;
 import com.lumina.domain.user.repository.UserRepository;
 import com.lumina.domain.workout.entity.Workout;
 import com.lumina.domain.workout.entity.WorkoutPrivacy;
@@ -99,5 +105,71 @@ class WorkoutServiceTest {
         );
         assertThat(requestedUser.getValue()).isEqualTo(userId);
         assertThat(page.getValue().getPageSize()).isEqualTo(100);
+    }
+
+    @Test
+    void findsOnlyWorkoutOwnedByAuthenticatedUser() {
+        UUID workoutId = UUID.randomUUID();
+        Workout workout = existingWorkout(workoutId, userId);
+        when(workoutRepository.findByIdAndUserId(workoutId, userId)).thenReturn(Optional.of(workout));
+
+        assertThat(workoutService.findById(userId, workoutId).id()).isEqualTo(workoutId.toString());
+    }
+
+    @Test
+    void updatesOwnedWorkoutAndPreservesPrivacy() {
+        UUID workoutId = UUID.randomUUID();
+        Workout workout = existingWorkout(workoutId, userId);
+        workout.setPrivacy(WorkoutPrivacy.FRIENDS);
+        when(workoutRepository.findByIdAndUserId(workoutId, userId)).thenReturn(Optional.of(workout));
+        UpdateWorkoutRequest request = new UpdateWorkoutRequest(
+            WorkoutType.CUSTOM,
+            "  Escalada indoor  ",
+            LocalDate.of(2030, 7, 11),
+            60,
+            "  Evolução técnica  "
+        );
+
+        WorkoutResponse response = workoutService.update(userId, workoutId, request);
+
+        assertThat(response.customActivity()).isEqualTo("Escalada indoor");
+        assertThat(response.durationMins()).isEqualTo(60);
+        assertThat(response.notes()).isEqualTo("Evolução técnica");
+        assertThat(response.privacy()).isEqualTo("FRIENDS");
+    }
+
+    @Test
+    void refusesWorkoutOwnedByAnotherUser() {
+        UUID workoutId = UUID.randomUUID();
+        when(workoutRepository.findByIdAndUserId(workoutId, userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> workoutService.findById(userId, workoutId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessage("Treino não encontrado");
+    }
+
+    @Test
+    void deletesOnlyOwnedWorkout() {
+        UUID workoutId = UUID.randomUUID();
+        Workout workout = existingWorkout(workoutId, userId);
+        when(workoutRepository.findByIdAndUserId(workoutId, userId)).thenReturn(Optional.of(workout));
+
+        workoutService.delete(userId, workoutId);
+
+        verify(workoutRepository).delete(workout);
+    }
+
+    private Workout existingWorkout(UUID workoutId, UUID ownerId) {
+        return Workout.builder()
+            .id(workoutId)
+            .user(User.builder().id(ownerId).build())
+            .type(WorkoutType.RUNNING)
+            .customActivity(null)
+            .activityDate(LocalDate.of(2030, 6, 10))
+            .durationMins(45)
+            .notes("Treino de pernas")
+            .privacy(WorkoutPrivacy.PRIVATE)
+            .createdAt(Instant.parse("2030-06-10T12:00:00Z"))
+            .build();
     }
 }

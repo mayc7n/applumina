@@ -11,8 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.lumina.api.dto.CreateWorkoutRequest;
+import com.lumina.api.dto.UpdateWorkoutRequest;
 import com.lumina.api.dto.WorkoutResponse;
 import com.lumina.api.middleware.GlobalExceptionHandler.BusinessException;
+import com.lumina.api.middleware.GlobalExceptionHandler.ResourceNotFoundException;
 import com.lumina.domain.user.repository.UserRepository;
 import com.lumina.domain.workout.entity.Workout;
 import com.lumina.domain.workout.entity.WorkoutPrivacy;
@@ -37,6 +39,11 @@ public class WorkoutService {
         ).stream().map(this::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
+    public WorkoutResponse findById(UUID userId, UUID workoutId) {
+        return toResponse(getWorkout(userId, workoutId));
+    }
+
     @Transactional
     public WorkoutResponse create(UUID userId, CreateWorkoutRequest request) {
         String customActivity = normalizeCustomActivity(request.type(), request.customActivity());
@@ -50,6 +57,27 @@ public class WorkoutService {
             .privacy(WorkoutPrivacy.PRIVATE)
             .build());
         return toResponse(workout);
+    }
+
+    @Transactional
+    public WorkoutResponse update(UUID userId, UUID workoutId, UpdateWorkoutRequest request) {
+        Workout workout = getWorkout(userId, workoutId);
+        workout.setType(request.type());
+        workout.setCustomActivity(normalizeCustomActivity(request.type(), request.customActivity()));
+        workout.setActivityDate(request.activityDate());
+        workout.setDurationMins(request.durationMins());
+        workout.setNotes(trimToNull(request.notes()));
+        return toResponse(workout);
+    }
+
+    @Transactional
+    public void delete(UUID userId, UUID workoutId) {
+        workoutRepository.delete(getWorkout(userId, workoutId));
+    }
+
+    private Workout getWorkout(UUID userId, UUID workoutId) {
+        return workoutRepository.findByIdAndUserId(workoutId, userId)
+            .orElseThrow(() -> new ResourceNotFoundException("Treino não encontrado"));
     }
 
     private String normalizeCustomActivity(WorkoutType type, String value) {

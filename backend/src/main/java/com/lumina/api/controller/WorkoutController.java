@@ -1,11 +1,15 @@
 package com.lumina.api.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.lumina.api.dto.ApiResponse;
 import com.lumina.api.dto.CreateWorkoutRequest;
+import com.lumina.api.dto.UpdateWorkoutRequest;
 import com.lumina.api.dto.WorkoutResponse;
 import com.lumina.application.service.WorkoutService;
 import com.lumina.infrastructure.security.UserPrincipal;
@@ -31,6 +36,14 @@ public class WorkoutController {
         return ApiResponse.success(workoutService.list(principal.getUserId()));
     }
 
+    @GetMapping("/{workoutId}")
+    public ApiResponse<WorkoutResponse> findById(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable UUID workoutId
+    ) {
+        return ApiResponse.success(workoutService.findById(principal.getUserId(), workoutId));
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<WorkoutResponse> create(
@@ -38,5 +51,23 @@ public class WorkoutController {
         @Valid @RequestBody CreateWorkoutRequest request
     ) {
         return ApiResponse.success(workoutService.create(principal.getUserId(), request));
+    }
+
+    @PutMapping("/{workoutId}")
+    public ApiResponse<WorkoutResponse> update(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable UUID workoutId,
+        @Valid @RequestBody UpdateWorkoutRequest request
+    ) {
+        return ApiResponse.success(workoutService.update(principal.getUserId(), workoutId, request));
+    }
+
+    @DeleteMapping("/{workoutId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable UUID workoutId
+    ) {
+        workoutService.delete(principal.getUserId(), workoutId);
     }
 }
