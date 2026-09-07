@@ -37,7 +37,10 @@ export function useEditarTreino() {
       apiTreinos.editar(id, entrada),
     onSuccess: (treino) => {
       clienteConsultas.setQueryData([...chaveTreinos, treino.id], treino);
-      void clienteConsultas.invalidateQueries({ queryKey: chaveTreinos });
+      void clienteConsultas.invalidateQueries({
+        exact: true,
+        queryKey: chaveTreinos,
+      });
     },
   });
 }
@@ -48,7 +51,10 @@ export function useExcluirTreino() {
     mutationFn: (id: string) => apiTreinos.excluir(id),
     onSuccess: (_, id) => {
       clienteConsultas.removeQueries({ queryKey: [...chaveTreinos, id] });
-      void clienteConsultas.invalidateQueries({ queryKey: chaveTreinos });
+      void clienteConsultas.invalidateQueries({
+        exact: true,
+        queryKey: chaveTreinos,
+      });
     },
   });
 }
