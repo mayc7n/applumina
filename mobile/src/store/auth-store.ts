@@ -8,6 +8,7 @@ import {
   registrarAoExpirarSessao,
   salvarParTokens,
 } from "@/lib/auth/session";
+import { clienteConsultas } from "@/providers/query-provider";
 import type {
   DeleteAccountInput,
   LoginInput,
@@ -44,6 +45,10 @@ async function concluirAutenticacao(tokens: TokenPair): Promise<User> {
   }
 }
 
+function limparDadosPrivados(): void {
+  clienteConsultas.clear();
+}
+
 export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
   estado: "inicializando",
   usuario: null,
@@ -52,14 +57,17 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
     try {
       const refreshToken = await obterTokenRenovacao();
       if (!refreshToken) {
+        limparDadosPrivados();
         definir({ estado: "naoAutenticado", usuario: null });
         return;
       }
       await renovarTokenAcesso();
       const usuario = await apiUsuarios.atual();
+      limparDadosPrivados();
       definir({ estado: "autenticado", usuario });
     } catch {
       await limparSessao();
+      limparDadosPrivados();
       definir({ estado: "naoAutenticado", usuario: null });
     }
   },
@@ -68,6 +76,7 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
     const usuario = await concluirAutenticacao(
       await apiAutenticacaoMobile.entrar(entrada),
     );
+    limparDadosPrivados();
     definir({ estado: "autenticado", usuario });
   },
 
@@ -75,6 +84,7 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
     const usuario = await concluirAutenticacao(
       await apiAutenticacaoMobile.cadastrar(entrada),
     );
+    limparDadosPrivados();
     definir({ estado: "autenticado", usuario });
   },
 
@@ -84,6 +94,7 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
       if (refreshToken) await apiAutenticacaoMobile.sair(refreshToken);
     } finally {
       await limparSessao();
+      limparDadosPrivados();
       definir({ estado: "naoAutenticado", usuario: null });
     }
   },
@@ -93,12 +104,15 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
     try {
       await limparSessao();
     } finally {
+      limparDadosPrivados();
       definir({ estado: "naoAutenticado", usuario: null });
     }
   },
 
-  marcarNaoAutenticado: () =>
-    definir({ estado: "naoAutenticado", usuario: null }),
+  marcarNaoAutenticado: () => {
+    limparDadosPrivados();
+    definir({ estado: "naoAutenticado", usuario: null });
+  },
 }));
 
 registrarAoExpirarSessao(() =>

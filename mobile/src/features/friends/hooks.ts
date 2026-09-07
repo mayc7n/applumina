@@ -2,48 +2,51 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { apiAmigos } from "@/lib/api/resources";
 
-export const chaveAmigos = ["amigos"] as const;
-const chaveListaAmigos = [...chaveAmigos, "lista"] as const;
-const chaveSolicitacoesAmizade = [...chaveAmigos, "solicitacoes"] as const;
+import { chavesAmigosUsuario } from "./friend-query-keys";
 
-export function useListaAmigos(habilitada = true) {
+export function useListaAmigos(userId?: string) {
+  const chaves = chavesAmigosUsuario(userId);
   return useQuery({
-    queryKey: chaveListaAmigos,
+    queryKey: chaves.lista,
     queryFn: apiAmigos.listar,
-    enabled: habilitada,
+    enabled: Boolean(userId),
   });
 }
 
-export function useSolicitacoesAmizade(habilitada = true) {
+export function useSolicitacoesAmizade(userId?: string) {
+  const chaves = chavesAmigosUsuario(userId);
   return useQuery({
-    queryKey: chaveSolicitacoesAmizade,
+    queryKey: chaves.solicitacoes,
     queryFn: apiAmigos.listarSolicitacoes,
-    enabled: habilitada,
+    enabled: Boolean(userId),
   });
 }
 
-export function useBuscarAmigos(busca: string, habilitada = true) {
+export function useBuscarAmigos(busca: string, userId?: string) {
+  const chaves = chavesAmigosUsuario(userId);
   return useQuery({
-    queryKey: [...chaveAmigos, "busca", busca],
+    queryKey: chaves.busca(busca),
     queryFn: () => apiAmigos.buscar(busca),
-    enabled: habilitada && busca.length >= 2,
+    enabled: Boolean(userId) && busca.length >= 2,
   });
 }
 
-export function useSolicitarAmizade() {
+export function useSolicitarAmizade(userId?: string) {
   const clienteConsultas = useQueryClient();
+  const chaves = chavesAmigosUsuario(userId);
   return useMutation({
     mutationFn: apiAmigos.solicitar,
     onSuccess: () =>
-      clienteConsultas.invalidateQueries({ queryKey: chaveAmigos }),
+      clienteConsultas.invalidateQueries({ queryKey: chaves.base }),
   });
 }
 
-export function useAceitarAmizade() {
+export function useAceitarAmizade(userId?: string) {
   const clienteConsultas = useQueryClient();
+  const chaves = chavesAmigosUsuario(userId);
   return useMutation({
     mutationFn: apiAmigos.aceitar,
     onSuccess: () =>
-      clienteConsultas.invalidateQueries({ queryKey: chaveAmigos }),
+      clienteConsultas.invalidateQueries({ queryKey: chaves.base }),
   });
 }

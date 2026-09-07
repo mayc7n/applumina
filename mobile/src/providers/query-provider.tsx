@@ -5,24 +5,21 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { useEffect, useState, type PropsWithChildren } from "react";
+import { useEffect, type PropsWithChildren } from "react";
 import { AppState, type AppStateStatus, Platform } from "react-native";
 
 function aoMudarEstadoApp(estado: AppStateStatus): void {
   if (Platform.OS !== "web") focusManager.setFocused(estado === "active");
 }
 
-export function ProvedorConsultas({ children: filhos }: PropsWithChildren) {
-  const [clienteConsultas] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: { staleTime: 30_000, retry: 1, refetchOnReconnect: true },
-          mutations: { retry: 0 },
-        },
-      }),
-  );
+export const clienteConsultas = new QueryClient({
+  defaultOptions: {
+    queries: { staleTime: 30_000, retry: 1, refetchOnReconnect: true },
+    mutations: { retry: 0 },
+  },
+});
 
+export function ProvedorConsultas({ children: filhos }: PropsWithChildren) {
   useEffect(() => {
     const inscricaoEstadoApp = AppState.addEventListener(
       "change",

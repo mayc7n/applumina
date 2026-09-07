@@ -32,10 +32,13 @@ export default function TelaAmigos() {
   const autenticado = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado === "autenticado",
   );
+  const userId = useArmazenamentoAutenticacao(
+    (armazenamento) => armazenamento.usuario?.id,
+  );
   const [erroAceite, setErroAceite] = useState<string>();
-  const amigos = useListaAmigos(autenticado);
-  const solicitacoes = useSolicitacoesAmizade(autenticado);
-  const aceitar = useAceitarAmizade();
+  const amigos = useListaAmigos(userId);
+  const solicitacoes = useSolicitacoesAmizade(userId);
+  const aceitar = useAceitarAmizade(userId);
 
   async function aceitarAmizade(requestId: string): Promise<void> {
     setErroAceite(undefined);
@@ -106,7 +109,7 @@ export default function TelaAmigos() {
           />
         ) : (
           <>
-            <FriendsSearch />
+            <FriendsSearch userId={userId} />
 
             {erroAceite ? (
               <Text

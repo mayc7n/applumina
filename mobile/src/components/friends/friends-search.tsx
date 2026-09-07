@@ -20,15 +20,19 @@ import { useIdioma } from "@/i18n/idioma";
 import { useTemaApp } from "@/theme/theme";
 import type { SocialUser } from "@/types/api";
 
-export function FriendsSearch() {
+interface FriendsSearchProps {
+  userId?: string;
+}
+
+export function FriendsSearch({ userId }: FriendsSearchProps) {
   const tema = useTemaApp();
   const { traduzir } = useIdioma();
   const [buscaDigitada, setBuscaDigitada] = useState("");
   const [buscaAtiva, setBuscaAtiva] = useState("");
   const [erroBusca, setErroBusca] = useState<string>();
   const [erroAcao, setErroAcao] = useState<string>();
-  const resultados = useBuscarAmigos(buscaAtiva);
-  const solicitar = useSolicitarAmizade();
+  const resultados = useBuscarAmigos(buscaAtiva, userId);
+  const solicitar = useSolicitarAmizade(userId);
 
   function buscar(): void {
     const busca = prepararBuscaAmigos(buscaDigitada);
