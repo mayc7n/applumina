@@ -26,7 +26,10 @@ export default function TelaNovoTreino() {
   const autenticado = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado === "autenticado",
   );
-  const criar = useCriarTreino();
+  const userId = useArmazenamentoAutenticacao(
+    (armazenamento) => armazenamento.usuario?.id,
+  );
+  const criar = useCriarTreino(userId);
 
   async function salvar(entrada: CreateWorkoutInput): Promise<void> {
     await criar.mutateAsync(entrada);

@@ -35,9 +35,12 @@ export default function TelaEditarTreino() {
   const autenticado = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado === "autenticado",
   );
-  const consulta = useTreino(parametros.id, autenticado);
-  const editar = useEditarTreino();
-  const excluir = useExcluirTreino();
+  const userId = useArmazenamentoAutenticacao(
+    (armazenamento) => armazenamento.usuario?.id,
+  );
+  const consulta = useTreino(parametros.id, userId);
+  const editar = useEditarTreino(userId);
+  const excluir = useExcluirTreino(userId);
 
   async function salvar(entrada: CreateWorkoutInput): Promise<void> {
     await editar.mutateAsync({ id: parametros.id, entrada });

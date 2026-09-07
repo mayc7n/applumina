@@ -27,7 +27,10 @@ export default function TelaTreinos() {
   const autenticado = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado === "autenticado",
   );
-  const consulta = useListaTreinos(autenticado);
+  const userId = useArmazenamentoAutenticacao(
+    (armazenamento) => armazenamento.usuario?.id,
+  );
+  const consulta = useListaTreinos(userId);
   const modalidadesVisitante = [
     { Icone: Footprints, texto: traduzir("treinos.modalidadePassos") },
     { Icone: Activity, texto: traduzir("treinos.modalidadeForca") },
