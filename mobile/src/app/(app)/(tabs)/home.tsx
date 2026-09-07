@@ -17,7 +17,7 @@ import { LuminaMark } from "@/components/brand/lumina-mark";
 import { WeeklyArc } from "@/components/progress/weekly-arc";
 import { AppButton } from "@/components/ui/app-button";
 import { FeedbackState } from "@/components/ui/feedback-state";
-import { chavePainel } from "@/features/tasks/hooks";
+import { chavesTarefasUsuario } from "@/features/tasks/task-query-keys";
 import { useIdioma } from "@/i18n/idioma";
 import { apiPainel } from "@/lib/api/resources";
 import { useArmazenamentoAutenticacao } from "@/store/auth-store";
@@ -42,10 +42,11 @@ export default function TelaInicio() {
     (armazenamento) => armazenamento.usuario,
   );
   const autenticado = estadoAutenticacao === "autenticado";
+  const userId = usuario?.id;
   const consulta = useQuery({
-    queryKey: chavePainel,
+    queryKey: chavesTarefasUsuario(userId).painel,
     queryFn: apiPainel.obter,
-    enabled: autenticado,
+    enabled: Boolean(userId),
   });
   const primeiroNome = usuario?.displayName?.trim().split(" ")[0];
   const data = new Intl.DateTimeFormat(idioma, {

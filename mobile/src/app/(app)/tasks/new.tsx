@@ -17,7 +17,8 @@ export default function TelaNovaTarefa() {
   const tema = useTemaApp();
   const { traduzir } = useIdioma();
   const autenticado = useArmazenamentoAutenticacao((armazenamento) => armazenamento.estado === "autenticado");
-  const criar = useCriarTarefa();
+  const userId = useArmazenamentoAutenticacao((armazenamento) => armazenamento.usuario?.id);
+  const criar = useCriarTarefa(userId);
 
   async function salvar(entrada: CreateTaskInput): Promise<void> {
     await criar.mutateAsync(entrada);
@@ -34,7 +35,7 @@ export default function TelaNovaTarefa() {
             titulo={traduzir("tarefas.novaTelaTitulo")}
           />
           {autenticado ? (
-            <TaskForm aoSalvar={salvar} salvando={criar.isPending} />
+            <TaskForm aoSalvar={salvar} salvando={criar.isPending} userId={userId} />
           ) : (
             <View style={styles.visitante}>
               <FeedbackState aoAgir={() => router.replace("/login")} descricao={traduzir("tarefas.visitanteDescricao")} rotuloAcao={traduzir("comum.entrar")} titulo={traduzir("tarefas.visitanteTitulo")} />

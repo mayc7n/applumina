@@ -3,116 +3,184 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  type QueryClient,
 } from "@tanstack/react-query";
 
 import { apiTarefas } from "@/lib/api/resources";
+import { useArmazenamentoAutenticacao } from "@/store/auth-store";
 import type {
   CreateTaskInput,
+  Task,
   UpdateTaskInput,
 } from "@/types/api";
 
-export const chaveTarefas = ["tarefas"] as const;
-export const chavePainel = ["painel"] as const;
-export const chaveProjetosTarefa = ["projetos-tarefa"] as const;
-export const chaveEtiquetasTarefa = ["etiquetas-tarefa"] as const;
+import { chavesTarefasUsuario } from "./task-query-keys";
 
-export function useListaTarefas(habilitada = true) {
+export {
+  chaveEtiquetasTarefa,
+  chavePainel,
+  chaveProjetosTarefa,
+  chaveTarefas,
+} from "./task-query-keys";
+
+function sessaoTarefasEstaAtiva(userId?: string): boolean {
+  const { estado, usuario } = useArmazenamentoAutenticacao.getState();
+  return estado === "autenticado" && Boolean(userId) && usuario?.id === userId;
+}
+
+function invalidarTarefasEPainel(
+  clienteConsultas: QueryClient,
+  userId?: string,
+): void {
+  if (!sessaoTarefasEstaAtiva(userId)) return;
+  const chaves = chavesTarefasUsuario(userId);
+  void clienteConsultas.invalidateQueries({
+    exact: true,
+    queryKey: chaves.lista,
+  });
+  void clienteConsultas.invalidateQueries({
+    exact: true,
+    queryKey: chaves.painel,
+  });
+}
+
+export function atualizarCacheEdicaoTarefa(
+  clienteConsultas: QueryClient,
+  userId: string | undefined,
+  tarefa: Task,
+): void {
+  if (!sessaoTarefasEstaAtiva(userId)) return;
+  const chaves = chavesTarefasUsuario(userId);
+  clienteConsultas.setQueryData(chaves.detalhe(tarefa.id), tarefa);
+  invalidarTarefasEPainel(clienteConsultas, userId);
+}
+
+function removerCacheTarefa(
+  clienteConsultas: QueryClient,
+  userId: string | undefined,
+  tarefaId: string,
+): void {
+  if (!sessaoTarefasEstaAtiva(userId)) return;
+  const chaves = chavesTarefasUsuario(userId);
+  clienteConsultas.removeQueries({
+    exact: true,
+    queryKey: chaves.detalhe(tarefaId),
+  });
+  invalidarTarefasEPainel(clienteConsultas, userId);
+}
+
+function invalidarProjetosTarefa(
+  clienteConsultas: QueryClient,
+  userId?: string,
+): void {
+  if (!sessaoTarefasEstaAtiva(userId)) return;
+  void clienteConsultas.invalidateQueries({
+    exact: true,
+    queryKey: chavesTarefasUsuario(userId).projetos,
+  });
+}
+
+function invalidarEtiquetasTarefa(
+  clienteConsultas: QueryClient,
+  userId?: string,
+): void {
+  if (!sessaoTarefasEstaAtiva(userId)) return;
+  void clienteConsultas.invalidateQueries({
+    exact: true,
+    queryKey: chavesTarefasUsuario(userId).etiquetas,
+  });
+}
+
+export function useListaTarefas(userId?: string) {
+  const chaves = chavesTarefasUsuario(userId);
   return useInfiniteQuery({
-    queryKey: chaveTarefas,
+    queryKey: chaves.lista,
     queryFn: ({ pageParam }) => apiTarefas.listar(pageParam),
     initialPageParam: 0,
     getNextPageParam: (ultimaPagina) =>
       ultimaPagina.number + 1 < ultimaPagina.totalPages
         ? ultimaPagina.number + 1
         : undefined,
-    enabled: habilitada,
+    enabled: Boolean(userId),
   });
 }
 
-export function useCriarTarefa() {
+export function useCriarTarefa(userId?: string) {
   const clienteConsultas = useQueryClient();
   return useMutation({
     mutationFn: (entrada: CreateTaskInput) => apiTarefas.criar(entrada),
-    onSuccess: () => {
-      void clienteConsultas.invalidateQueries({ queryKey: chaveTarefas });
-      void clienteConsultas.invalidateQueries({ queryKey: chavePainel });
-    },
+    onSuccess: () => invalidarTarefasEPainel(clienteConsultas, userId),
   });
 }
 
-export function useTarefa(id?: string, habilitada = true) {
+export function useTarefa(id?: string, userId?: string) {
+  const chaves = chavesTarefasUsuario(userId);
   return useQuery({
-    queryKey: [...chaveTarefas, id],
+    queryKey: chaves.detalhe(id ?? "sem-tarefa"),
     queryFn: () => apiTarefas.obter(id as string),
-    enabled: Boolean(id) && habilitada,
+    enabled: Boolean(id) && Boolean(userId),
   });
 }
 
-export function useEditarTarefa() {
+export function useEditarTarefa(userId?: string) {
   const clienteConsultas = useQueryClient();
   return useMutation({
     mutationFn: ({ id, entrada }: { id: string; entrada: UpdateTaskInput }) =>
       apiTarefas.editar(id, entrada),
-    onSuccess: (tarefa) => {
-      clienteConsultas.setQueryData([...chaveTarefas, tarefa.id], tarefa);
-      void clienteConsultas.invalidateQueries({ queryKey: chaveTarefas });
-      void clienteConsultas.invalidateQueries({ queryKey: chavePainel });
-    },
+    onSuccess: (tarefa) =>
+      atualizarCacheEdicaoTarefa(clienteConsultas, userId, tarefa),
   });
 }
 
-export function useExcluirTarefa() {
+export function useExcluirTarefa(userId?: string) {
   const clienteConsultas = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => apiTarefas.excluir(id),
-    onSuccess: () => {
-      void clienteConsultas.invalidateQueries({ queryKey: chaveTarefas });
-      void clienteConsultas.invalidateQueries({ queryKey: chavePainel });
-    },
+    onSuccess: (_, id) => removerCacheTarefa(clienteConsultas, userId, id),
   });
 }
 
-export function useAlternarTarefa() {
+export function useAlternarTarefa(userId?: string) {
   const clienteConsultas = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => apiTarefas.alternarConclusao(id),
-    onSuccess: () => {
-      void clienteConsultas.invalidateQueries({ queryKey: chaveTarefas });
-      void clienteConsultas.invalidateQueries({ queryKey: chavePainel });
-    },
+    onSuccess: (tarefa) =>
+      atualizarCacheEdicaoTarefa(clienteConsultas, userId, tarefa),
   });
 }
 
-export function useProjetosTarefa(habilitada = true) {
+export function useProjetosTarefa(userId?: string) {
+  const chaves = chavesTarefasUsuario(userId);
   return useQuery({
-    queryKey: chaveProjetosTarefa,
+    queryKey: chaves.projetos,
     queryFn: apiTarefas.listarProjetos,
-    enabled: habilitada,
+    enabled: Boolean(userId),
   });
 }
 
-export function useCriarProjetoTarefa() {
+export function useCriarProjetoTarefa(userId?: string) {
   const clienteConsultas = useQueryClient();
   return useMutation({
     mutationFn: apiTarefas.criarProjeto,
     onSuccess: () =>
-      clienteConsultas.invalidateQueries({ queryKey: chaveProjetosTarefa }),
+      invalidarProjetosTarefa(clienteConsultas, userId),
   });
 }
 
-export function useEtiquetasTarefa(habilitada = true) {
+export function useEtiquetasTarefa(userId?: string) {
+  const chaves = chavesTarefasUsuario(userId);
   return useQuery({
-    queryKey: chaveEtiquetasTarefa,
+    queryKey: chaves.etiquetas,
     queryFn: apiTarefas.listarEtiquetas,
-    enabled: habilitada,
+    enabled: Boolean(userId),
   });
 }
 
-export function useCriarEtiquetaTarefa() {
+export function useCriarEtiquetaTarefa(userId?: string) {
   const clienteConsultas = useQueryClient();
   return useMutation({
     mutationFn: apiTarefas.criarEtiqueta,
     onSuccess: () =>
-      clienteConsultas.invalidateQueries({ queryKey: chaveEtiquetasTarefa }),
+      invalidarEtiquetasTarefa(clienteConsultas, userId),
   });
 }

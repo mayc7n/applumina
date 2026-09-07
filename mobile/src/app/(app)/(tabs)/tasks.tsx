@@ -37,9 +37,10 @@ export default function TelaTarefas() {
   const [filtro, definirFiltro] = useState<FiltroTarefa>("TODAY");
   const [erroAcao, definirErroAcao] = useState("");
   const autenticado = useArmazenamentoAutenticacao((armazenamento) => armazenamento.estado === "autenticado");
-  const consulta = useListaTarefas(autenticado);
-  const criar = useCriarTarefa();
-  const alternar = useAlternarTarefa();
+  const userId = useArmazenamentoAutenticacao((armazenamento) => armazenamento.usuario?.id);
+  const consulta = useListaTarefas(userId);
+  const criar = useCriarTarefa(userId);
+  const alternar = useAlternarTarefa(userId);
   const tarefas = useMemo(
     () => consulta.data?.pages.flatMap((pagina) => pagina.content) ?? [],
     [consulta.data?.pages],

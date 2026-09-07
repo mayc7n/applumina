@@ -19,10 +19,11 @@ export default function TelaEditarTarefa() {
   const { traduzir } = useIdioma();
   const parametros = useLocalSearchParams<{ id: string }>();
   const autenticado = useArmazenamentoAutenticacao((armazenamento) => armazenamento.estado === "autenticado");
-  const consulta = useTarefa(parametros.id, autenticado);
-  const editar = useEditarTarefa();
-  const excluir = useExcluirTarefa();
-  const duplicar = useCriarTarefa();
+  const userId = useArmazenamentoAutenticacao((armazenamento) => armazenamento.usuario?.id);
+  const consulta = useTarefa(parametros.id, userId);
+  const editar = useEditarTarefa(userId);
+  const excluir = useExcluirTarefa(userId);
+  const duplicar = useCriarTarefa(userId);
 
   async function salvar(entrada: CreateTaskInput): Promise<void> {
     await editar.mutateAsync({ id: parametros.id, entrada });
@@ -95,6 +96,7 @@ export default function TelaEditarTarefa() {
               aoSalvar={salvar}
               salvando={editar.isPending || excluir.isPending || duplicar.isPending}
               tarefa={consulta.data}
+              userId={userId}
             />
           )}
         </ScrollView>

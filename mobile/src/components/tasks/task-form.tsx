@@ -24,6 +24,7 @@ import type { CreateTaskInput, Task } from "@/types/api";
 interface TaskFormProps {
   tarefa?: Task;
   salvando: boolean;
+  userId?: string;
   aoSalvar: (entrada: CreateTaskInput) => Promise<void>;
   aoExcluir?: () => void;
   aoDuplicar?: () => void;
@@ -58,7 +59,7 @@ function Opcao({ selecionada, rotulo, aoPressionar }: OpcaoProps) {
   );
 }
 
-export function TaskForm({ tarefa, salvando, aoSalvar, aoExcluir, aoDuplicar }: TaskFormProps) {
+export function TaskForm({ tarefa, salvando, userId, aoSalvar, aoExcluir, aoDuplicar }: TaskFormProps) {
   const tema = useTemaApp();
   const { traduzir } = useIdioma();
   const [valores, definirValores] = useState<ValoresFormularioTarefa>(() => valoresIniciaisTarefa(tarefa));
@@ -66,10 +67,10 @@ export function TaskForm({ tarefa, salvando, aoSalvar, aoExcluir, aoDuplicar }: 
   const [erroAcao, definirErroAcao] = useState("");
   const [novoProjeto, definirNovoProjeto] = useState("");
   const [novaEtiqueta, definirNovaEtiqueta] = useState("");
-  const projetos = useProjetosTarefa();
-  const etiquetas = useEtiquetasTarefa();
-  const criarProjeto = useCriarProjetoTarefa();
-  const criarEtiqueta = useCriarEtiquetaTarefa();
+  const projetos = useProjetosTarefa(userId);
+  const etiquetas = useEtiquetasTarefa(userId);
+  const criarProjeto = useCriarProjetoTarefa(userId);
+  const criarEtiqueta = useCriarEtiquetaTarefa(userId);
 
   function atualizar<K extends keyof ValoresFormularioTarefa>(campo: K, valor: ValoresFormularioTarefa[K]): void {
     definirValores((atuais) => ({ ...atuais, [campo]: valor }));
