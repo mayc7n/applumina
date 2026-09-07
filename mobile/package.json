@@ -47,7 +47,8 @@
     "android": "APP_VARIANT=development expo run:android",
     "ios": "APP_VARIANT=development expo run:ios",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "generate:routes": "npx expo customize tsconfig.json",
+    "typecheck": "npm run generate:routes && tsc --noEmit",
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
     "check": "npm run typecheck && npm run lint && npm test"
