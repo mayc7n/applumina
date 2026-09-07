@@ -5,7 +5,6 @@ import com.lumina.api.middleware.GlobalExceptionHandler.ConflictException;
 import com.lumina.api.middleware.GlobalExceptionHandler.ResourceNotFoundException;
 import com.lumina.domain.social.entity.Friendship;
 import com.lumina.domain.social.repository.FriendshipRepository;
-import com.lumina.domain.task.repository.TaskRepository;
 import com.lumina.domain.user.entity.User;
 import com.lumina.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,6 @@ public class SocialService {
 
     private final FriendshipRepository friendshipRepository;
     private final UserRepository userRepository;
-    private final TaskRepository taskRepository;
 
     @Transactional(readOnly = true)
     public List<SocialUserResponse> friends(UUID userId) {
@@ -75,15 +73,7 @@ public class SocialService {
 
     @Transactional(readOnly = true)
     public List<SocialFeedItemResponse> feed(UUID userId) {
-        List<UUID> friendIds = friendshipRepository.findAcceptedByUserId(userId, PageRequest.of(0, 100)).stream()
-            .map(friendship -> other(friendship, userId).getId()).toList();
-        if (friendIds.isEmpty()) return List.of();
-        return taskRepository.findRecentCompletedByUsers(friendIds, PageRequest.of(0, 30)).stream()
-            .map(task -> new SocialFeedItemResponse(
-                task.getId().toString(), toSocialUser(task.getUser(), "ACCEPTED"),
-                "task_completed", task.getTitle(), null, "check",
-                0, false, task.getCompletedAt().toString()))
-            .toList();
+        return List.of();
     }
 
     private User other(Friendship friendship, UUID userId) {

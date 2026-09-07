@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +24,8 @@ import org.springframework.data.domain.Sort;
 
 import com.lumina.domain.social.entity.Friendship;
 import com.lumina.domain.social.repository.FriendshipRepository;
+import com.lumina.domain.task.entity.Task;
+import com.lumina.domain.task.entity.TaskStatus;
 import com.lumina.domain.task.repository.TaskRepository;
 import com.lumina.domain.user.entity.User;
 import com.lumina.domain.user.repository.UserRepository;
@@ -39,7 +43,7 @@ class SocialServiceTest {
 
     @BeforeEach
     void setUp() {
-        socialService = new SocialService(friendshipRepository, userRepository, taskRepository);
+        socialService = new SocialService(friendshipRepository, userRepository);
         userId = UUID.randomUUID();
         user = User.builder().id(userId).displayName("Pessoa").username("pessoa").build();
         otherUser = User.builder()
@@ -118,5 +122,30 @@ class SocialServiceTest {
         assertThat(pending).singleElement()
             .extracting(response -> response.user().friendshipStatus())
             .isEqualTo("PENDING_RECEIVED");
+    }
+
+    @Test
+    void doesNotExposeCompletedTaskWithoutExplicitConsent() {
+        Friendship friendship = Friendship.builder()
+            .requester(user)
+            .addressee(otherUser)
+            .status("ACCEPTED")
+            .build();
+        Task completedTask = Task.builder()
+            .id(UUID.randomUUID())
+            .user(otherUser)
+            .title("Tarefa privada")
+            .status(TaskStatus.DONE)
+            .completedAt(Instant.parse("2030-06-10T12:00:00Z"))
+            .build();
+        lenient().when(friendshipRepository.findAcceptedByUserId(eq(userId), any(Pageable.class)))
+            .thenReturn(List.of(friendship));
+        lenient().when(taskRepository.findRecentCompletedByUsers(any(), any(Pageable.class)))
+            .thenReturn(List.of(completedTask));
+
+        var feed = socialService.feed(userId);
+
+        assertThat(feed).isEmpty();
+        verifyNoInteractions(friendshipRepository, taskRepository);
     }
 }
