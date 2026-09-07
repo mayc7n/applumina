@@ -9,5 +9,5 @@ public record AuthTokenResponse(
     @JsonIgnore String refreshToken,
     Integer expiresIn,
     Boolean requiresTwoFactor,
-    String tempToken
+    @JsonIgnore String tempToken
 ) {}

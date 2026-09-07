@@ -8,6 +8,7 @@ import com.lumina.infrastructure.security.UserPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,7 @@ public class AuthController {
     ) {
         AuthTokenResponse tokens = authService.register(request, webContext(httpRequest));
         authCookieService.write(response, tokens);
+        noStore(response);
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success(tokens, "Conta criada com sucesso"));
     }
@@ -44,6 +46,7 @@ public class AuthController {
     ) {
         AuthTokenResponse tokens = authService.login(request, webContext(httpRequest));
         authCookieService.write(response, tokens);
+        noStore(response);
         return ApiResponse.success(tokens);
     }
 
@@ -60,7 +63,13 @@ public class AuthController {
         }
         AuthTokenResponse tokens = authService.refresh(rawToken, webContext(request));
         authCookieService.write(response, tokens);
+        noStore(response);
         return ApiResponse.success(tokens);
+    }
+
+    private void noStore(HttpServletResponse response) {
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+        response.setHeader(HttpHeaders.PRAGMA, "no-cache");
     }
 
     @PostMapping("/logout")

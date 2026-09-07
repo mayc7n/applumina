@@ -18,7 +18,9 @@ class AuthCookieServiceTest {
 
         String json = new ObjectMapper().writeValueAsString(response);
 
-        assertThat(json).doesNotContain("access-value", "refresh-value", "accessToken", "refreshToken");
+        assertThat(json).doesNotContain(
+            "access-value", "refresh-value", "temp-value", "accessToken", "refreshToken", "tempToken"
+        );
         assertThat(json).contains("\"expiresIn\":900");
     }
 
@@ -43,6 +45,7 @@ class AuthCookieServiceTest {
             .refreshToken("refresh-value")
             .expiresIn(900)
             .requiresTwoFactor(false)
+            .tempToken("temp-value")
             .build();
     }
 }
