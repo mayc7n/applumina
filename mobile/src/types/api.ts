@@ -147,6 +147,8 @@ export interface CreateWorkoutInput {
   notes?: string;
 }
 
+export type UpdateWorkoutInput = CreateWorkoutInput;
+
 export type FriendshipStatus =
   | "PENDING_SENT"
   | "PENDING_RECEIVED"

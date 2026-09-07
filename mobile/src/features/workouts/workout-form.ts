@@ -1,4 +1,4 @@
-import type { CreateWorkoutInput, WorkoutType } from "@/types/api";
+import type { CreateWorkoutInput, Workout, WorkoutType } from "@/types/api";
 
 export interface ValoresFormularioTreino {
   type: WorkoutType;
@@ -31,8 +31,19 @@ function dataValida(valor: string): boolean {
 }
 
 export function valoresIniciaisTreino(
+  treino?: Workout,
   hoje = new Date(),
 ): ValoresFormularioTreino {
+  if (treino) {
+    return {
+      type: treino.type,
+      customActivity: treino.customActivity ?? "",
+      activityDate: treino.activityDate,
+      durationMins: String(treino.durationMins),
+      notes: treino.notes ?? "",
+    };
+  }
+
   return {
     type: "WALKING",
     customActivity: "",

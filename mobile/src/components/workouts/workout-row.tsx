@@ -1,5 +1,5 @@
-import { CalendarDays, Clock3 } from "lucide-react-native";
-import { StyleSheet, Text, View } from "react-native";
+import { CalendarDays, ChevronRight, Clock3 } from "lucide-react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTemaApp } from "@/theme/theme";
 import type { Workout } from "@/types/api";
@@ -9,6 +9,8 @@ interface WorkoutRowProps {
   rotuloTipo: string;
   idioma: string;
   rotuloMinutos: string;
+  rotuloEditar: string;
+  aoEditar: () => void;
 }
 
 export function WorkoutRow({
@@ -16,6 +18,8 @@ export function WorkoutRow({
   rotuloTipo,
   idioma,
   rotuloMinutos,
+  rotuloEditar,
+  aoEditar,
 }: WorkoutRowProps) {
   const tema = useTemaApp();
   const data = new Intl.DateTimeFormat(idioma, {
@@ -25,7 +29,15 @@ export function WorkoutRow({
   }).format(new Date(`${treino.activityDate}T12:00:00`));
 
   return (
-    <View style={[styles.linha, { borderColor: tema.cores.borda }]}>
+    <Pressable
+      accessibilityLabel={rotuloEditar}
+      accessibilityRole="button"
+      onPress={aoEditar}
+      style={({ pressed }) => [
+        styles.linha,
+        { borderColor: tema.cores.borda, opacity: pressed ? 0.72 : 1 },
+      ]}
+    >
       <View style={[styles.icone, { backgroundColor: tema.cores.marcaSuave }]}>
         <Clock3 color={tema.cores.marca} size={21} />
       </View>
@@ -48,13 +60,14 @@ export function WorkoutRow({
           </Text>
         ) : null}
       </View>
-    </View>
+      <ChevronRight color={tema.cores.textoSutil} size={20} />
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   linha: {
-    alignItems: "flex-start",
+    alignItems: "center",
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: 12,

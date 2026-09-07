@@ -26,6 +26,7 @@ import type {
   UserSession,
   Workout,
   CreateWorkoutInput,
+  UpdateWorkoutInput,
   FriendRequest,
   SocialUser,
 } from "@/types/api";
@@ -83,8 +84,12 @@ export const apiTarefas = {
 
 export const apiTreinos = {
   listar: () => obterApi<Workout[]>("/workouts"),
+  obter: (id: string) => obterApi<Workout>(`/workouts/${id}`),
   criar: (entrada: CreateWorkoutInput) =>
     enviarApi<Workout>("/workouts", entrada),
+  editar: (id: string, entrada: UpdateWorkoutInput) =>
+    atualizarApi<Workout>(`/workouts/${id}`, entrada),
+  excluir: (id: string) => excluirApi(`/workouts/${id}`),
 };
 
 export const apiAmigos = {

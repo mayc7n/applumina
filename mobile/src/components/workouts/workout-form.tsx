@@ -13,17 +13,20 @@ import {
 import { useIdioma } from "@/i18n/idioma";
 import { obterMensagemErroApi } from "@/lib/api/errors";
 import { useTemaApp } from "@/theme/theme";
-import type { CreateWorkoutInput, WorkoutType } from "@/types/api";
+import type { CreateWorkoutInput, Workout, WorkoutType } from "@/types/api";
 
 interface WorkoutFormProps {
   salvando: boolean;
   aoSalvar: (entrada: CreateWorkoutInput) => Promise<void>;
+  treino?: Workout;
 }
 
-export function WorkoutForm({ salvando, aoSalvar }: WorkoutFormProps) {
+export function WorkoutForm({ salvando, aoSalvar, treino }: WorkoutFormProps) {
   const tema = useTemaApp();
   const { traduzir } = useIdioma();
-  const [valores, definirValores] = useState(valoresIniciaisTreino);
+  const [valores, definirValores] = useState<ValoresFormularioTreino>(() =>
+    valoresIniciaisTreino(treino),
+  );
   const [erros, definirErros] = useState<ErrosFormularioTreino>({});
   const [erroAcao, definirErroAcao] = useState("");
 
@@ -162,16 +165,18 @@ export function WorkoutForm({ salvando, aoSalvar }: WorkoutFormProps) {
         value={valores.notes}
       />
 
-      <View style={[styles.privacidade, { borderColor: tema.cores.borda }]}>
-        <Text
-          style={[
-            styles.privacidadeTexto,
-            { color: tema.cores.textoSecundario },
-          ]}
-        >
-          {traduzir("treinos.privacidade")}
-        </Text>
-      </View>
+      {!treino ? (
+        <View style={[styles.privacidade, { borderColor: tema.cores.borda }]}>
+          <Text
+            style={[
+              styles.privacidadeTexto,
+              { color: tema.cores.textoSecundario },
+            ]}
+          >
+            {traduzir("treinos.privacidade")}
+          </Text>
+        </View>
+      ) : null}
       {erroAcao ? (
         <Text
           accessibilityLiveRegion="assertive"
@@ -183,7 +188,7 @@ export function WorkoutForm({ salvando, aoSalvar }: WorkoutFormProps) {
       <AppButton
         carregando={salvando}
         onPress={() => void salvar()}
-        rotulo={traduzir("treinos.salvar")}
+        rotulo={traduzir(treino ? "treinos.salvarAlteracoes" : "treinos.salvar")}
       />
     </View>
   );

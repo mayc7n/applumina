@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, type Href } from "expo-router";
 import { Activity, Bike, Footprints, Plus, Waves } from "lucide-react-native";
 import {
   ActivityIndicator,
@@ -144,8 +144,12 @@ export default function TelaTreinos() {
           <View style={styles.lista}>
             {consulta.data.map((treino) => (
               <WorkoutRow
+                aoEditar={() => router.push(`/workouts/${treino.id}` as Href)}
                 idioma={idioma}
                 key={treino.id}
+                rotuloEditar={traduzir("treinos.editarAcessibilidade", {
+                  treino: treino.customActivity || rotulos[treino.type],
+                })}
                 rotuloMinutos={traduzir("treinos.minutos", {
                   quantidade: treino.durationMins,
                 })}
