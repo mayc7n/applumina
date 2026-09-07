@@ -18,6 +18,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import com.lumina.domain.social.entity.Friendship;
 import com.lumina.domain.social.repository.FriendshipRepository;
@@ -95,6 +96,9 @@ class SocialServiceTest {
         verify(friendshipRepository).findPendingForUser(eq(userId), requestsPage.capture());
         assertThat(friendsPage.getValue().getPageSize()).isEqualTo(100);
         assertThat(requestsPage.getValue().getPageSize()).isEqualTo(100);
+        Sort expectedSort = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.asc("id"));
+        assertThat(friendsPage.getValue().getSort()).isEqualTo(expectedSort);
+        assertThat(requestsPage.getValue().getSort()).isEqualTo(expectedSort);
     }
 
     @Test

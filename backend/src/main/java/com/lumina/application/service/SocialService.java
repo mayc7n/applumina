@@ -10,6 +10,7 @@ import com.lumina.domain.user.entity.User;
 import com.lumina.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,19 +21,23 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class SocialService {
+    private static final Sort FRIENDS_SORT = Sort.by(
+        Sort.Order.desc("createdAt"), Sort.Order.asc("id")
+    );
+
     private final FriendshipRepository friendshipRepository;
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
 
     @Transactional(readOnly = true)
     public List<SocialUserResponse> friends(UUID userId) {
-        return friendshipRepository.findAcceptedByUserId(userId, PageRequest.of(0, 100)).stream()
+        return friendshipRepository.findAcceptedByUserId(userId, PageRequest.of(0, 100, FRIENDS_SORT)).stream()
             .map(friendship -> toSocialUser(other(friendship, userId), "ACCEPTED")).toList();
     }
 
     @Transactional(readOnly = true)
     public List<FriendRequestResponse> pending(UUID userId) {
-        return friendshipRepository.findPendingForUser(userId, PageRequest.of(0, 100)).stream()
+        return friendshipRepository.findPendingForUser(userId, PageRequest.of(0, 100, FRIENDS_SORT)).stream()
             .map(request -> new FriendRequestResponse(
                 request.getId().toString(), toSocialUser(request.getRequester(), "PENDING_RECEIVED"),
                 request.getCreatedAt().toString()))
