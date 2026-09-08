@@ -16,6 +16,7 @@ import {
   acaoDisponivelAmigo,
   prepararBuscaAmigos,
 } from "@/features/friends/friend-search";
+import { ehConflitoSolicitacaoAmizade } from "@/features/friends/friend-conflict";
 import { useIdioma } from "@/i18n/idioma";
 import { useTemaApp } from "@/theme/theme";
 import type { SocialUser } from "@/types/api";
@@ -50,8 +51,14 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
     try {
       await solicitar.mutateAsync(userId);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {
-      setErroAcao(traduzir("amigos.erroSolicitar"));
+    } catch (erro) {
+      setErroAcao(
+        traduzir(
+          ehConflitoSolicitacaoAmizade(erro)
+            ? "amigos.solicitacaoExistente"
+            : "amigos.erroSolicitar",
+        ),
+      );
     }
   }
 

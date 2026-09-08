@@ -372,6 +372,8 @@ const portuguesBrasil = {
   "amigos.erroBuscaTitulo": "Busca indisponível",
   "amigos.erroBuscaDescricao": "Não foi possível buscar pessoas.",
   "amigos.erroSolicitar": "Não foi possível enviar a solicitação.",
+  "amigos.solicitacaoExistente":
+    "A solicitação ou amizade já existe. Atualizamos sua lista.",
   "amigos.erroAceitar": "Não foi possível aceitar a solicitação.",
 } as const;
 
@@ -747,6 +749,8 @@ const ingles: Record<ChaveTraducao, string> = {
   "amigos.erroBuscaTitulo": "Search unavailable",
   "amigos.erroBuscaDescricao": "We could not find people.",
   "amigos.erroSolicitar": "We could not send the friend request.",
+  "amigos.solicitacaoExistente":
+    "The friend request or friendship already exists. We refreshed your list.",
   "amigos.erroAceitar": "We could not accept the friend request.",
 };
 

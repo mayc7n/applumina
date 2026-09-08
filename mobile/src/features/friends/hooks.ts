@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiAmigos } from "@/lib/api/resources";
 
 import { chavesAmigosUsuario } from "./friend-query-keys";
+import { reconciliarConflitoSolicitacaoAmizade } from "./friend-conflict";
 
 export function useListaAmigos(userId?: string) {
   const chaves = chavesAmigosUsuario(userId);
@@ -38,6 +39,12 @@ export function useSolicitarAmizade(userId?: string) {
     mutationFn: apiAmigos.solicitar,
     onSuccess: () =>
       clienteConsultas.invalidateQueries({ queryKey: chaves.base }),
+    onError: (erro) =>
+      reconciliarConflitoSolicitacaoAmizade(
+        clienteConsultas,
+        userId,
+        erro,
+      ),
   });
 }
 
