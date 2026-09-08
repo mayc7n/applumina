@@ -1,6 +1,7 @@
 package com.lumina.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -12,7 +13,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.time.Instant;
+import java.sql.SQLException;
 
+import com.lumina.api.middleware.GlobalExceptionHandler.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +24,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.hibernate.exception.ConstraintViolationException;
 
 import com.lumina.domain.social.entity.Friendship;
 import com.lumina.domain.social.repository.FriendshipRepository;
@@ -125,6 +130,31 @@ class SocialServiceTest {
     }
 
     @Test
+    void mapsOnlyTheUnorderedFriendshipPairConstraintToConflict() {
+        DataIntegrityViolationException pairViolation = integrityViolation("ux_friendships_user_pair");
+        when(userRepository.findActiveById(otherUser.getId())).thenReturn(Optional.of(otherUser));
+        when(friendshipRepository.findBetween(userId, otherUser.getId())).thenReturn(Optional.empty());
+        when(friendshipRepository.saveAndFlush(any(Friendship.class))).thenThrow(pairViolation);
+
+        assertThatThrownBy(() -> socialService.request(userId, otherUser.getId()))
+            .isInstanceOfSatisfying(BusinessException.class, error -> {
+                assertThat(error.getStatus().value()).isEqualTo(409);
+                assertThat(error.getCode()).isEqualTo("FRIENDSHIP_ALREADY_EXISTS");
+            });
+    }
+
+    @Test
+    void preservesUnrelatedIntegrityViolations() {
+        DataIntegrityViolationException unrelatedViolation = integrityViolation("users_email_key");
+        when(userRepository.findActiveById(otherUser.getId())).thenReturn(Optional.of(otherUser));
+        when(friendshipRepository.findBetween(userId, otherUser.getId())).thenReturn(Optional.empty());
+        when(friendshipRepository.saveAndFlush(any(Friendship.class))).thenThrow(unrelatedViolation);
+
+        assertThatThrownBy(() -> socialService.request(userId, otherUser.getId()))
+            .isSameAs(unrelatedViolation);
+    }
+
+    @Test
     void doesNotExposeCompletedTaskWithoutExplicitConsent() {
         Friendship friendship = Friendship.builder()
             .requester(user)
@@ -147,5 +177,14 @@ class SocialServiceTest {
 
         assertThat(feed).isEmpty();
         verifyNoInteractions(friendshipRepository, taskRepository);
+    }
+
+    private DataIntegrityViolationException integrityViolation(String constraintName) {
+        ConstraintViolationException cause = new ConstraintViolationException(
+            "constraint violation",
+            new SQLException("duplicate", "23505"),
+            constraintName
+        );
+        return new DataIntegrityViolationException("integrity violation", cause);
     }
 }

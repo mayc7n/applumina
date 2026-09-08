@@ -1,6 +1,7 @@
 package com.lumina.application.service;
 
 import com.lumina.api.dto.*;
+import com.lumina.api.middleware.GlobalExceptionHandler.BusinessException;
 import com.lumina.api.middleware.GlobalExceptionHandler.ConflictException;
 import com.lumina.api.middleware.GlobalExceptionHandler.ResourceNotFoundException;
 import com.lumina.domain.social.entity.Friendship;
@@ -10,8 +11,11 @@ import com.lumina.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.hibernate.exception.ConstraintViolationException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -20,6 +24,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class SocialService {
+    private static final String FRIENDSHIP_PAIR_CONSTRAINT = "ux_friendships_user_pair";
     private static final Sort FRIENDS_SORT = Sort.by(
         Sort.Order.desc("createdAt"), Sort.Order.asc("id")
     );
@@ -57,11 +62,18 @@ public class SocialService {
         User target = userRepository.findActiveById(targetId)
             .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
         if (friendshipRepository.findBetween(userId, targetId).isPresent()) {
-            throw new ConflictException("Já existe uma solicitação ou amizade com este usuário");
+            throw friendshipAlreadyExists();
         }
-        Friendship request = friendshipRepository.saveAndFlush(Friendship.builder()
-            .requester(userRepository.getReferenceById(userId)).addressee(target).build());
-        return new FriendRequestResponse(request.getId().toString(), toSocialUser(target, "PENDING"), request.getCreatedAt().toString());
+        try {
+            Friendship request = friendshipRepository.saveAndFlush(Friendship.builder()
+                .requester(userRepository.getReferenceById(userId)).addressee(target).build());
+            return new FriendRequestResponse(request.getId().toString(), toSocialUser(target, "PENDING"), request.getCreatedAt().toString());
+        } catch (DataIntegrityViolationException exception) {
+            if (violatesFriendshipPairConstraint(exception)) {
+                throw friendshipAlreadyExists();
+            }
+            throw exception;
+        }
     }
 
     @Transactional
@@ -95,5 +107,25 @@ public class SocialService {
         return new SocialUserResponse(
             user.getId().toString(), user.getDisplayName(), user.getUsername(),
             user.getAvatarUrl(), online, 0, status);
+    }
+
+    private BusinessException friendshipAlreadyExists() {
+        return new BusinessException(
+            "FRIENDSHIP_ALREADY_EXISTS",
+            "Já existe uma solicitação ou amizade com este usuário",
+            HttpStatus.CONFLICT
+        );
+    }
+
+    private boolean violatesFriendshipPairConstraint(Throwable error) {
+        Throwable cause = error;
+        while (cause != null) {
+            if (cause instanceof ConstraintViolationException violation
+                && FRIENDSHIP_PAIR_CONSTRAINT.equals(violation.getConstraintName())) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 }
