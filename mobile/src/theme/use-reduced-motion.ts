@@ -8,19 +8,25 @@ export function useReducaoMovimento(): boolean | null {
 
   useEffect(() => {
     let ativo = true;
+    let eventoRecebido = false;
     const assinatura = AccessibilityInfo.addEventListener(
       "reduceMotionChanged",
-      definirReducaoMovimento,
+      (habilitada) => {
+        eventoRecebido = true;
+        if (ativo) {
+          definirReducaoMovimento(habilitada);
+        }
+      },
     );
 
     void AccessibilityInfo.isReduceMotionEnabled()
       .then((habilitada) => {
-        if (ativo) {
+        if (ativo && !eventoRecebido) {
           definirReducaoMovimento(habilitada);
         }
       })
       .catch(() => {
-        if (ativo) {
+        if (ativo && !eventoRecebido) {
           definirReducaoMovimento(true);
         }
       });

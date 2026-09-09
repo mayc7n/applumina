@@ -11,7 +11,7 @@ interface AnimatedEntryProps {
 
 export function AnimatedEntry({ children, style }: AnimatedEntryProps) {
   const reduzirMovimento = useReducaoMovimento();
-  const [opacidade] = useState(() => new Animated.Value(0));
+  const [opacidade] = useState(() => new Animated.Value(1));
   const [deslocamentoY] = useState(() => new Animated.Value(0));
 
   useEffect(() => {

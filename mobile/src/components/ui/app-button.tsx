@@ -21,6 +21,8 @@ interface AppButtonProps extends PressableProps {
   variante?: ButtonVariant;
 }
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export function AppButton({
   rotulo,
   carregando = false,
@@ -50,6 +52,8 @@ export function AppButton({
       escala.stopAnimation();
       escala.setValue(1);
     }
+
+    return () => escala.stopAnimation();
   }, [escala, movimentoReduzido]);
 
   function animarPressao(
@@ -64,6 +68,7 @@ export function AppButton({
       return;
     }
 
+    escala.stopAnimation();
     Animated.timing(escala, {
       duration: movimento.duracao,
       toValue: pressionado ? movimento.escala : 1,
@@ -72,7 +77,7 @@ export function AppButton({
   }
 
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityState={{
         disabled: Boolean(disabled || carregando),
@@ -104,7 +109,7 @@ export function AppButton({
       ) : (
         <Text style={[styles.label, { color: cor }]}>{rotulo}</Text>
       )}
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 
