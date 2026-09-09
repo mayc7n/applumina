@@ -1,5 +1,8 @@
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
+  type GestureResponderEvent,
   Pressable,
   StyleSheet,
   Text,
@@ -7,6 +10,8 @@ import {
 } from "react-native";
 
 import { useTemaApp } from "@/theme/theme";
+import { criarMovimento, formaInterface } from "@/theme/motion";
+import { useReducaoMovimento } from "@/theme/use-reduced-motion";
 
 type ButtonVariant = "primary" | "secondary" | "danger";
 
@@ -21,10 +26,16 @@ export function AppButton({
   carregando = false,
   variante = "primary",
   disabled,
+  onPressIn,
+  onPressOut,
   style,
   ...props
 }: AppButtonProps) {
   const tema = useTemaApp();
+  const reduzirMovimento = useReducaoMovimento();
+  const movimentoReduzido = reduzirMovimento !== false;
+  const [escala] = useState(() => new Animated.Value(1));
+  const movimento = criarMovimento(movimentoReduzido).pressao;
   const corFundo =
     variante === "primary"
       ? tema.cores.marca
@@ -34,6 +45,32 @@ export function AppButton({
   const cor =
     variante === "secondary" ? tema.cores.texto : tema.cores.sobreMarca;
 
+  useEffect(() => {
+    if (movimentoReduzido) {
+      escala.stopAnimation();
+      escala.setValue(1);
+    }
+  }, [escala, movimentoReduzido]);
+
+  function animarPressao(
+    pressionado: boolean,
+    evento: GestureResponderEvent,
+    callback?: ((evento: GestureResponderEvent) => void) | null,
+  ) {
+    callback?.(evento);
+
+    if (movimentoReduzido) {
+      escala.setValue(1);
+      return;
+    }
+
+    Animated.timing(escala, {
+      duration: movimento.duracao,
+      toValue: pressionado ? movimento.escala : 1,
+      useNativeDriver: true,
+    }).start();
+  }
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -42,6 +79,8 @@ export function AppButton({
         busy: carregando,
       }}
       disabled={disabled || carregando}
+      onPressIn={(evento) => animarPressao(true, evento, onPressIn)}
+      onPressOut={(evento) => animarPressao(false, evento, onPressOut)}
       style={(estadoPressao) => [
         styles.button,
         {
@@ -54,6 +93,7 @@ export function AppButton({
           borderColor:
             variante === "secondary" ? tema.cores.bordaForte : corFundo,
           opacity: disabled ? 0.45 : 1,
+          transform: [{ scale: escala }],
         },
         typeof style === "function" ? style(estadoPressao) : style,
       ]}
@@ -71,7 +111,7 @@ export function AppButton({
 const styles = StyleSheet.create({
   button: {
     alignItems: "center",
-    borderRadius: 12,
+    borderRadius: formaInterface.raioBotao,
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 48,

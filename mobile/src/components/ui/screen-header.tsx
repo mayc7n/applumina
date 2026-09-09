@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+import { AnimatedEntry } from "@/components/ui/animated-entry";
 import { useTemaApp } from "@/theme/theme";
 
 interface ScreenHeaderProps {
@@ -13,25 +14,27 @@ interface ScreenHeaderProps {
 export function ScreenHeader({ titulo, subtitulo, inicio, acao }: ScreenHeaderProps) {
   const tema = useTemaApp();
   return (
-    <View style={styles.container}>
-      {inicio}
-      <View style={styles.textos}>
-        <Text
-          accessibilityRole="header"
-          style={[styles.titulo, { color: tema.cores.texto }]}
-        >
-          {titulo}
-        </Text>
-        {subtitulo ? (
+    <AnimatedEntry>
+      <View style={styles.container}>
+        {inicio}
+        <View style={styles.textos}>
           <Text
-            style={[styles.subtitulo, { color: tema.cores.textoSecundario }]}
+            accessibilityRole="header"
+            style={[styles.titulo, { color: tema.cores.texto }]}
           >
-            {subtitulo}
+            {titulo}
           </Text>
-        ) : null}
+          {subtitulo ? (
+            <Text
+              style={[styles.subtitulo, { color: tema.cores.textoSecundario }]}
+            >
+              {subtitulo}
+            </Text>
+          ) : null}
+        </View>
+        {acao}
       </View>
-      {acao}
-    </View>
+    </AnimatedEntry>
   );
 }
 
