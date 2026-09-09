@@ -17,6 +17,12 @@ import java.sql.SQLException;
 
 import com.lumina.api.middleware.GlobalExceptionHandler.BusinessException;
 import com.lumina.api.middleware.GlobalExceptionHandler.ResourceNotFoundException;
+import com.lumina.api.middleware.GlobalExceptionHandler.ConflictException;
+import com.lumina.api.dto.CreateUserReportRequest;
+import com.lumina.domain.social.entity.UserBlock;
+import com.lumina.domain.social.entity.UserReport;
+import com.lumina.domain.social.repository.UserBlockRepository;
+import com.lumina.domain.social.repository.UserReportRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +47,8 @@ class SocialServiceTest {
     @Mock private FriendshipRepository friendshipRepository;
     @Mock private UserRepository userRepository;
     @Mock private TaskRepository taskRepository;
+    @Mock private UserBlockRepository userBlockRepository;
+    @Mock private UserReportRepository userReportRepository;
 
     private SocialService socialService;
     private UUID userId;
@@ -49,7 +57,7 @@ class SocialServiceTest {
 
     @BeforeEach
     void setUp() {
-        socialService = new SocialService(friendshipRepository, userRepository);
+        socialService = new SocialService(friendshipRepository, userRepository, userBlockRepository, userReportRepository);
         userId = UUID.randomUUID();
         user = User.builder().id(userId).displayName("Pessoa").username("pessoa").build();
         otherUser = User.builder()
@@ -234,5 +242,128 @@ class SocialServiceTest {
             constraintName
         );
         return new DataIntegrityViolationException("integrity violation", cause);
+    }
+
+    @Test
+    void blockingRemovesRelationshipUnderTheSameLockAsRequests() {
+        when(userRepository.findActiveById(otherUser.getId())).thenReturn(Optional.of(otherUser));
+
+        socialService.block(userId, otherUser.getId());
+
+        var order = org.mockito.Mockito.inOrder(friendshipRepository, userBlockRepository);
+        order.verify(friendshipRepository).lockPair(userId, otherUser.getId());
+        order.verify(userBlockRepository).createIfAbsent(userId, otherUser.getId());
+        order.verify(friendshipRepository).deleteBetween(userId, otherUser.getId());
+    }
+
+    @Test
+    void blockedRequestsLookLikeMissingUsersAndNeverWriteFriendships() {
+        when(userBlockRepository.existsBetween(userId, otherUser.getId())).thenReturn(true);
+
+        assertThatThrownBy(() -> socialService.request(userId, otherUser.getId()))
+            .isInstanceOf(ResourceNotFoundException.class).hasMessage("Usuário não encontrado");
+
+        var order = org.mockito.Mockito.inOrder(friendshipRepository, userBlockRepository);
+        order.verify(friendshipRepository).lockPair(userId, otherUser.getId());
+        order.verify(userBlockRepository).existsBetween(userId, otherUser.getId());
+        verify(friendshipRepository, org.mockito.Mockito.never()).saveAndFlush(any());
+    }
+
+    @Test
+    void hidesBlockedPairsFromSearchFriendsAndReceivedRequests() {
+        Friendship friendship = Friendship.builder().requester(otherUser).addressee(user).build();
+        when(userBlockRepository.existsBetween(userId, otherUser.getId())).thenReturn(true);
+        when(userRepository.searchActiveUsers(eq(userId), eq("ou"), any())).thenReturn(List.of(otherUser));
+        when(friendshipRepository.findAcceptedByUserId(eq(userId), any())).thenReturn(List.of(friendship));
+        when(friendshipRepository.findPendingForUser(eq(userId), any())).thenReturn(List.of(friendship));
+
+        assertThat(socialService.search(userId, "ou")).isEmpty();
+        assertThat(socialService.friends(userId)).isEmpty();
+        assertThat(socialService.pending(userId)).isEmpty();
+    }
+
+    @Test
+    void blockedRequestCannotBeAccepted() {
+        UUID requestId = UUID.randomUUID();
+        Friendship friendship = Friendship.builder().id(requestId).requester(otherUser)
+            .addressee(user).status("PENDING").build();
+        when(friendshipRepository.findByIdAndAddresseeIdAndStatus(requestId, userId, "PENDING"))
+            .thenReturn(Optional.of(friendship));
+        when(userBlockRepository.existsBetween(userId, otherUser.getId())).thenReturn(true);
+
+        assertThatThrownBy(() -> socialService.accept(userId, requestId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessage("Solicitação de amizade não encontrada");
+        assertThat(friendship.getStatus()).isEqualTo("PENDING");
+    }
+
+    @Test
+    void unblockOnlyDeletesOwnedBlockAndNeverRestoresRelationship() {
+        socialService.unblock(userId, otherUser.getId());
+        verify(userBlockRepository).deleteOwned(userId, otherUser.getId());
+        verify(friendshipRepository, org.mockito.Mockito.never()).saveAndFlush(any());
+    }
+
+    @Test
+    void blockedListContainsOnlyOwnedBlocksWithoutPresence() {
+        otherUser.setLastSeenAt(Instant.now());
+        when(userBlockRepository.findByBlockerId(userId)).thenReturn(List.of(
+            UserBlock.builder().blockerId(userId).blockedId(otherUser.getId()).build()));
+        when(userRepository.findActiveById(otherUser.getId())).thenReturn(Optional.of(otherUser));
+
+        assertThat(socialService.blockedUsers(userId)).singleElement().satisfies(response -> {
+            assertThat(response.id()).isEqualTo(otherUser.getId().toString());
+            assertThat(response.isOnline()).isFalse();
+            assertThat(response.friendshipStatus()).isNull();
+        });
+    }
+
+    @Test
+    void rejectsSelfBlockAndSelfReport() {
+        assertThatThrownBy(() -> socialService.block(userId, userId)).isInstanceOf(ConflictException.class);
+        assertThatThrownBy(() -> socialService.report(userId,
+            new CreateUserReportRequest(userId, "SPAM", " detalhe "))).isInstanceOf(ConflictException.class);
+        verifyNoInteractions(userBlockRepository, userReportRepository);
+    }
+
+    @Test
+    void reportNormalizesDetailsAndDoesNotEchoThemInDiagnosticString() {
+        when(userRepository.findActiveById(otherUser.getId())).thenReturn(Optional.of(otherUser));
+        var request = new CreateUserReportRequest(otherUser.getId(), "SPAM", " detalhe privado ");
+
+        socialService.report(userId, request);
+
+        var report = ArgumentCaptor.forClass(UserReport.class);
+        verify(userReportRepository).saveAndFlush(report.capture());
+        assertThat(report.getValue().getReporterId()).isEqualTo(userId);
+        assertThat(report.getValue().getReportedUserId()).isEqualTo(otherUser.getId());
+        assertThat(report.getValue().getCategory()).isEqualTo("SPAM");
+        assertThat(report.getValue().getDetails()).isEqualTo("detalhe privado");
+        assertThat(report.getValue().getStatus()).isEqualTo("OPEN");
+        assertThat(request.toString()).doesNotContain("detalhe privado");
+    }
+
+    @Test
+    void rejectsInvalidReportCategoryAndOversizedDetailsBeforePersistence() {
+        for (var request : List.of(
+            new CreateUserReportRequest(otherUser.getId(), "INVALID", "detalhe"),
+            new CreateUserReportRequest(otherUser.getId(), "SPAM", "x".repeat(1001)))) {
+            assertThatThrownBy(() -> socialService.report(userId, request))
+                .isInstanceOfSatisfying(BusinessException.class,
+                    error -> assertThat(error.getStatus().value()).isEqualTo(422));
+        }
+        verifyNoInteractions(userReportRepository);
+    }
+
+    @Test
+    void reportPersistenceFailuresDoNotEscapeWithPrivateDetails() {
+        when(userRepository.findActiveById(otherUser.getId())).thenReturn(Optional.of(otherUser));
+        when(userReportRepository.saveAndFlush(any())).thenThrow(
+            new DataIntegrityViolationException("detalhe privado"));
+
+        assertThatThrownBy(() -> socialService.report(userId,
+            new CreateUserReportRequest(otherUser.getId(), "SPAM", "detalhe privado")))
+            .isInstanceOf(BusinessException.class).hasNoCause()
+            .hasMessageNotContaining("detalhe privado");
     }
 }

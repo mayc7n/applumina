@@ -15,6 +15,15 @@ public interface UserRepository extends JpaRepository<User,UUID> {
     boolean existsByUsername(String username);
     @Query("SELECT u FROM User u WHERE u.id=:id AND u.deletedAt IS NULL AND u.status='ACTIVE'")
     Optional<User> findActiveById(@Param("id") UUID id);
-    @Query("SELECT u FROM User u WHERE u.deletedAt IS NULL AND u.id<>:uid AND (LOWER(u.displayName) LIKE LOWER(CONCAT('%',:query,'%')) OR LOWER(u.username) LIKE LOWER(CONCAT('%',:query,'%'))) ORDER BY u.displayName")
+    @Query("""
+        SELECT u FROM User u
+        WHERE u.deletedAt IS NULL AND u.status='ACTIVE' AND u.id<>:uid
+          AND NOT EXISTS (SELECT b.id FROM UserBlock b
+              WHERE (b.blockerId=:uid AND b.blockedId=u.id)
+                 OR (b.blockerId=u.id AND b.blockedId=:uid))
+          AND (LOWER(u.displayName) LIKE LOWER(CONCAT('%',:query,'%'))
+            OR LOWER(u.username) LIKE LOWER(CONCAT('%',:query,'%')))
+        ORDER BY u.displayName, u.id
+        """)
     List<User> searchActiveUsers(@Param("uid") UUID userId, @Param("query") String query, org.springframework.data.domain.Pageable pageable);
 }

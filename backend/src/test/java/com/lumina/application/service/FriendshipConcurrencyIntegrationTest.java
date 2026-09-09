@@ -169,6 +169,84 @@ class FriendshipConcurrencyIntegrationTest {
         assertFriendshipCountOne();
     }
 
+    @Test
+    void blockAndOppositeRequestRaceAlwaysEndsWithoutFriendship() throws Exception {
+        lookupBarrier.arm();
+
+        List<Attempt> attempts = runConcurrently(
+            () -> authenticated(alice.getId(), () -> socialService.block(alice.getId(), bob.getId())),
+            () -> requestAs(bob.getId(), alice.getId())
+        );
+
+        assertThat(attempts.get(0).created()).isTrue();
+        if (!attempts.get(1).created()) {
+            assertThat(attempts.get(1).error()).isInstanceOf(ResourceNotFoundException.class);
+        }
+        assertThat(lookupBarrier.backendPids()).hasSize(2);
+        assertThat(ownerJdbc.queryForObject("SELECT COUNT(*) FROM user_blocks", Integer.class)).isOne();
+        assertThat(ownerJdbc.queryForObject("SELECT COUNT(*) FROM friendships", Integer.class)).isZero();
+        assertRestrictedAppRole();
+    }
+
+    @Test
+    void concurrentRepeatedBlocksAreIdempotent() throws Exception {
+        lookupBarrier.arm();
+
+        List<Attempt> attempts = runConcurrently(
+            () -> authenticated(alice.getId(), () -> socialService.block(alice.getId(), bob.getId())),
+            () -> authenticated(alice.getId(), () -> socialService.block(alice.getId(), bob.getId()))
+        );
+
+        assertThat(attempts).allMatch(Attempt::created);
+        assertThat(lookupBarrier.backendPids()).hasSize(2);
+        assertThat(ownerJdbc.queryForObject("SELECT COUNT(*) FROM user_blocks", Integer.class)).isOne();
+    }
+
+    @Test
+    void blocksAreBilateralButOnlyOwnedBlocksAreListedAndRemoved() {
+        requestAs(bob.getId(), alice.getId());
+        UUID requestId = ownerJdbc.queryForObject("SELECT id FROM friendships", UUID.class);
+        authenticated(alice.getId(), () -> socialService.block(alice.getId(), bob.getId()));
+
+        authenticated(bob.getId(), () -> {
+            assertThat(socialService.blockedUsers(bob.getId())).isEmpty();
+            assertThat(socialService.search(bob.getId(), "alice")).isEmpty();
+            socialService.unblock(bob.getId(), alice.getId());
+        });
+        authenticated(alice.getId(), () -> {
+            assertThat(socialService.blockedUsers(alice.getId())).singleElement()
+                .extracting(response -> response.id()).isEqualTo(bob.getId().toString());
+            assertThat(socialService.search(alice.getId(), "bob")).isEmpty();
+            assertThat(socialService.pending(alice.getId())).isEmpty();
+            assertThat(socialService.friends(alice.getId())).isEmpty();
+        });
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> requestAs(bob.getId(), alice.getId()))
+            .isInstanceOf(ResourceNotFoundException.class);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> requestAs(alice.getId(), bob.getId()))
+            .isInstanceOf(ResourceNotFoundException.class);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> acceptAs(alice.getId(), requestId))
+            .isInstanceOf(ResourceNotFoundException.class);
+
+        authenticated(alice.getId(), () -> socialService.unblock(alice.getId(), bob.getId()));
+        assertThat(ownerJdbc.queryForObject("SELECT COUNT(*) FROM friendships", Integer.class)).isZero();
+        requestAs(bob.getId(), alice.getId());
+        assertFriendshipCountOne();
+    }
+
+    @Test
+    void searchFiltersBlockedAndInactiveUsersBeforePagination() {
+        for (int index = 0; index < 21; index++) {
+            User hidden = saveUser("match" + String.format("%02d", index));
+            authenticated(alice.getId(), () -> socialService.block(alice.getId(), hidden.getId()));
+        }
+        User visible = saveUser("matchzz");
+        User inactive = saveUser("matchinactive");
+        ownerJdbc.update("UPDATE users SET status = 'PENDING_VERIFICATION' WHERE id = ?", inactive.getId());
+
+        authenticated(alice.getId(), () -> assertThat(socialService.search(alice.getId(), "match"))
+            .singleElement().extracting(response -> response.id()).isEqualTo(visible.getId().toString()));
+    }
+
     private User saveUser(String username) {
         User user = User.builder()
             .email(username + "@example.test")
@@ -339,9 +417,8 @@ class FriendshipConcurrencyIntegrationTest {
             return Set.copyOf(backendPids);
         }
 
-        @Around("execution(* com.lumina.domain.social.repository.FriendshipRepository.findBetween(..))")
+        @Around("execution(* com.lumina.domain.social.repository.FriendshipRepository.lockPair(..))")
         Object awaitBothLookups(ProceedingJoinPoint joinPoint) throws Throwable {
-            Object result = joinPoint.proceed();
             CyclicBarrier activeBarrier = barrier;
             if (activeBarrier != null) {
                 backendPids.add(jdbc.queryForObject("SELECT pg_backend_pid()", Integer.class));
@@ -351,7 +428,7 @@ class FriendshipConcurrencyIntegrationTest {
                     throw new AssertionError("Concurrent friendship lookups did not overlap", exception);
                 }
             }
-            return result;
+            return joinPoint.proceed();
         }
     }
 }

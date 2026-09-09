@@ -13,6 +13,14 @@ import com.lumina.domain.social.entity.UserBlock;
 
 @Repository
 public interface UserBlockRepository extends JpaRepository<UserBlock, UUID> {
+    @Modifying(flushAutomatically = true)
+    @Query(value = """
+        INSERT INTO user_blocks (blocker_id, blocked_id)
+        VALUES (:blockerId, :blockedId)
+        ON CONFLICT (blocker_id, blocked_id) DO NOTHING
+        """, nativeQuery = true)
+    int createIfAbsent(@Param("blockerId") UUID blockerId, @Param("blockedId") UUID blockedId);
+
     @Query("""
         SELECT COUNT(userBlock) > 0
         FROM UserBlock userBlock

@@ -6,12 +6,16 @@ import com.lumina.api.middleware.GlobalExceptionHandler.ConflictException;
 import com.lumina.api.middleware.GlobalExceptionHandler.ResourceNotFoundException;
 import com.lumina.domain.social.entity.Friendship;
 import com.lumina.domain.social.repository.FriendshipRepository;
+import com.lumina.domain.social.repository.UserBlockRepository;
+import com.lumina.domain.social.repository.UserReportRepository;
+import com.lumina.domain.social.entity.UserReport;
 import com.lumina.domain.user.entity.User;
 import com.lumina.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,16 +35,20 @@ public class SocialService {
 
     private final FriendshipRepository friendshipRepository;
     private final UserRepository userRepository;
+    private final UserBlockRepository userBlockRepository;
+    private final UserReportRepository userReportRepository;
 
     @Transactional(readOnly = true)
     public List<SocialUserResponse> friends(UUID userId) {
         return friendshipRepository.findAcceptedByUserId(userId, PageRequest.of(0, 100, FRIENDS_SORT)).stream()
+            .filter(friendship -> !userBlockRepository.existsBetween(userId, other(friendship, userId).getId()))
             .map(friendship -> toSocialUser(other(friendship, userId), "ACCEPTED")).toList();
     }
 
     @Transactional(readOnly = true)
     public List<FriendRequestResponse> pending(UUID userId) {
         return friendshipRepository.findPendingForUser(userId, PageRequest.of(0, 100, FRIENDS_SORT)).stream()
+            .filter(request -> !userBlockRepository.existsBetween(userId, request.getRequester().getId()))
             .map(request -> new FriendRequestResponse(
                 request.getId().toString(), toSocialUser(request.getRequester(), "PENDING_RECEIVED"),
                 request.getCreatedAt().toString()))
@@ -51,6 +59,7 @@ public class SocialService {
     public List<SocialUserResponse> search(UUID userId, String query) {
         if (query == null || query.trim().length() < 2) return List.of();
         return userRepository.searchActiveUsers(userId, query.trim(), PageRequest.of(0, 20)).stream()
+            .filter(user -> !userBlockRepository.existsBetween(userId, user.getId()))
             .map(user -> toSocialUser(user, friendshipStatus(
                 friendshipRepository.findBetween(userId, user.getId()).orElse(null), userId)))
             .toList();
@@ -59,6 +68,10 @@ public class SocialService {
     @Transactional
     public FriendRequestResponse request(UUID userId, UUID targetId) {
         if (userId.equals(targetId)) throw new ConflictException("Você não pode adicionar a si mesmo");
+        friendshipRepository.lockPair(userId, targetId);
+        if (userBlockRepository.existsBetween(userId, targetId)) {
+            throw new ResourceNotFoundException("Usuário não encontrado");
+        }
         User target = userRepository.findActiveById(targetId)
             .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
         if (friendshipRepository.findBetween(userId, targetId).isPresent()) {
@@ -80,7 +93,66 @@ public class SocialService {
     public void accept(UUID userId, UUID requestId) {
         Friendship friendship = friendshipRepository.findByIdAndAddresseeIdAndStatus(requestId, userId, "PENDING")
             .orElseThrow(() -> new ResourceNotFoundException("Solicitação de amizade não encontrada"));
+        friendshipRepository.lockPair(userId, friendship.getRequester().getId());
+        if (userBlockRepository.existsBetween(userId, friendship.getRequester().getId())) {
+            throw new ResourceNotFoundException("Solicitação de amizade não encontrada");
+        }
+        friendship = friendshipRepository.findByIdAndAddresseeIdAndStatus(requestId, userId, "PENDING")
+            .orElseThrow(() -> new ResourceNotFoundException("Solicitação de amizade não encontrada"));
         friendship.setStatus("ACCEPTED");
+    }
+
+    @Transactional
+    public void block(UUID userId, UUID targetId) {
+        validateOtherActiveUser(userId, targetId);
+        friendshipRepository.lockPair(userId, targetId);
+        userBlockRepository.createIfAbsent(userId, targetId);
+        friendshipRepository.deleteBetween(userId, targetId);
+    }
+
+    @Transactional
+    public void unblock(UUID userId, UUID targetId) {
+        friendshipRepository.lockPair(userId, targetId);
+        userBlockRepository.deleteOwned(userId, targetId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SocialUserResponse> blockedUsers(UUID userId) {
+        return userBlockRepository.findByBlockerId(userId).stream()
+            .map(block -> userRepository.findActiveById(block.getBlockedId()))
+            .flatMap(Optional::stream)
+            .map(user -> new SocialUserResponse(user.getId().toString(), user.getDisplayName(),
+                user.getUsername(), user.getAvatarUrl(), false, 0, null))
+            .toList();
+    }
+
+    @Transactional
+    public void report(UUID userId, CreateUserReportRequest request) {
+        String category;
+        try {
+            category = CreateUserReportRequest.Category.valueOf(request.category()).name();
+        } catch (IllegalArgumentException | NullPointerException exception) {
+            throw new BusinessException("VALIDATION_ERROR", "Categoria inválida", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        if (request.details() != null && request.details().length() > 1000) {
+            throw new BusinessException("VALIDATION_ERROR", "Detalhes devem ter até 1000 caracteres", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        validateOtherActiveUser(userId, request.userId());
+        String details = request.details() == null ? null : request.details().strip();
+        try {
+            userReportRepository.saveAndFlush(UserReport.builder()
+                .reporterId(userId).reportedUserId(request.userId()).category(category)
+                .details(details == null || details.isEmpty() ? null : details).build());
+        } catch (DataAccessException exception) {
+            // Database exception messages can contain the report's private evidence.
+            throw new BusinessException("INTERNAL_ERROR", "Não foi possível registrar a denúncia", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private User validateOtherActiveUser(UUID userId, UUID targetId) {
+        if (userId.equals(targetId)) throw new ConflictException("Você não pode realizar esta ação consigo mesmo");
+        return userRepository.findActiveById(targetId)
+            .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
     }
 
     @Transactional

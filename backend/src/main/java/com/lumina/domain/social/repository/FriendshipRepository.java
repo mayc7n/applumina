@@ -8,6 +8,17 @@ import org.springframework.data.repository.query.Param;
 import java.util.*;
 
 public interface FriendshipRepository extends JpaRepository<Friendship, UUID> {
+    @Query(value = """
+        SELECT count(*) FROM pg_advisory_xact_lock(hashtextextended(
+            LEAST(CAST(:first AS text), CAST(:second AS text)) || ':' ||
+            GREATEST(CAST(:first AS text), CAST(:second AS text)), 0))
+        """, nativeQuery = true)
+    long lockPair(@Param("first") UUID first, @Param("second") UUID second);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM Friendship f WHERE (f.requester.id=:a AND f.addressee.id=:b) OR (f.requester.id=:b AND f.addressee.id=:a)")
+    int deleteBetween(@Param("a") UUID first, @Param("b") UUID second);
+
     @Query("SELECT f FROM Friendship f WHERE (f.requester.id=:uid OR f.addressee.id=:uid) AND f.status='ACCEPTED'")
     List<Friendship> findAcceptedByUserId(@Param("uid") UUID userId, Pageable pageable);
 

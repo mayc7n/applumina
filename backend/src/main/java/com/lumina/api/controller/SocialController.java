@@ -20,6 +20,31 @@ import java.util.*;
 public class SocialController {
     private final SocialService socialService;
 
+    @PostMapping("/blocks")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void block(@AuthenticationPrincipal UserPrincipal principal,
+        @Valid @RequestBody CreateUserBlockRequest request) {
+        socialService.block(principal.getUserId(), request.userId());
+    }
+
+    @DeleteMapping("/blocks/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void unblock(@AuthenticationPrincipal UserPrincipal principal, @PathVariable UUID userId) {
+        socialService.unblock(principal.getUserId(), userId);
+    }
+
+    @GetMapping("/blocks")
+    public ApiResponse<List<SocialUserResponse>> blockedUsers(@AuthenticationPrincipal UserPrincipal principal) {
+        return ApiResponse.success(socialService.blockedUsers(principal.getUserId()));
+    }
+
+    @PostMapping("/reports")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void report(@AuthenticationPrincipal UserPrincipal principal,
+        @Valid @RequestBody CreateUserReportRequest request) {
+        socialService.report(principal.getUserId(), request);
+    }
+
     @GetMapping("/feed")
     public ApiResponse<List<SocialFeedItemResponse>> feed(@AuthenticationPrincipal UserPrincipal principal) {
         return ApiResponse.success(socialService.feed(principal.getUserId()));
