@@ -1,6 +1,7 @@
 package com.lumina.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -20,6 +21,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -35,6 +41,7 @@ import com.lumina.infrastructure.security.UserPrincipal;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(DatabaseUserContextAspect.class)
 @Testcontainers
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 class SocialSafetyPersistenceIntegrationTest {
     private static final String APP_USERNAME = "lumina_app_test";
     private static final String APP_PASSWORD = "test-only-password";
@@ -47,9 +54,11 @@ class SocialSafetyPersistenceIntegrationTest {
     @Autowired private UserBlockRepository userBlockRepository;
     @Autowired private UserReportRepository userReportRepository;
     @Autowired private JdbcTemplate jdbc;
+    @Autowired private PlatformTransactionManager transactionManager;
 
     private UUID aliceId;
     private UUID bobId;
+    private UUID charlieId;
 
     @DynamicPropertySource
     static void configurePostgres(DynamicPropertyRegistry registry) {
@@ -66,6 +75,7 @@ class SocialSafetyPersistenceIntegrationTest {
         ownerJdbc.execute("TRUNCATE TABLE user_reports, user_blocks, users CASCADE");
         aliceId = insertUser("alice");
         bobId = insertUser("bob");
+        charlieId = insertUser("charlie");
     }
 
     @Test
@@ -74,6 +84,26 @@ class SocialSafetyPersistenceIntegrationTest {
         authenticated(bobId, () -> assertThat(userBlockRepository.findByBlockerId(bobId)).isEmpty());
         authenticated(aliceId, () -> userReportRepository.saveAndFlush(report(aliceId, bobId)));
         authenticated(bobId, () -> assertThat(userReportRepository.findAll()).isEmpty());
+    }
+
+    @Test
+    void enforcesBlockAndReportBoundariesAcrossIndependentTransactions() {
+        authenticated(aliceId, () -> userBlockRepository.saveAndFlush(block(aliceId, bobId)));
+
+        authenticated(aliceId, () -> assertThat(userBlockRepository.existsBetween(aliceId, bobId)).isTrue());
+        authenticated(bobId, () -> assertThat(userBlockRepository.existsBetween(aliceId, bobId)).isTrue());
+        authenticated(charlieId, () -> assertThat(userBlockRepository.existsBetween(aliceId, bobId)).isFalse());
+        withoutContext(() -> assertThat(userBlockRepository.existsBetween(aliceId, bobId)).isFalse());
+
+        assertThatThrownBy(() ->
+            authenticated(bobId, () -> userBlockRepository.saveAndFlush(block(aliceId, bobId)))
+        ).hasMessageContaining("row-level security policy");
+        authenticated(bobId, () -> assertThat(userBlockRepository.deleteOwned(aliceId, bobId)).isZero());
+        authenticated(aliceId, () -> assertThat(userBlockRepository.deleteOwned(aliceId, bobId)).isOne());
+
+        assertThatThrownBy(() ->
+            authenticated(bobId, () -> userReportRepository.saveAndFlush(report(aliceId, bobId)))
+        ).hasMessageContaining("row-level security policy");
     }
 
     private UUID insertUser(String username) {
@@ -108,15 +138,28 @@ class SocialSafetyPersistenceIntegrationTest {
             new UsernamePasswordAuthenticationToken(principal, null, List.of())
         );
         try {
-            jdbc.queryForObject(
-                "SELECT set_config('lumina.user_id', ?, true)",
-                String.class,
-                actorId.toString()
-            );
-            action.run();
+            inTransaction(() -> {
+                jdbc.queryForObject(
+                    "SELECT set_config('lumina.user_id', ?, true)",
+                    String.class,
+                    actorId.toString()
+                );
+                action.run();
+            });
         } finally {
             SecurityContextHolder.clearContext();
         }
+    }
+
+    private void withoutContext(ThrowingAction action) {
+        SecurityContextHolder.clearContext();
+        inTransaction(action);
+    }
+
+    private void inTransaction(ThrowingAction action) {
+        TransactionTemplate transaction = new TransactionTemplate(transactionManager);
+        transaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        transaction.executeWithoutResult(status -> action.run());
     }
 
     private static void prepareAppRole() {
