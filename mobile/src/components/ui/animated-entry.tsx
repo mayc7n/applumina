@@ -11,8 +11,17 @@ interface AnimatedEntryProps {
 
 export function AnimatedEntry({ children, style }: AnimatedEntryProps) {
   const reduzirMovimento = useReducaoMovimento();
-  const [opacidade] = useState(() => new Animated.Value(1));
-  const [deslocamentoY] = useState(() => new Animated.Value(0));
+  const [animarNaMontagem] = useState(() => reduzirMovimento === false);
+  const movimentoInicial = criarMovimento(false).entrada;
+  const [opacidade] = useState(
+    () => new Animated.Value(animarNaMontagem ? 0 : 1),
+  );
+  const [deslocamentoY] = useState(
+    () =>
+      new Animated.Value(
+        animarNaMontagem ? movimentoInicial.deslocamentoY : 0,
+      ),
+  );
 
   useEffect(() => {
     if (reduzirMovimento === null) {
@@ -21,14 +30,12 @@ export function AnimatedEntry({ children, style }: AnimatedEntryProps) {
 
     const movimento = criarMovimento(reduzirMovimento).entrada;
 
-    if (reduzirMovimento) {
+    if (reduzirMovimento || !animarNaMontagem) {
       opacidade.setValue(1);
       deslocamentoY.setValue(0);
       return;
     }
 
-    opacidade.setValue(0);
-    deslocamentoY.setValue(movimento.deslocamentoY);
     const entrada = Animated.parallel([
       Animated.timing(opacidade, {
         duration: movimento.duracao,
@@ -44,7 +51,7 @@ export function AnimatedEntry({ children, style }: AnimatedEntryProps) {
 
     entrada.start();
     return () => entrada.stop();
-  }, [deslocamentoY, opacidade, reduzirMovimento]);
+  }, [animarNaMontagem, deslocamentoY, opacidade, reduzirMovimento]);
 
   return (
     <Animated.View

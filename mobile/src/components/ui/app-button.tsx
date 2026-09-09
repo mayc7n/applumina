@@ -21,8 +21,6 @@ interface AppButtonProps extends PressableProps {
   variante?: ButtonVariant;
 }
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 export function AppButton({
   rotulo,
   carregando = false,
@@ -77,39 +75,40 @@ export function AppButton({
   }
 
   return (
-    <AnimatedPressable
-      accessibilityRole="button"
-      accessibilityState={{
-        disabled: Boolean(disabled || carregando),
-        busy: carregando,
-      }}
-      disabled={disabled || carregando}
-      onPressIn={(evento) => animarPressao(true, evento, onPressIn)}
-      onPressOut={(evento) => animarPressao(false, evento, onPressOut)}
-      style={(estadoPressao) => [
-        styles.button,
-        {
-          backgroundColor:
-            estadoPressao.pressed && variante === "primary"
-              ? tema.cores.marcaPressionada
-              : estadoPressao.pressed && variante === "secondary"
-                ? tema.cores.borda
-                : corFundo,
-          borderColor:
-            variante === "secondary" ? tema.cores.bordaForte : corFundo,
-          opacity: disabled ? 0.45 : 1,
-          transform: [{ scale: escala }],
-        },
-        typeof style === "function" ? style(estadoPressao) : style,
-      ]}
-      {...props}
-    >
-      {carregando ? (
-        <ActivityIndicator color={cor} />
-      ) : (
-        <Text style={[styles.label, { color: cor }]}>{rotulo}</Text>
-      )}
-    </AnimatedPressable>
+    <Animated.View style={{ transform: [{ scale: escala }] }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{
+          disabled: Boolean(disabled || carregando),
+          busy: carregando,
+        }}
+        disabled={disabled || carregando}
+        onPressIn={(evento) => animarPressao(true, evento, onPressIn)}
+        onPressOut={(evento) => animarPressao(false, evento, onPressOut)}
+        style={(estadoPressao) => [
+          styles.button,
+          {
+            backgroundColor:
+              estadoPressao.pressed && variante === "primary"
+                ? tema.cores.marcaPressionada
+                : estadoPressao.pressed && variante === "secondary"
+                  ? tema.cores.borda
+                  : corFundo,
+            borderColor:
+              variante === "secondary" ? tema.cores.bordaForte : corFundo,
+            opacity: disabled ? 0.45 : 1,
+          },
+          typeof style === "function" ? style(estadoPressao) : style,
+        ]}
+        {...props}
+      >
+        {carregando ? (
+          <ActivityIndicator color={cor} />
+        ) : (
+          <Text style={[styles.label, { color: cor }]}>{rotulo}</Text>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 }
 

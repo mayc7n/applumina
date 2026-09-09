@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, jest, test } from "@jest/globals";
+import { describe, expect, jest, test } from "@jest/globals";
 import { AccessibilityInfo } from "react-native";
 
-const mockDefinirReducao = jest.fn();
+const mockDefinidores: jest.Mock[] = [];
 const mockCleanups: (void | (() => void))[] = [];
 
 jest.mock("react", () => ({
@@ -9,7 +9,14 @@ jest.mock("react", () => ({
   useEffect: jest.fn((efeito: () => void | (() => void)) => {
     mockCleanups.push(efeito());
   }),
-  useState: jest.fn(() => [null, mockDefinirReducao]),
+  useState: jest.fn((inicial: unknown | (() => unknown)) => {
+    const definir = jest.fn();
+    mockDefinidores.push(definir);
+    return [
+      typeof inicial === "function" ? (inicial as () => unknown)() : inicial,
+      definir,
+    ];
+  }),
 }));
 
 let mockAoAlterar: ((reduzir: boolean) => void) | undefined;
@@ -36,36 +43,35 @@ const { useReducaoMovimento } = jest.requireActual<
   typeof import("./use-reduced-motion")
 >("./use-reduced-motion");
 
-describe("preferência de redução de movimento", () => {
-  beforeEach(() => {
-    mockAoAlterar = undefined;
-    mockResolverPreferencia = undefined;
-    mockCleanups.length = 0;
-    mockDefinirReducao.mockClear();
-    mockRemover.mockClear();
-    mockAddEventListener.mockClear();
-    mockIsReduceMotionEnabled.mockClear();
-  });
-
-  test("não deixa a resposta inicial tardia sobrescrever um evento recente", async () => {
-    useReducaoMovimento();
+describe("preferência compartilhada de redução de movimento", () => {
+  test("compartilha listener, preserva evento recente, cacheia e limpa", async () => {
+    expect(useReducaoMovimento()).toBeNull();
+    expect(useReducaoMovimento()).toBeNull();
+    expect(mockAddEventListener).toHaveBeenCalledTimes(1);
+    expect(mockIsReduceMotionEnabled).toHaveBeenCalledTimes(1);
 
     mockAoAlterar?.(true);
     mockResolverPreferencia?.(false);
     await Promise.resolve();
 
-    expect(mockDefinirReducao).toHaveBeenCalledTimes(1);
-    expect(mockDefinirReducao).toHaveBeenCalledWith(true);
-  });
+    expect(mockDefinidores[0]).toHaveBeenCalledTimes(1);
+    expect(mockDefinidores[0]).toHaveBeenCalledWith(true);
+    expect(mockDefinidores[1]).toHaveBeenCalledTimes(1);
+    expect(mockDefinidores[1]).toHaveBeenCalledWith(true);
+    expect(useReducaoMovimento()).toBe(true);
+    expect(mockAddEventListener).toHaveBeenCalledTimes(1);
 
-  test("remove o listener e ignora resposta tardia após desmontar", async () => {
-    useReducaoMovimento();
+    mockCleanups.splice(0).forEach((cleanup) => cleanup?.());
+    expect(mockRemover).toHaveBeenCalledTimes(1);
 
-    mockCleanups.forEach((cleanup) => cleanup?.());
+    expect(useReducaoMovimento()).toBe(true);
+    const definirDepoisDeDesmontar = mockDefinidores.at(-1)!;
+    const cleanupFinal = mockCleanups.at(-1);
+    cleanupFinal?.();
     mockResolverPreferencia?.(false);
     await Promise.resolve();
 
-    expect(mockRemover).toHaveBeenCalledTimes(1);
-    expect(mockDefinirReducao).not.toHaveBeenCalled();
+    expect(mockRemover).toHaveBeenCalledTimes(2);
+    expect(definirDepoisDeDesmontar).not.toHaveBeenCalled();
   });
 });
