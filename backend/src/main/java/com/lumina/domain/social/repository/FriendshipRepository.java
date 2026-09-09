@@ -18,4 +18,16 @@ public interface FriendshipRepository extends JpaRepository<Friendship, UUID> {
     Optional<Friendship> findBetween(@Param("a") UUID first, @Param("b") UUID second);
 
     Optional<Friendship> findByIdAndAddresseeIdAndStatus(UUID id, UUID addresseeId, String status);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM Friendship f WHERE f.requester.id=:requesterId AND f.addressee.id=:targetId AND f.status='PENDING'")
+    int deletePendingSentTo(@Param("requesterId") UUID requesterId, @Param("targetId") UUID targetId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM Friendship f WHERE f.id=:requestId AND f.addressee.id=:userId AND f.status='PENDING'")
+    int deletePendingReceived(@Param("requestId") UUID requestId, @Param("userId") UUID userId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM Friendship f WHERE f.status='ACCEPTED' AND ((f.requester.id=:userId AND f.addressee.id=:friendId) OR (f.requester.id=:friendId AND f.addressee.id=:userId))")
+    int deleteAcceptedBetween(@Param("userId") UUID userId, @Param("friendId") UUID friendId);
 }

@@ -11,6 +11,10 @@ interface FriendRowProps {
   aoAgir?: () => void;
   agindo?: boolean;
   acaoDesabilitada?: boolean;
+  rotuloAcaoSecundaria?: string;
+  aoAgirSecundariamente?: () => void;
+  agindoSecundariamente?: boolean;
+  acoesDesabilitadas?: boolean;
   rotuloOnline: string;
 }
 
@@ -20,6 +24,10 @@ export function FriendRow({
   aoAgir,
   agindo,
   acaoDesabilitada,
+  rotuloAcaoSecundaria,
+  aoAgirSecundariamente,
+  agindoSecundariamente,
+  acoesDesabilitadas,
   rotuloOnline,
 }: FriendRowProps) {
   const tema = useTemaApp();
@@ -54,15 +62,29 @@ export function FriendRow({
           @{usuario.username}
         </Text>
       </View>
-      {rotuloAcao ? (
-        <AppButton
-          carregando={agindo}
-          disabled={acaoDesabilitada}
-          onPress={aoAgir}
-          rotulo={rotuloAcao}
-          style={styles.acao}
-          variante="secondary"
-        />
+      {rotuloAcao || rotuloAcaoSecundaria ? (
+        <View style={styles.acoes}>
+          {rotuloAcao ? (
+            <AppButton
+              carregando={agindo}
+              disabled={acaoDesabilitada || acoesDesabilitadas}
+              onPress={aoAgir}
+              rotulo={rotuloAcao}
+              style={styles.acao}
+              variante="secondary"
+            />
+          ) : null}
+          {rotuloAcaoSecundaria ? (
+            <AppButton
+              carregando={agindoSecundariamente}
+              disabled={acoesDesabilitadas}
+              onPress={aoAgirSecundariamente}
+              rotulo={rotuloAcaoSecundaria}
+              style={styles.acao}
+              variante="secondary"
+            />
+          ) : null}
+        </View>
       ) : null}
     </View>
   );
@@ -90,4 +112,5 @@ const styles = StyleSheet.create({
   usuario: { fontSize: 13 },
   online: { borderRadius: 4, height: 8, width: 8 },
   acao: { minHeight: 40, paddingHorizontal: 12 },
+  acoes: { alignItems: "stretch", flexShrink: 1, gap: 8 },
 });

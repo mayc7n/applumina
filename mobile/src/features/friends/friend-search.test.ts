@@ -17,8 +17,8 @@ describe("busca de amigos", () => {
 
   test("define a ação segura para cada vínculo", () => {
     expect(acaoDisponivelAmigo(null)).toBe("ADICIONAR");
-    expect(acaoDisponivelAmigo("PENDING_SENT")).toBe("AGUARDAR");
+    expect(acaoDisponivelAmigo("PENDING_SENT")).toBe("CANCELAR");
     expect(acaoDisponivelAmigo("PENDING_RECEIVED")).toBe("RESPONDER");
-    expect(acaoDisponivelAmigo("ACCEPTED")).toBe("NENHUMA");
+    expect(acaoDisponivelAmigo("ACCEPTED")).toBe("REMOVER");
   });
 });

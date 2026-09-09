@@ -58,4 +58,31 @@ public class SocialController {
         socialService.accept(principal.getUserId(), requestId);
         return ApiResponse.success(null);
     }
+
+    @DeleteMapping("/friends/request/to/{friendId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelRequest(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable UUID friendId
+    ) {
+        socialService.cancelRequest(principal.getUserId(), friendId);
+    }
+
+    @DeleteMapping("/friends/request/{requestId}/reject")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void rejectRequest(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable UUID requestId
+    ) {
+        socialService.rejectRequest(principal.getUserId(), requestId);
+    }
+
+    @DeleteMapping("/friends/{friendId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeFriend(
+        @AuthenticationPrincipal UserPrincipal principal,
+        @PathVariable UUID friendId
+    ) {
+        socialService.removeFriend(principal.getUserId(), friendId);
+    }
 }

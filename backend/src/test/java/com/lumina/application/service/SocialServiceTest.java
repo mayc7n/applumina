@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.sql.SQLException;
 
 import com.lumina.api.middleware.GlobalExceptionHandler.BusinessException;
+import com.lumina.api.middleware.GlobalExceptionHandler.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -127,6 +128,53 @@ class SocialServiceTest {
         assertThat(pending).singleElement()
             .extracting(response -> response.user().friendshipStatus())
             .isEqualTo("PENDING_RECEIVED");
+    }
+
+    @Test
+    void cancelsOnlyPendingRequestCreatedByCurrentUser() {
+        when(friendshipRepository.deletePendingSentTo(userId, otherUser.getId()))
+            .thenReturn(1);
+
+        socialService.cancelRequest(userId, otherUser.getId());
+    }
+
+    @Test
+    void rejectsOnlyPendingRequestReceivedByCurrentUser() {
+        UUID requestId = UUID.randomUUID();
+        when(friendshipRepository.deletePendingReceived(requestId, userId))
+            .thenReturn(1);
+
+        socialService.rejectRequest(userId, requestId);
+    }
+
+    @Test
+    void removesOnlyAcceptedFriendshipContainingCurrentUser() {
+        when(friendshipRepository.deleteAcceptedBetween(userId, otherUser.getId()))
+            .thenReturn(1);
+
+        socialService.removeFriend(userId, otherUser.getId());
+    }
+
+    @Test
+    void doesNotRemovePendingRequestThroughFriendRemoval() {
+        when(friendshipRepository.deleteAcceptedBetween(userId, otherUser.getId()))
+            .thenReturn(0);
+
+        assertThatThrownBy(() -> socialService.removeFriend(userId, otherUser.getId()))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessage("Amizade não encontrada");
+    }
+
+    @Test
+    void masksUnauthorizedOrStaleRequestActionsAsNotFound() {
+        UUID requestId = UUID.randomUUID();
+        when(friendshipRepository.deletePendingSentTo(userId, otherUser.getId())).thenReturn(0);
+        when(friendshipRepository.deletePendingReceived(requestId, userId)).thenReturn(0);
+
+        assertThatThrownBy(() -> socialService.cancelRequest(userId, otherUser.getId()))
+            .isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> socialService.rejectRequest(userId, requestId))
+            .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test

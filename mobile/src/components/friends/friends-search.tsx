@@ -1,7 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { Search } from "lucide-react-native";
 import { useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
 
 import { FriendRow } from "@/components/friends/friend-row";
 import { FriendSection } from "@/components/friends/friend-section";
@@ -10,6 +10,8 @@ import { FeedbackState } from "@/components/ui/feedback-state";
 import { FormField } from "@/components/ui/form-field";
 import {
   useBuscarAmigos,
+  useCancelarSolicitacaoAmizade,
+  useRemoverAmizade,
   useSolicitarAmizade,
 } from "@/features/friends/hooks";
 import {
@@ -34,6 +36,8 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
   const [erroAcao, setErroAcao] = useState<string>();
   const resultados = useBuscarAmigos(buscaAtiva, userId);
   const solicitar = useSolicitarAmizade(userId);
+  const cancelar = useCancelarSolicitacaoAmizade(userId);
+  const remover = useRemoverAmizade(userId);
 
   function buscar(): void {
     const busca = prepararBuscaAmigos(buscaDigitada);
@@ -44,6 +48,53 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
     setErroBusca(undefined);
     if (busca === buscaAtiva) void resultados.refetch();
     else setBuscaAtiva(busca);
+  }
+
+  async function desfazerVinculo(
+    acao: "CANCELAR" | "REMOVER",
+    friendId: string,
+  ): Promise<void> {
+    setErroAcao(undefined);
+    try {
+      await (acao === "CANCELAR" ? cancelar : remover).mutateAsync(friendId);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {
+      setErroAcao(
+        traduzir(
+          acao === "CANCELAR"
+            ? "amigos.erroCancelar"
+            : "amigos.erroRemover",
+        ),
+      );
+    }
+  }
+
+  function confirmarDesfazer(
+    acao: "CANCELAR" | "REMOVER",
+    friendId: string,
+  ): void {
+    Alert.alert(
+      traduzir(
+        acao === "CANCELAR"
+          ? "amigos.confirmarCancelamentoTitulo"
+          : "amigos.confirmarRemocaoTitulo",
+      ),
+      traduzir(
+        acao === "CANCELAR"
+          ? "amigos.confirmarCancelamentoDescricao"
+          : "amigos.confirmarRemocaoDescricao",
+      ),
+      [
+        { text: traduzir("amigos.voltar"), style: "cancel" },
+        {
+          text: traduzir(
+            acao === "CANCELAR" ? "amigos.cancelar" : "amigos.remover",
+          ),
+          style: "destructive",
+          onPress: () => void desfazerVinculo(acao, friendId),
+        },
+      ],
+    );
   }
 
   async function solicitarAmizade(userId: string): Promise<void> {
@@ -66,17 +117,23 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
     const acao = acaoDisponivelAmigo(usuario.friendshipStatus);
     const rotulos = {
       ADICIONAR: traduzir("amigos.adicionar"),
-      AGUARDAR: traduzir("amigos.pendente"),
+      CANCELAR: traduzir("amigos.cancelar"),
       RESPONDER: traduzir("amigos.recebida"),
-      NENHUMA: traduzir("amigos.jaAmigos"),
+      REMOVER: traduzir("amigos.remover"),
     };
     return (
       <FriendRow
-        acaoDesabilitada={acao !== "ADICIONAR"}
-        agindo={solicitar.isPending && solicitar.variables === usuario.id}
+        acaoDesabilitada={acao === "RESPONDER"}
+        agindo={
+          (solicitar.isPending && solicitar.variables === usuario.id) ||
+          (cancelar.isPending && cancelar.variables === usuario.id) ||
+          (remover.isPending && remover.variables === usuario.id)
+        }
         aoAgir={
           acao === "ADICIONAR"
             ? () => void solicitarAmizade(usuario.id)
+            : acao === "CANCELAR" || acao === "REMOVER"
+              ? () => confirmarDesfazer(acao, usuario.id)
             : undefined
         }
         key={usuario.id}

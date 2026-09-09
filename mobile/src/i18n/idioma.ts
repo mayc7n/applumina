@@ -362,6 +362,10 @@ const portuguesBrasil = {
   "amigos.seusAmigos": "Seus amigos",
   "amigos.adicionar": "Adicionar",
   "amigos.aceitar": "Aceitar",
+  "amigos.cancelar": "Cancelar solicitação",
+  "amigos.rejeitar": "Rejeitar",
+  "amigos.remover": "Remover",
+  "amigos.voltar": "Voltar",
   "amigos.pendente": "Pendente",
   "amigos.recebida": "Recebida",
   "amigos.jaAmigos": "Amigos",
@@ -375,6 +379,18 @@ const portuguesBrasil = {
   "amigos.solicitacaoExistente":
     "A solicitação ou amizade já existe. Atualizamos sua lista.",
   "amigos.erroAceitar": "Não foi possível aceitar a solicitação.",
+  "amigos.erroCancelar": "Não foi possível cancelar a solicitação.",
+  "amigos.erroRejeitar": "Não foi possível rejeitar a solicitação.",
+  "amigos.erroRemover": "Não foi possível remover a amizade.",
+  "amigos.confirmarCancelamentoTitulo": "Cancelar esta solicitação?",
+  "amigos.confirmarCancelamentoDescricao":
+    "A solicitação enviada será removida.",
+  "amigos.confirmarRejeicaoTitulo": "Rejeitar esta solicitação?",
+  "amigos.confirmarRejeicaoDescricao":
+    "A solicitação recebida será removida.",
+  "amigos.confirmarRemocaoTitulo": "Remover esta amizade?",
+  "amigos.confirmarRemocaoDescricao":
+    "A pessoa sairá da sua lista de amigos.",
 } as const;
 
 type ChaveTraducao = keyof typeof portuguesBrasil;
@@ -739,6 +755,10 @@ const ingles: Record<ChaveTraducao, string> = {
   "amigos.seusAmigos": "Your friends",
   "amigos.adicionar": "Add",
   "amigos.aceitar": "Accept",
+  "amigos.cancelar": "Cancel request",
+  "amigos.rejeitar": "Reject",
+  "amigos.remover": "Remove",
+  "amigos.voltar": "Back",
   "amigos.pendente": "Pending",
   "amigos.recebida": "Received",
   "amigos.jaAmigos": "Friends",
@@ -752,6 +772,17 @@ const ingles: Record<ChaveTraducao, string> = {
   "amigos.solicitacaoExistente":
     "The friend request or friendship already exists. We refreshed your list.",
   "amigos.erroAceitar": "We could not accept the friend request.",
+  "amigos.erroCancelar": "We could not cancel the friend request.",
+  "amigos.erroRejeitar": "We could not reject the friend request.",
+  "amigos.erroRemover": "We could not remove this friendship.",
+  "amigos.confirmarCancelamentoTitulo": "Cancel this request?",
+  "amigos.confirmarCancelamentoDescricao": "The sent request will be removed.",
+  "amigos.confirmarRejeicaoTitulo": "Reject this request?",
+  "amigos.confirmarRejeicaoDescricao":
+    "The received request will be removed.",
+  "amigos.confirmarRemocaoTitulo": "Remove this friendship?",
+  "amigos.confirmarRemocaoDescricao":
+    "This person will leave your friends list.",
 };
 
 type VariaveisTraducao = Record<string, string | number>;

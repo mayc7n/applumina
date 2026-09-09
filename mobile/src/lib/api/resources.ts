@@ -102,4 +102,9 @@ export const apiAmigos = {
     enviarApi<FriendRequest>("/social/friends/request", { userId }),
   aceitar: (requestId: string) =>
     enviarApi<void>(`/social/friends/request/${requestId}/accept`),
+  cancelar: (friendId: string) =>
+    excluirApi(`/social/friends/request/to/${friendId}`),
+  rejeitar: (requestId: string) =>
+    excluirApi(`/social/friends/request/${requestId}/reject`),
+  remover: (friendId: string) => excluirApi(`/social/friends/${friendId}`),
 };

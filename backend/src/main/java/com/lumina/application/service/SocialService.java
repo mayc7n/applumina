@@ -83,6 +83,27 @@ public class SocialService {
         friendship.setStatus("ACCEPTED");
     }
 
+    @Transactional
+    public void cancelRequest(UUID userId, UUID targetId) {
+        if (friendshipRepository.deletePendingSentTo(userId, targetId) == 0) {
+            throw new ResourceNotFoundException("Solicitação de amizade não encontrada");
+        }
+    }
+
+    @Transactional
+    public void rejectRequest(UUID userId, UUID requestId) {
+        if (friendshipRepository.deletePendingReceived(requestId, userId) == 0) {
+            throw new ResourceNotFoundException("Solicitação de amizade não encontrada");
+        }
+    }
+
+    @Transactional
+    public void removeFriend(UUID userId, UUID friendId) {
+        if (friendshipRepository.deleteAcceptedBetween(userId, friendId) == 0) {
+            throw new ResourceNotFoundException("Amizade não encontrada");
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<SocialFeedItemResponse> feed(UUID userId) {
         return List.of();

@@ -57,3 +57,33 @@ export function useAceitarAmizade(userId?: string) {
       clienteConsultas.invalidateQueries({ queryKey: chaves.base }),
   });
 }
+
+export function useCancelarSolicitacaoAmizade(userId?: string) {
+  const clienteConsultas = useQueryClient();
+  const chaves = chavesAmigosUsuario(userId);
+  return useMutation({
+    mutationFn: apiAmigos.cancelar,
+    onSuccess: () =>
+      clienteConsultas.invalidateQueries({ queryKey: chaves.base }),
+  });
+}
+
+export function useRejeitarSolicitacaoAmizade(userId?: string) {
+  const clienteConsultas = useQueryClient();
+  const chaves = chavesAmigosUsuario(userId);
+  return useMutation({
+    mutationFn: apiAmigos.rejeitar,
+    onSuccess: () =>
+      clienteConsultas.invalidateQueries({ queryKey: chaves.base }),
+  });
+}
+
+export function useRemoverAmizade(userId?: string) {
+  const clienteConsultas = useQueryClient();
+  const chaves = chavesAmigosUsuario(userId);
+  return useMutation({
+    mutationFn: apiAmigos.remover,
+    onSuccess: () =>
+      clienteConsultas.invalidateQueries({ queryKey: chaves.base }),
+  });
+}
