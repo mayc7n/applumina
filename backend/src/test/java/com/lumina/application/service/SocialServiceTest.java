@@ -19,7 +19,6 @@ import com.lumina.api.middleware.GlobalExceptionHandler.BusinessException;
 import com.lumina.api.middleware.GlobalExceptionHandler.ResourceNotFoundException;
 import com.lumina.api.middleware.GlobalExceptionHandler.ConflictException;
 import com.lumina.api.dto.CreateUserReportRequest;
-import com.lumina.domain.social.entity.UserBlock;
 import com.lumina.domain.social.entity.UserReport;
 import com.lumina.domain.social.repository.UserBlockRepository;
 import com.lumina.domain.social.repository.UserReportRepository;
@@ -306,10 +305,12 @@ class SocialServiceTest {
 
     @Test
     void blockedListContainsOnlyOwnedBlocksWithoutPresence() {
-        otherUser.setLastSeenAt(Instant.now());
-        when(userBlockRepository.findByBlockerId(userId)).thenReturn(List.of(
-            UserBlock.builder().blockerId(userId).blockedId(otherUser.getId()).build()));
-        when(userRepository.findActiveById(otherUser.getId())).thenReturn(Optional.of(otherUser));
+        var blockedUser = org.mockito.Mockito.mock(UserBlockRepository.BlockedUserProjection.class);
+        when(blockedUser.getId()).thenReturn(otherUser.getId());
+        when(blockedUser.getDisplayName()).thenReturn(otherUser.getDisplayName());
+        when(blockedUser.getUsername()).thenReturn(otherUser.getUsername());
+        when(blockedUser.getAvatarUrl()).thenReturn(otherUser.getAvatarUrl());
+        when(userBlockRepository.findBlockedUsersByBlockerId(userId)).thenReturn(List.of(blockedUser));
 
         assertThat(socialService.blockedUsers(userId)).singleElement().satisfies(response -> {
             assertThat(response.id()).isEqualTo(otherUser.getId().toString());

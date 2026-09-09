@@ -13,6 +13,13 @@ import com.lumina.domain.social.entity.UserBlock;
 
 @Repository
 public interface UserBlockRepository extends JpaRepository<UserBlock, UUID> {
+    interface BlockedUserProjection {
+        UUID getId();
+        String getDisplayName();
+        String getUsername();
+        String getAvatarUrl();
+    }
+
     @Modifying(flushAutomatically = true)
     @Query(value = """
         INSERT INTO user_blocks (blocker_id, blocked_id)
@@ -39,6 +46,16 @@ public interface UserBlockRepository extends JpaRepository<UserBlock, UUID> {
         ORDER BY userBlock.createdAt DESC, userBlock.id ASC
         """)
     List<UserBlock> findByBlockerId(@Param("blockerId") UUID blockerId);
+
+    @Query("""
+        SELECT blockedUser.id AS id, blockedUser.displayName AS displayName,
+            blockedUser.username AS username, blockedUser.avatarUrl AS avatarUrl
+        FROM UserBlock userBlock
+        JOIN User blockedUser ON blockedUser.id = userBlock.blockedId
+        WHERE userBlock.blockerId = :blockerId
+        ORDER BY userBlock.createdAt DESC, userBlock.id ASC
+        """)
+    List<BlockedUserProjection> findBlockedUsersByBlockerId(@Param("blockerId") UUID blockerId);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("""

@@ -234,6 +234,23 @@ class FriendshipConcurrencyIntegrationTest {
     }
 
     @Test
+    void inactiveBlockedAccountsRemainListedWithoutPresenceAndCanBeUnblocked() {
+        authenticated(alice.getId(), () -> socialService.block(alice.getId(), bob.getId()));
+        ownerJdbc.update("UPDATE users SET status = 'PENDING_VERIFICATION' WHERE id = ?", bob.getId());
+
+        authenticated(alice.getId(), () -> {
+            assertThat(socialService.blockedUsers(alice.getId())).singleElement().satisfies(response -> {
+                assertThat(response.id()).isEqualTo(bob.getId().toString());
+                assertThat(response.isOnline()).isFalse();
+                assertThat(response.friendshipStatus()).isNull();
+            });
+            socialService.unblock(alice.getId(), bob.getId());
+        });
+
+        assertThat(ownerJdbc.queryForObject("SELECT COUNT(*) FROM user_blocks", Integer.class)).isZero();
+    }
+
+    @Test
     void searchFiltersBlockedAndInactiveUsersBeforePagination() {
         for (int index = 0; index < 21; index++) {
             User hidden = saveUser("match" + String.format("%02d", index));

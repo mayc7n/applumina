@@ -118,9 +118,7 @@ public class SocialService {
 
     @Transactional(readOnly = true)
     public List<SocialUserResponse> blockedUsers(UUID userId) {
-        return userBlockRepository.findByBlockerId(userId).stream()
-            .map(block -> userRepository.findActiveById(block.getBlockedId()))
-            .flatMap(Optional::stream)
+        return userBlockRepository.findBlockedUsersByBlockerId(userId).stream()
             .map(user -> new SocialUserResponse(user.getId().toString(), user.getDisplayName(),
                 user.getUsername(), user.getAvatarUrl(), false, 0, null))
             .toList();
