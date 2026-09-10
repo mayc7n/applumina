@@ -239,7 +239,9 @@ const portuguesBrasil = {
   "conta.idiomaTitulo": "Idioma",
   "conta.idiomaSistema":
     "O Lumina acompanha o idioma do aparelho: Português (Brasil) ou English.",
+  "conta.preferenciasTitulo": "Preferências",
   "conta.sair": "Sair da conta",
+  "conta.sairDescricao": "Encerre a sessão somente neste aparelho.",
   "conta.confirmarTitulo": "Sair da conta?",
   "conta.confirmarDescricao":
     "Você precisará informar seus dados para entrar novamente.",
@@ -250,7 +252,9 @@ const portuguesBrasil = {
     "Crie uma conta somente quando quiser salvar e sincronizar seus registros.",
   "conta.privacidadeTitulo": "Privacidade e dados",
   "conta.alterarSenha": "Alterar senha",
+  "conta.alterarSenhaDescricao": "Atualize sua credencial de acesso.",
   "conta.excluirConta": "Excluir minha conta",
+  "conta.excluirContaDescricao": "Apague permanentemente seus dados.",
   "exclusao.titulo": "Excluir conta",
   "exclusao.subtitulo": "Uma decisão permanente, protegida por confirmação.",
   "exclusao.alertaTitulo": "Seus dados serão removidos",
@@ -676,7 +680,9 @@ const ingles: Record<ChaveTraducao, string> = {
   "conta.idiomaTitulo": "Language",
   "conta.idiomaSistema":
     "Lumina follows your device language: Português (Brasil) or English.",
+  "conta.preferenciasTitulo": "Preferences",
   "conta.sair": "Sign out",
+  "conta.sairDescricao": "Sign out only on this device.",
   "conta.confirmarTitulo": "Sign out?",
   "conta.confirmarDescricao":
     "You will need your credentials to sign in again.",
@@ -687,7 +693,9 @@ const ingles: Record<ChaveTraducao, string> = {
     "Create an account only when you want to save and sync your records.",
   "conta.privacidadeTitulo": "Privacy and data",
   "conta.alterarSenha": "Change password",
+  "conta.alterarSenhaDescricao": "Update your access credential.",
   "conta.excluirConta": "Delete my account",
+  "conta.excluirContaDescricao": "Permanently erase your data.",
   "exclusao.titulo": "Delete account",
   "exclusao.subtitulo": "A permanent decision protected by confirmation.",
   "exclusao.alertaTitulo": "Your data will be removed",

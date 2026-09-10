@@ -3,10 +3,15 @@ import { router } from "expo-router";
 import {
   CircleAlert,
   CircleCheck,
+  ChevronRight,
+  KeyRound,
   Languages,
+  LogOut,
   Monitor,
   ShieldCheck,
   Smartphone,
+  Trash2,
+  UserRound,
   X,
   type LucideIcon,
 } from "lucide-react-native";
@@ -23,6 +28,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/ui/app-button";
+import { AnimatedEntry } from "@/components/ui/animated-entry";
 import { FeedbackState } from "@/components/ui/feedback-state";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import {
@@ -117,6 +123,9 @@ export default function TelaConta() {
               },
             ]}
           >
+            <View style={[styles.visitanteIcone, { backgroundColor: tema.cores.elevado }]}>
+              <UserRound color={tema.cores.marca} size={27} />
+            </View>
             <Text style={[styles.nome, { color: tema.cores.texto }]}>
               {traduzir("conta.visitanteTitulo")}
             </Text>
@@ -203,36 +212,35 @@ export default function TelaConta() {
     >
       <ScrollView contentContainerStyle={styles.conteudo}>
         <ScreenHeader titulo={traduzir("conta.titulo")} />
+        <AnimatedEntry>
+          <View style={[styles.perfil, { backgroundColor: tema.cores.marca }]}>
+            <View style={[styles.avatar, { backgroundColor: tema.cores.sobreMarca }]}>
+              <Text style={[styles.inicial, { color: tema.cores.marca }]}>
+                {usuario?.displayName?.trim().charAt(0).toUpperCase() ?? "L"}
+              </Text>
+            </View>
+            <View style={styles.dadosPerfil}>
+              <Text style={[styles.nomePerfil, { color: tema.cores.sobreMarca }]}>
+                {usuario?.displayName}
+              </Text>
+              <Text style={[styles.emailPerfil, { color: tema.cores.sobreMarca }]}>
+                {usuario?.email}
+              </Text>
+              <View style={[styles.planoPill, { backgroundColor: tema.cores.sobreMarca }]}>
+                <Text style={[styles.plano, { color: tema.cores.marca }]}>
+                  {traduzir("conta.plano", { plano: usuario?.plan ?? "FREE" })}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </AnimatedEntry>
+
         <View
           style={[
-            styles.perfil,
-            {
-              backgroundColor: tema.cores.elevado,
-              borderColor: tema.cores.borda,
-            },
+            styles.secaoSessoes,
+            { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
           ]}
         >
-          <View
-            style={[styles.avatar, { backgroundColor: tema.cores.marcaSuave }]}
-          >
-            <Text style={[styles.inicial, { color: tema.cores.marca }]}>
-              {usuario?.displayName?.trim().charAt(0).toUpperCase() ?? "L"}
-            </Text>
-          </View>
-          <View style={styles.dadosPerfil}>
-            <Text style={[styles.nome, { color: tema.cores.texto }]}>
-              {usuario?.displayName}
-            </Text>
-            <Text style={[styles.email, { color: tema.cores.textoSecundario }]}>
-              {usuario?.email}
-            </Text>
-            <Text style={[styles.plano, { color: tema.cores.marca }]}>
-              {traduzir("conta.plano", { plano: usuario?.plan ?? "FREE" })}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.secaoSessoes}>
           <View style={styles.cabecalhoSecao}>
             <View style={[styles.icone, { backgroundColor: tema.cores.marcaSuave }]}>
               <ShieldCheck color={tema.cores.marca} size={21} />
@@ -264,14 +272,11 @@ export default function TelaConta() {
               aoAgir={() => void consultaSessoes.refetch()}
             />
           ) : (
-            <View
-              style={[styles.listaSessoes, { borderColor: tema.cores.borda }]}
-            >
-              {sessoes.map((sessao, indice) => (
+            <View style={styles.listaSessoes}>
+              {sessoes.map((sessao) => (
                 <SessaoConectada
                   key={sessao.id}
                   sessao={sessao}
-                  separador={indice > 0}
                   desabilitada={alterandoSessoes}
                   formatarData={(data) =>
                     new Intl.DateTimeFormat(idioma, {
@@ -324,32 +329,74 @@ export default function TelaConta() {
             />
           ) : null}
         </View>
-        <CartaoInformativo
-          Icone={Languages}
-          titulo={traduzir("conta.idiomaTitulo")}
-          descricao={traduzir("conta.idiomaSistema")}
-        />
-        <View style={styles.zonaPrivacidade}>
+
+        <View style={styles.grupoConta}>
+          <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
+            {traduzir("conta.preferenciasTitulo")}
+          </Text>
+          <View
+            style={[
+              styles.listaConfiguracoes,
+              { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
+            ]}
+          >
+            <ConfiguracaoConta
+              Icone={Languages}
+              descricao={traduzir("conta.idiomaSistema")}
+              titulo={traduzir("conta.idiomaTitulo")}
+            />
+          </View>
+        </View>
+
+        <View style={styles.grupoConta}>
           <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
             {traduzir("conta.privacidadeTitulo")}
           </Text>
-          <AppButton
-            rotulo={traduzir("conta.alterarSenha")}
-            variante="secondary"
-            onPress={() => router.push("/change-password")}
-          />
-          <AppButton
-            rotulo={traduzir("conta.excluirConta")}
-            variante="danger"
-            onPress={() => router.push("/delete-account")}
-          />
+          <View
+            style={[
+              styles.listaConfiguracoes,
+              { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
+            ]}
+          >
+            <ConfiguracaoConta
+              Icone={KeyRound}
+              aoPressionar={() => router.push("/change-password")}
+              descricao={traduzir("conta.alterarSenhaDescricao")}
+              titulo={traduzir("conta.alterarSenha")}
+            />
+            <View style={[styles.separador, { backgroundColor: tema.cores.borda }]} />
+            <ConfiguracaoConta
+              Icone={Trash2}
+              aoPressionar={() => router.push("/delete-account")}
+              descricao={traduzir("conta.excluirContaDescricao")}
+              perigosa
+              titulo={traduzir("conta.excluirConta")}
+            />
+          </View>
         </View>
-        <AppButton
-          rotulo={traduzir("conta.sair")}
-          variante="secondary"
-          onPress={confirmarSaida}
+
+        <Pressable
           accessibilityHint={traduzir("conta.confirmarDescricao")}
-        />
+          accessibilityRole="button"
+          onPress={confirmarSaida}
+          style={({ pressed }) => [
+            styles.sair,
+            {
+              backgroundColor: pressed ? tema.cores.borda : tema.cores.sobreposicao,
+              borderColor: tema.cores.borda,
+            },
+          ]}
+        >
+          <LogOut color={tema.cores.textoSecundario} size={20} />
+          <View style={styles.sairTextos}>
+            <Text style={[styles.sairTitulo, { color: tema.cores.texto }]}>
+              {traduzir("conta.sair")}
+            </Text>
+            <Text style={[styles.sairDescricao, { color: tema.cores.textoSecundario }]}>
+              {traduzir("conta.sairDescricao")}
+            </Text>
+          </View>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
@@ -357,13 +404,11 @@ export default function TelaConta() {
 
 function SessaoConectada({
   sessao,
-  separador,
   desabilitada,
   formatarData,
   aoEncerrar,
 }: {
   sessao: UserSession;
-  separador: boolean;
   desabilitada: boolean;
   formatarData: (data: string) => string;
   aoEncerrar: () => void;
@@ -377,7 +422,7 @@ function SessaoConectada({
     <View
       style={[
         styles.linhaSessao,
-        separador && { borderColor: tema.cores.borda, borderTopWidth: 1 },
+        { backgroundColor: tema.cores.sobreposicao },
       ]}
     >
       <Icone color={tema.cores.textoSecundario} size={21} />
@@ -421,28 +466,42 @@ function SessaoConectada({
   );
 }
 
-function CartaoInformativo({
+function ConfiguracaoConta({
   Icone,
   titulo,
   descricao,
+  aoPressionar,
+  perigosa = false,
 }: {
   Icone: LucideIcon;
   titulo: string;
   descricao: string;
+  aoPressionar?: () => void;
+  perigosa?: boolean;
 }) {
   const tema = useTemaApp();
+  const cor = perigosa ? tema.cores.perigo : tema.cores.marca;
+
   return (
-    <View
-      style={[
-        styles.cartao,
-        { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
+    <Pressable
+      accessibilityRole={aoPressionar ? "button" : "text"}
+      onPress={aoPressionar}
+      disabled={!aoPressionar}
+      style={({ pressed }) => [
+        styles.configuracao,
+        { backgroundColor: pressed ? tema.cores.sobreposicao : "transparent" },
       ]}
     >
-      <View style={[styles.icone, { backgroundColor: tema.cores.marcaSuave }]}>
-        <Icone color={tema.cores.marca} size={21} />
+      <View
+        style={[
+          styles.icone,
+          { backgroundColor: perigosa ? tema.cores.perigoSuave : tema.cores.marcaSuave },
+        ]}
+      >
+        <Icone color={cor} size={21} />
       </View>
       <View style={styles.textoCartao}>
-        <Text style={[styles.tituloCartao, { color: tema.cores.texto }]}>
+        <Text style={[styles.tituloCartao, { color: perigosa ? tema.cores.perigo : tema.cores.texto }]}>
           {titulo}
         </Text>
         <Text
@@ -454,26 +513,26 @@ function CartaoInformativo({
           {descricao}
         </Text>
       </View>
-    </View>
+      {aoPressionar ? <ChevronRight color={tema.cores.textoSutil} size={20} /> : null}
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   tela: { flex: 1 },
   conteudo: {
-    gap: 14,
-    paddingBottom: 32,
+    gap: 20,
+    paddingBottom: 40,
     paddingHorizontal: 20,
     paddingTop: 18,
   },
   perfil: {
     alignItems: "center",
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: 26,
     flexDirection: "row",
-    gap: 14,
-    marginBottom: 8,
-    padding: 18,
+    gap: 16,
+    minHeight: 140,
+    padding: 22,
   },
   visitante: {
     borderRadius: 20,
@@ -481,26 +540,21 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 20,
   },
+  visitanteIcone: { alignItems: "center", borderRadius: 25, height: 50, justifyContent: "center", width: 50 },
   avatar: {
     alignItems: "center",
-    borderRadius: 28,
-    height: 56,
+    borderRadius: 32,
+    height: 64,
     justifyContent: "center",
-    width: 56,
+    width: 64,
   },
-  inicial: { fontSize: 23, fontWeight: "800" },
-  dadosPerfil: { flex: 1, gap: 3 },
+  inicial: { fontSize: 26, fontWeight: "800" },
+  dadosPerfil: { alignItems: "flex-start", flex: 1, gap: 5 },
   nome: { fontSize: 17, fontWeight: "700" },
-  email: { fontSize: 13 },
-  plano: { fontSize: 11, fontWeight: "800", marginTop: 3 },
-  cartao: {
-    alignItems: "flex-start",
-    borderRadius: 16,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 13,
-    padding: 16,
-  },
+  nomePerfil: { fontSize: 21, fontWeight: "800", lineHeight: 27 },
+  emailPerfil: { fontSize: 13, lineHeight: 18, opacity: 0.88 },
+  planoPill: { borderRadius: 12, marginTop: 5, paddingHorizontal: 10, paddingVertical: 5 },
+  plano: { fontSize: 11, fontWeight: "800" },
   icone: {
     alignItems: "center",
     borderRadius: 11,
@@ -511,12 +565,12 @@ const styles = StyleSheet.create({
   textoCartao: { flex: 1, gap: 4 },
   tituloCartao: { fontSize: 15, fontWeight: "700" },
   descricaoCartao: { fontSize: 13, lineHeight: 19 },
-  secaoSessoes: { gap: 13, marginVertical: 4 },
+  secaoSessoes: { borderRadius: 22, borderWidth: 1, gap: 15, padding: 18 },
   cabecalhoSecao: { alignItems: "flex-start", flexDirection: "row", gap: 13 },
   tituloSecao: { fontSize: 18, fontWeight: "700" },
   carregandoSessoes: { alignItems: "center", minHeight: 72, justifyContent: "center" },
-  listaSessoes: { borderBottomWidth: 1, borderTopWidth: 1 },
-  linhaSessao: { alignItems: "center", flexDirection: "row", gap: 12, minHeight: 72, paddingVertical: 12 },
+  listaSessoes: { gap: 8 },
+  linhaSessao: { alignItems: "center", borderRadius: 14, flexDirection: "row", gap: 12, minHeight: 76, padding: 12 },
   dadosSessao: { flex: 1, gap: 2 },
   nomeAparelho: { fontSize: 15, fontWeight: "700" },
   atual: { fontSize: 13, fontWeight: "700" },
@@ -525,5 +579,12 @@ const styles = StyleSheet.create({
   semOutras: { fontSize: 13, lineHeight: 19, paddingVertical: 13 },
   avisoSessao: { alignItems: "center", flexDirection: "row", gap: 8 },
   mensagemSessao: { flex: 1, fontSize: 13, lineHeight: 19 },
-  zonaPrivacidade: { gap: 12, marginTop: 8 },
+  grupoConta: { gap: 10 },
+  listaConfiguracoes: { borderRadius: 20, borderWidth: 1, overflow: "hidden" },
+  configuracao: { alignItems: "center", flexDirection: "row", gap: 13, minHeight: 78, padding: 14 },
+  separador: { height: StyleSheet.hairlineWidth, marginLeft: 69 },
+  sair: { alignItems: "center", borderRadius: 18, borderWidth: 1, flexDirection: "row", gap: 13, minHeight: 72, padding: 15 },
+  sairTextos: { flex: 1, gap: 3 },
+  sairTitulo: { fontSize: 15, fontWeight: "700" },
+  sairDescricao: { fontSize: 13, lineHeight: 18 },
 });
