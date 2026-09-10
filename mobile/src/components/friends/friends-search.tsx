@@ -7,6 +7,7 @@ import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
 import { FriendRow } from "@/components/friends/friend-row";
 import { FriendSection } from "@/components/friends/friend-section";
 import { AppButton } from "@/components/ui/app-button";
+import { AnimatedEntry } from "@/components/ui/animated-entry";
 import { FeedbackState } from "@/components/ui/feedback-state";
 import { FormField } from "@/components/ui/form-field";
 import {
@@ -135,6 +136,7 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
           (cancelar.isPending && cancelar.variables === usuario.id) ||
           (remover.isPending && remover.variables === usuario.id)
         }
+        acaoPrincipal={acao === "ADICIONAR"}
         aoAgir={
           acao === "ADICIONAR"
             ? () => void solicitarAmizade(usuario.id)
@@ -163,25 +165,41 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
 
   return (
     <View style={styles.conteudo}>
-      <View style={styles.busca}>
-        <FormField
-          autoCapitalize="none"
-          autoCorrect={false}
-          erro={erroBusca}
-          inicio={<Search color={tema.cores.textoSutil} size={19} />}
-          onChangeText={setBuscaDigitada}
-          onSubmitEditing={buscar}
-          placeholder={traduzir("amigos.buscaPlaceholder")}
-          returnKeyType="search"
-          rotulo={traduzir("amigos.buscarPessoas")}
-          value={buscaDigitada}
-        />
-        <AppButton
-          onPress={buscar}
-          rotulo={traduzir("amigos.buscar")}
-          variante="secondary"
-        />
-      </View>
+      <AnimatedEntry>
+        <View
+          style={[
+            styles.busca,
+            { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
+          ]}
+        >
+          <View style={styles.buscaCabecalho}>
+            <View style={[styles.buscaIcone, { backgroundColor: tema.cores.marcaSuave }]}>
+              <Search color={tema.cores.marca} size={20} />
+            </View>
+            <View style={styles.buscaTextos}>
+              <Text style={[styles.buscaTitulo, { color: tema.cores.texto }]}>
+                {traduzir("amigos.buscarPessoas")}
+              </Text>
+              <Text style={[styles.buscaAjuda, { color: tema.cores.textoSecundario }]}>
+                {traduzir("amigos.buscaAjuda")}
+              </Text>
+            </View>
+          </View>
+          <FormField
+            autoCapitalize="none"
+            autoCorrect={false}
+            erro={erroBusca}
+            inicio={<Search color={tema.cores.textoSutil} size={19} />}
+            onChangeText={setBuscaDigitada}
+            onSubmitEditing={buscar}
+            placeholder={traduzir("amigos.buscaPlaceholder")}
+            returnKeyType="search"
+            rotulo={traduzir("amigos.buscaCampo")}
+            value={buscaDigitada}
+          />
+          <AppButton onPress={buscar} rotulo={traduzir("amigos.buscar")} />
+        </View>
+      </AnimatedEntry>
 
       {erroAcao ? (
         <Text
@@ -219,6 +237,11 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
 
 const styles = StyleSheet.create({
   conteudo: { gap: 24 },
-  busca: { gap: 10 },
+  busca: { borderRadius: 22, borderWidth: 1, gap: 16, padding: 18 },
+  buscaCabecalho: { alignItems: "center", flexDirection: "row", gap: 12 },
+  buscaIcone: { alignItems: "center", borderRadius: 20, height: 40, justifyContent: "center", width: 40 },
+  buscaTextos: { flex: 1, gap: 2 },
+  buscaTitulo: { fontSize: 18, fontWeight: "800", lineHeight: 24 },
+  buscaAjuda: { fontSize: 13, lineHeight: 18 },
   erro: { fontSize: 13, lineHeight: 18 },
 });

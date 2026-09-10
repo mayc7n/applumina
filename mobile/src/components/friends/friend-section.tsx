@@ -14,12 +14,13 @@ export function FriendSection({ titulo, children }: FriendSectionProps) {
   return (
     <View style={styles.secao}>
       <Text style={[styles.titulo, { color: tema.cores.texto }]}>{titulo}</Text>
-      <View>{children}</View>
+      <View style={styles.lista}>{children}</View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  secao: { gap: 7 },
+  secao: { gap: 10 },
   titulo: { fontSize: 18, fontWeight: "800", lineHeight: 24 },
+  lista: { gap: 10 },
 });

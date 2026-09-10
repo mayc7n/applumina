@@ -361,6 +361,8 @@ const portuguesBrasil = {
   "amigos.privacidade":
     "Privacidade padrão: Somente eu. Compartilhar sempre será opcional.",
   "amigos.buscarPessoas": "Buscar pessoas",
+  "amigos.buscaAjuda": "Encontre alguém pelo nome ou nome de usuário.",
+  "amigos.buscaCampo": "Nome ou usuário",
   "amigos.buscaPlaceholder": "Nome ou usuário",
   "amigos.buscar": "Buscar",
   "amigos.buscaMinima": "Digite pelo menos 2 caracteres.",
@@ -796,6 +798,8 @@ const ingles: Record<ChaveTraducao, string> = {
   "amigos.privacidade":
     "Default privacy: Only me. Sharing will always be optional.",
   "amigos.buscarPessoas": "Find people",
+  "amigos.buscaAjuda": "Find someone by name or username.",
+  "amigos.buscaCampo": "Name or username",
   "amigos.buscaPlaceholder": "Name or username",
   "amigos.buscar": "Search",
   "amigos.buscaMinima": "Enter at least 2 characters.",
