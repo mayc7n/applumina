@@ -1,4 +1,5 @@
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
 import { Search } from "lucide-react-native";
 import { useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
@@ -123,6 +124,11 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
     };
     return (
       <FriendRow
+        acoesDesabilitadas={
+          (solicitar.isPending && solicitar.variables === usuario.id) ||
+          (cancelar.isPending && cancelar.variables === usuario.id) ||
+          (remover.isPending && remover.variables === usuario.id)
+        }
         acaoDesabilitada={acao === "RESPONDER"}
         agindo={
           (solicitar.isPending && solicitar.variables === usuario.id) ||
@@ -137,8 +143,19 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
             : undefined
         }
         key={usuario.id}
+        aoAbrirSeguranca={() =>
+          router.push({
+            pathname: "/friends/safety/[id]",
+            params: {
+              id: usuario.id,
+              displayName: usuario.displayName,
+              username: usuario.username,
+            },
+          })
+        }
         rotuloAcao={rotulos[acao]}
         rotuloOnline={traduzir("amigos.online")}
+        rotuloSeguranca={traduzir("amigos.seguranca")}
         usuario={usuario}
       />
     );

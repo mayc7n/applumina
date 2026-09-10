@@ -87,3 +87,42 @@ export function useRemoverAmizade(userId?: string) {
       clienteConsultas.invalidateQueries({ queryKey: chaves.base }),
   });
 }
+
+export function useListaBloqueados(userId?: string) {
+  const chaves = chavesAmigosUsuario(userId);
+  return useQuery({
+    queryKey: chaves.bloqueados,
+    queryFn: apiAmigos.listarBloqueados,
+    enabled: Boolean(userId),
+  });
+}
+
+export function useBloquearUsuario(userId?: string) {
+  const clienteConsultas = useQueryClient();
+  const chaves = chavesAmigosUsuario(userId);
+  return useMutation({
+    mutationFn: apiAmigos.bloquear,
+    onSuccess: () =>
+      clienteConsultas.invalidateQueries({ queryKey: chaves.base }),
+  });
+}
+
+export function useDesbloquearUsuario(userId?: string) {
+  const clienteConsultas = useQueryClient();
+  const chaves = chavesAmigosUsuario(userId);
+  return useMutation({
+    mutationFn: apiAmigos.desbloquear,
+    onSuccess: () =>
+      clienteConsultas.invalidateQueries({ queryKey: chaves.base }),
+  });
+}
+
+export function useDenunciarUsuario(userId?: string) {
+  const clienteConsultas = useQueryClient();
+  const chaves = chavesAmigosUsuario(userId);
+  return useMutation({
+    mutationFn: apiAmigos.denunciar,
+    onSuccess: () =>
+      clienteConsultas.invalidateQueries({ queryKey: chaves.base }),
+  });
+}

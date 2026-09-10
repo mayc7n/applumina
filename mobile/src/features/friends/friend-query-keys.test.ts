@@ -9,6 +9,7 @@ describe("cache privado de amigos", () => {
 
     expect(primeiraConta.lista).not.toEqual(segundaConta.lista);
     expect(primeiraConta.solicitacoes).not.toEqual(segundaConta.solicitacoes);
+    expect(primeiraConta.bloqueados).not.toEqual(segundaConta.bloqueados);
     expect(primeiraConta.busca("maria")).not.toEqual(
       segundaConta.busca("maria"),
     );

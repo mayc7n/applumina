@@ -132,6 +132,13 @@ export async function enviarApi<T>(url: string, dados?: unknown): Promise<T> {
   return extrairDados(resposta.data);
 }
 
+export async function enviarSemConteudoApi(
+  url: string,
+  dados?: unknown,
+): Promise<void> {
+  await clienteApi.post(url, dados);
+}
+
 export async function atualizarParcialApi<T>(
   url: string,
   dados?: unknown,

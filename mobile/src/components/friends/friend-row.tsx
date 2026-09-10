@@ -16,6 +16,8 @@ interface FriendRowProps {
   agindoSecundariamente?: boolean;
   acoesDesabilitadas?: boolean;
   rotuloOnline: string;
+  rotuloSeguranca?: string;
+  aoAbrirSeguranca?: () => void;
 }
 
 export function FriendRow({
@@ -29,6 +31,8 @@ export function FriendRow({
   agindoSecundariamente,
   acoesDesabilitadas,
   rotuloOnline,
+  rotuloSeguranca,
+  aoAbrirSeguranca,
 }: FriendRowProps) {
   const tema = useTemaApp();
 
@@ -80,6 +84,15 @@ export function FriendRow({
               disabled={acoesDesabilitadas}
               onPress={aoAgirSecundariamente}
               rotulo={rotuloAcaoSecundaria}
+              style={styles.acao}
+              variante="secondary"
+            />
+          ) : null}
+          {rotuloSeguranca ? (
+            <AppButton
+              disabled={acoesDesabilitadas}
+              onPress={aoAbrirSeguranca}
+              rotulo={rotuloSeguranca}
               style={styles.acao}
               variante="secondary"
             />
