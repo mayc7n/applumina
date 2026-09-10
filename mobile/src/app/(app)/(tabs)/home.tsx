@@ -1,7 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { ArrowUpRight, Bell, ChevronRight } from "lucide-react-native";
+import {
+  ArrowUpRight,
+  Bell,
+  CheckCircle2,
+  ChevronRight,
+  Clock3,
+  Flame,
+  UsersRound,
+} from "lucide-react-native";
 import {
   ActivityIndicator,
   Pressable,
@@ -15,8 +23,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { LuminaMark } from "@/components/brand/lumina-mark";
 import { WeeklyArc } from "@/components/progress/weekly-arc";
-import { AppButton } from "@/components/ui/app-button";
+import { AnimatedEntry } from "@/components/ui/animated-entry";
 import { FeedbackState } from "@/components/ui/feedback-state";
+import { resumirSemana } from "@/features/dashboard/home-metrics";
 import { chavesTarefasUsuario } from "@/features/tasks/task-query-keys";
 import { useIdioma } from "@/i18n/idioma";
 import { apiPainel } from "@/lib/api/resources";
@@ -56,19 +65,7 @@ export default function TelaInicio() {
   }).format(new Date());
   const tarefasHoje = consulta.data?.todayTasks ?? [];
   const tarefaPendente = tarefasHoje.find((tarefa) => tarefa.status !== "DONE");
-  const dadosSemana = consulta.data?.weeklyData ?? [];
-  const diasAtivos = dadosSemana.filter(
-    (dia) =>
-      dia.tasksCompleted > 0 || dia.habitRate > 0 || dia.focusMins > 0,
-  ).length;
-  const tarefasConcluidas = dadosSemana.reduce(
-    (total, dia) => total + dia.tasksCompleted,
-    0,
-  );
-  const minutosFoco = dadosSemana.reduce(
-    (total, dia) => total + dia.focusMins,
-    0,
-  );
+  const resumo = resumirSemana(consulta.data?.weeklyData ?? []);
 
   return (
     <SafeAreaView
@@ -80,8 +77,8 @@ export default function TelaInicio() {
         refreshControl={
           autenticado ? (
             <RefreshControl
-              refreshing={consulta.isRefetching}
               onRefresh={() => void consulta.refetch()}
+              refreshing={consulta.isRefetching}
               tintColor={tema.cores.marca}
             />
           ) : undefined
@@ -119,8 +116,9 @@ export default function TelaInicio() {
                 style={[styles.saudacao, { color: tema.cores.texto }]}
               >
                 {autenticado
-                  ? obterSaudacao(traduzir) +
-                    (primeiroNome ? ", " + primeiroNome : "")
+                  ? `${obterSaudacao(traduzir)}${
+                      primeiroNome ? `, ${primeiroNome}` : ""
+                    }`
                   : traduzir("inicio.visitanteSaudacao")}
               </Text>
               <Text style={[styles.data, { color: tema.cores.textoSecundario }]}>
@@ -136,7 +134,7 @@ export default function TelaInicio() {
             style={[
               styles.botaoIcone,
               {
-                backgroundColor: tema.cores.sobreposicao,
+                backgroundColor: tema.cores.elevado,
                 borderColor: tema.cores.borda,
               },
             ]}
@@ -145,186 +143,307 @@ export default function TelaInicio() {
           </Pressable>
         </View>
 
-        <View
-          style={[
-            styles.hoje,
-            {
-              backgroundColor: tema.cores.marcaSuave,
-              borderColor: tema.cores.marcaContorno,
-            },
-          ]}
-        >
-          <Text style={[styles.sobretitulo, { color: tema.cores.marca }]}>
-            {traduzir("inicio.hoje")}
-          </Text>
-          {consulta.isLoading && autenticado ? (
-            <ActivityIndicator color={tema.cores.marca} style={styles.carga} />
-          ) : consulta.isError && autenticado ? (
-            <FeedbackState
-              aoAgir={() => void consulta.refetch()}
-              descricao={traduzir("inicio.erroDescricao")}
-              rotuloAcao={traduzir("comum.tentarNovamente")}
-              tipo="erro"
-              titulo={traduzir("inicio.erroTitulo")}
+        <AnimatedEntry>
+          <View style={[styles.hero, { backgroundColor: tema.cores.marca }]}>
+            <View
+              pointerEvents="none"
+              style={[
+                styles.orbeMaior,
+                { backgroundColor: tema.cores.sobreMarca },
+              ]}
             />
-          ) : (
-            <>
-              <Text style={[styles.tituloHoje, { color: tema.cores.texto }]}>
-                {!autenticado
-                  ? traduzir("inicio.visitanteTitulo")
-                  : tarefaPendente
-                    ? traduzir("inicio.pendenteTitulo")
-                    : traduzir("inicio.semRegistroTitulo")}
-              </Text>
-              <Text
+            <View
+              pointerEvents="none"
+              style={[
+                styles.orbeMenor,
+                { backgroundColor: tema.cores.sobreMarca },
+              ]}
+            />
+            <Text style={[styles.sobretitulo, { color: tema.cores.sobreMarca }]}>
+              {traduzir("inicio.hoje")}
+            </Text>
+            {consulta.isLoading && autenticado ? (
+              <ActivityIndicator
+                color={tema.cores.sobreMarca}
+                style={styles.carga}
+              />
+            ) : consulta.isError && autenticado ? (
+              <View
                 style={[
-                  styles.descricaoHoje,
-                  { color: tema.cores.textoSecundario },
+                  styles.estadoHero,
+                  { backgroundColor: tema.cores.elevado },
                 ]}
               >
-                {!autenticado
-                  ? traduzir("inicio.visitanteDescricao")
-                  : tarefaPendente
-                    ? traduzir("inicio.pendenteDescricao", {
-                        titulo: tarefaPendente.title,
-                      })
-                    : traduzir("inicio.semRegistroDescricao")}
-              </Text>
-              <AppButton
-                accessibilityHint={
-                  !autenticado
-                    ? traduzir("inicio.visitanteSubtitulo")
-                    : undefined
-                }
-                onPress={() =>
-                  router.push(tarefaPendente ? "/tasks" : "/workouts")
-                }
-                rotulo={
-                  !autenticado
-                    ? traduzir("inicio.acaoExplorar")
-                    : tarefaPendente
-                      ? traduzir("inicio.acaoTarefa")
-                      : traduzir("inicio.acaoTreino")
-                }
-                style={styles.acaoHoje}
-              />
-              {!autenticado ? (
-                <Pressable
-                  accessibilityRole="link"
-                  hitSlop={10}
-                  onPress={() => router.push("/login")}
-                  style={styles.linkEntrar}
+                <FeedbackState
+                  aoAgir={() => void consulta.refetch()}
+                  descricao={traduzir("inicio.erroDescricao")}
+                  rotuloAcao={traduzir("comum.tentarNovamente")}
+                  tipo="erro"
+                  titulo={traduzir("inicio.erroTitulo")}
+                />
+              </View>
+            ) : (
+              <>
+                <Text
+                  style={[styles.tituloHero, { color: tema.cores.sobreMarca }]}
                 >
-                  <Text style={[styles.linkTexto, { color: tema.cores.marca }]}>
-                    {traduzir("comum.entrar")}
+                  {!autenticado
+                    ? traduzir("inicio.visitanteTitulo")
+                    : tarefaPendente
+                      ? traduzir("inicio.pendenteTitulo")
+                      : traduzir("inicio.semRegistroTitulo")}
+                </Text>
+                <Text
+                  style={[
+                    styles.descricaoHero,
+                    { color: tema.cores.sobreMarca },
+                  ]}
+                >
+                  {!autenticado
+                    ? traduzir("inicio.visitanteDescricao")
+                    : tarefaPendente
+                      ? traduzir("inicio.pendenteDescricao", {
+                          titulo: tarefaPendente.title,
+                        })
+                      : traduzir("inicio.semRegistroDescricao")}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() =>
+                    router.push(tarefaPendente ? "/tasks" : "/workouts")
+                  }
+                  style={({ pressed }) => [
+                    styles.acaoHero,
+                    {
+                      backgroundColor: tema.cores.sobreMarca,
+                      opacity: pressed ? 0.86 : 1,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[styles.acaoHeroTexto, { color: tema.cores.marca }]}
+                  >
+                    {!autenticado
+                      ? traduzir("inicio.acaoExplorar")
+                      : tarefaPendente
+                        ? traduzir("inicio.acaoTarefa")
+                        : traduzir("inicio.acaoTreino")}
                   </Text>
-                  <ArrowUpRight color={tema.cores.marca} size={16} />
+                  <ArrowUpRight color={tema.cores.marca} size={18} />
                 </Pressable>
-              ) : null}
-            </>
-          )}
-        </View>
+                {!autenticado ? (
+                  <Pressable
+                    accessibilityRole="link"
+                    hitSlop={10}
+                    onPress={() => router.push("/login")}
+                    style={styles.linkEntrar}
+                  >
+                    <Text
+                      style={[
+                        styles.linkEntrarTexto,
+                        { color: tema.cores.sobreMarca },
+                      ]}
+                    >
+                      {traduzir("comum.entrar")}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </>
+            )}
+          </View>
+        </AnimatedEntry>
 
         {autenticado && consulta.data ? (
-          <>
-            <View style={styles.secao}>
-              <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
-                {traduzir("inicio.progressoTitulo")}
-              </Text>
-              <View style={styles.progresso}>
-                <WeeklyArc
-                  progresso={diasAtivos / 7}
-                  rotulo={traduzir("inicio.diasAtivos", {
-                    quantidade: diasAtivos,
-                  })}
-                />
-                <View style={styles.progressoTexto}>
-                  <Text style={[styles.diasAtivos, { color: tema.cores.texto }]}>
+          <AnimatedEntry>
+            <View style={styles.blocoSemana}>
+              <View style={styles.tituloLinha}>
+                <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
+                  {traduzir("inicio.progressoTitulo")}
+                </Text>
+                <View
+                  style={[
+                    styles.selo,
+                    { backgroundColor: tema.cores.marcaSuave },
+                  ]}
+                >
+                  <Text style={[styles.seloTexto, { color: tema.cores.marca }]}>
                     {traduzir("inicio.diasAtivos", {
-                      quantidade: diasAtivos,
+                      quantidade: resumo.diasAtivos,
                     })}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.resumoSemana,
-                      { color: tema.cores.textoSecundario },
-                    ]}
-                  >
-                    {diasAtivos
-                      ? traduzir("inicio.resumoSemana", {
-                          tarefas: tarefasConcluidas,
-                          minutos: minutosFoco,
-                        })
-                      : traduzir("inicio.semanaVazia")}
                   </Text>
                 </View>
               </View>
-            </View>
 
-            <View
-              style={[
-                styles.retomada,
-                { borderLeftColor: tema.cores.marcaContorno },
-              ]}
-            >
-              <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
-                {traduzir("inicio.constanciaTitulo")}
-              </Text>
-              <Text
-                style={[styles.textoSecao, { color: tema.cores.textoSecundario }]}
-              >
-                {consulta.data.longestStreak > 0
-                  ? traduzir("inicio.retomada")
-                  : traduzir("inicio.primeiroPasso")}
-              </Text>
+              <View style={styles.bentoLinha}>
+                <View
+                  style={[
+                    styles.cardProgresso,
+                    {
+                      backgroundColor: tema.cores.elevado,
+                      borderColor: tema.cores.borda,
+                    },
+                  ]}
+                >
+                  <View style={styles.arco}>
+                    <WeeklyArc
+                      progresso={resumo.diasAtivos / 7}
+                      rotulo={traduzir("inicio.diasAtivos", {
+                        quantidade: resumo.diasAtivos,
+                      })}
+                      tamanho={106}
+                    />
+                    <View
+                      accessibilityElementsHidden
+                      importantForAccessibility="no-hide-descendants"
+                      style={styles.arcoCentro}
+                    >
+                      <Text
+                        style={[styles.arcoNumero, { color: tema.cores.texto }]}
+                      >
+                        {resumo.diasAtivos}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.arcoTotal,
+                          { color: tema.cores.textoSutil },
+                        ]}
+                      >
+                        / 7
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={[styles.cardTitulo, { color: tema.cores.texto }]}>
+                    {traduzir("inicio.constanciaTitulo")}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.cardApoio,
+                      { color: tema.cores.textoSecundario },
+                    ]}
+                  >
+                    {resumo.diasAtivos
+                      ? traduzir("inicio.retomada")
+                      : traduzir("inicio.primeiroPasso")}
+                  </Text>
+                </View>
+
+                <View style={styles.metricasColuna}>
+                  <View
+                    style={[
+                      styles.cardMetrica,
+                      { backgroundColor: tema.cores.sucessoSuave },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.iconeMetrica,
+                        { backgroundColor: tema.cores.elevado },
+                      ]}
+                    >
+                      <CheckCircle2 color={tema.cores.sucesso} size={18} />
+                    </View>
+                    <Text
+                      style={[styles.numeroMetrica, { color: tema.cores.texto }]}
+                    >
+                      {resumo.tarefasConcluidas}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.rotuloMetrica,
+                        { color: tema.cores.textoSecundario },
+                      ]}
+                    >
+                      {traduzir("inicio.tarefasConcluidasSemana")}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.cardMetrica,
+                      { backgroundColor: tema.cores.informacaoSuave },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.iconeMetrica,
+                        { backgroundColor: tema.cores.elevado },
+                      ]}
+                    >
+                      <Clock3 color={tema.cores.informacao} size={18} />
+                    </View>
+                    <Text
+                      style={[styles.numeroMetrica, { color: tema.cores.texto }]}
+                    >
+                      {resumo.minutosFoco}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.rotuloMetrica,
+                        { color: tema.cores.textoSecundario },
+                      ]}
+                    >
+                      {traduzir("inicio.focoSemana")}
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </View>
-          </>
+          </AnimatedEntry>
         ) : null}
 
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push("/friends")}
-          style={({ pressed }) => [
-            styles.secaoAcao,
-            {
-              backgroundColor: pressed
-                ? tema.cores.sobreposicao
-                : tema.cores.fundo,
-              borderColor: tema.cores.borda,
-            },
-          ]}
-        >
-          <View style={styles.secaoAcaoTexto}>
-            <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
-              {traduzir("inicio.amigosTitulo")}
-            </Text>
-            <Text
-              style={[styles.textoSecao, { color: tema.cores.textoSecundario }]}
+        <AnimatedEntry>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push("/friends")}
+            style={({ pressed }) => [
+              styles.social,
+              {
+                backgroundColor: pressed
+                  ? tema.cores.marcaSuave
+                  : tema.cores.elevado,
+                borderColor: tema.cores.borda,
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.socialIcone,
+                { backgroundColor: tema.cores.marcaSuave },
+              ]}
             >
-              {traduzir("inicio.amigosVazio")}
-            </Text>
-            <Text style={[styles.linkTexto, { color: tema.cores.marca }]}>
-              {traduzir("inicio.verAmigos")}
-            </Text>
-          </View>
-          <ChevronRight color={tema.cores.textoSutil} size={20} />
-        </Pressable>
+              <UsersRound color={tema.cores.marca} size={24} />
+            </View>
+            <View style={styles.socialTexto}>
+              <Text style={[styles.cardTitulo, { color: tema.cores.texto }]}>
+                {traduzir("inicio.amigosTitulo")}
+              </Text>
+              <Text
+                numberOfLines={2}
+                style={[
+                  styles.cardApoio,
+                  { color: tema.cores.textoSecundario },
+                ]}
+              >
+                {traduzir("inicio.amigosVazio")}
+              </Text>
+              <Text style={[styles.socialLink, { color: tema.cores.marca }]}>
+                {traduzir("inicio.verAmigos")}
+              </Text>
+            </View>
+            <ChevronRight color={tema.cores.textoSutil} size={20} />
+          </Pressable>
+        </AnimatedEntry>
 
         {autenticado && consulta.data ? (
-          <View style={styles.secao}>
-            <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
-              {traduzir("inicio.proximoTitulo")}
-            </Text>
-            <Text style={[styles.proximoTexto, { color: tema.cores.texto }]}>
-              {traduzir(
-                tarefaPendente
-                  ? "inicio.proximoTarefa"
-                  : "inicio.proximoLivre",
-              )}
-            </Text>
+          <View
+            style={[
+              styles.notaEtica,
+              { backgroundColor: tema.cores.alertaSuave },
+            ]}
+          >
+            <Flame color={tema.cores.alerta} size={18} />
             <Text
               style={[
-                styles.explicacao,
+                styles.notaEticaTexto,
                 { color: tema.cores.textoSecundario },
               ]}
             >
@@ -340,17 +459,17 @@ export default function TelaInicio() {
 const styles = StyleSheet.create({
   tela: { flex: 1 },
   conteudo: {
-    gap: 28,
+    gap: 24,
     paddingBottom: 36,
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 14,
   },
   cabecalho: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  identidade: { alignItems: "center", flexDirection: "row", flex: 1, gap: 12 },
+  identidade: { alignItems: "center", flex: 1, flexDirection: "row", gap: 12 },
   cabecalhoTexto: { flex: 1, gap: 2 },
   avatar: { borderRadius: 23, height: 46, width: 46 },
   avatarFallback: {
@@ -361,7 +480,7 @@ const styles = StyleSheet.create({
     width: 46,
   },
   inicial: { fontSize: 19, fontWeight: "800" },
-  saudacao: { fontSize: 20, fontWeight: "800", letterSpacing: -0.35 },
+  saudacao: { fontSize: 20, fontWeight: "800", letterSpacing: -0.4 },
   data: { fontSize: 13, textTransform: "capitalize" },
   botaoIcone: {
     alignItems: "center",
@@ -371,56 +490,145 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: 44,
   },
-  hoje: {
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 22,
+  hero: {
+    borderRadius: 28,
+    minHeight: 284,
+    overflow: "hidden",
+    padding: 24,
+  },
+  orbeMaior: {
+    borderRadius: 90,
+    height: 180,
+    opacity: 0.08,
+    position: "absolute",
+    right: -64,
+    top: -72,
+    width: 180,
+  },
+  orbeMenor: {
+    borderRadius: 50,
+    bottom: -44,
+    height: 100,
+    left: -30,
+    opacity: 0.06,
+    position: "absolute",
+    width: 100,
   },
   sobretitulo: {
     fontSize: 12,
     fontWeight: "800",
-    letterSpacing: 0.8,
-    marginBottom: 12,
+    letterSpacing: 1.4,
+    marginBottom: 16,
+    opacity: 0.8,
     textTransform: "uppercase",
   },
-  tituloHoje: {
-    fontSize: 25,
+  tituloHero: {
+    fontSize: 30,
+    fontWeight: "900",
+    letterSpacing: -1,
+    lineHeight: 36,
+    maxWidth: 300,
+  },
+  descricaoHero: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: 10,
+    maxWidth: 310,
+    opacity: 0.82,
+  },
+  carga: { marginVertical: 70 },
+  estadoHero: { borderRadius: 18, padding: 16 },
+  acaoHero: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    borderRadius: 16,
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "center",
+    marginTop: 22,
+    minHeight: 50,
+    paddingHorizontal: 18,
+  },
+  acaoHeroTexto: { fontSize: 15, fontWeight: "800" },
+  linkEntrar: { alignSelf: "flex-start", minHeight: 44, paddingVertical: 12 },
+  linkEntrarTexto: { fontSize: 14, fontWeight: "700", opacity: 0.9 },
+  blocoSemana: { gap: 14 },
+  tituloLinha: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "space-between",
+  },
+  tituloSecao: { fontSize: 21, fontWeight: "800", letterSpacing: -0.45 },
+  selo: { borderRadius: 999, paddingHorizontal: 11, paddingVertical: 7 },
+  seloTexto: { fontSize: 11, fontWeight: "800" },
+  bentoLinha: { flexDirection: "row", gap: 12 },
+  cardProgresso: {
+    borderRadius: 24,
+    borderWidth: 1,
+    flex: 1.25,
+    minHeight: 260,
+    padding: 18,
+  },
+  arco: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    justifyContent: "center",
+  },
+  arcoCentro: {
+    alignItems: "baseline",
+    flexDirection: "row",
+    position: "absolute",
+  },
+  arcoNumero: { fontSize: 26, fontWeight: "900", letterSpacing: -1 },
+  arcoTotal: { fontSize: 12, fontWeight: "700" },
+  cardTitulo: {
+    fontSize: 17,
     fontWeight: "800",
-    letterSpacing: -0.65,
-    lineHeight: 31,
+    letterSpacing: -0.3,
+    lineHeight: 21,
   },
-  descricaoHoje: { fontSize: 15, lineHeight: 22, marginTop: 9 },
-  carga: { marginVertical: 34 },
-  acaoHoje: { alignSelf: "stretch", marginTop: 20 },
-  linkEntrar: {
+  cardApoio: { fontSize: 13, lineHeight: 19, marginTop: 6 },
+  metricasColuna: { flex: 0.9, gap: 12 },
+  cardMetrica: {
+    borderRadius: 22,
+    flex: 1,
+    justifyContent: "space-between",
+    padding: 16,
+  },
+  iconeMetrica: {
     alignItems: "center",
-    alignSelf: "center",
-    flexDirection: "row",
-    gap: 4,
-    minHeight: 44,
-    paddingHorizontal: 12,
+    borderRadius: 16,
+    height: 34,
+    justifyContent: "center",
+    width: 34,
   },
-  linkTexto: { fontSize: 14, fontWeight: "700" },
-  secao: { gap: 12 },
-  tituloSecao: { fontSize: 19, fontWeight: "700", letterSpacing: -0.25 },
-  textoSecao: { fontSize: 14, lineHeight: 21 },
-  progresso: { alignItems: "center", flexDirection: "row", gap: 18 },
-  progressoTexto: { flex: 1, gap: 6 },
-  diasAtivos: { fontSize: 17, fontWeight: "700", lineHeight: 22 },
-  resumoSemana: { fontSize: 13, lineHeight: 19 },
-  retomada: { borderLeftWidth: 3, gap: 7, paddingLeft: 16 },
-  secaoAcao: {
+  numeroMetrica: { fontSize: 27, fontWeight: "900", letterSpacing: -0.8 },
+  rotuloMetrica: { fontSize: 12, fontWeight: "700", lineHeight: 16 },
+  social: {
     alignItems: "center",
-    borderBottomWidth: 1,
-    borderTopWidth: 1,
+    borderRadius: 24,
+    borderWidth: 1,
     flexDirection: "row",
-    gap: 16,
-    marginHorizontal: -20,
-    minHeight: 120,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
+    gap: 14,
+    minHeight: 132,
+    padding: 18,
   },
-  secaoAcaoTexto: { flex: 1, gap: 8 },
-  proximoTexto: { fontSize: 16, fontWeight: "600", lineHeight: 22 },
-  explicacao: { fontSize: 12, lineHeight: 18 },
+  socialIcone: {
+    alignItems: "center",
+    borderRadius: 22,
+    height: 52,
+    justifyContent: "center",
+    width: 52,
+  },
+  socialTexto: { flex: 1 },
+  socialLink: { fontSize: 13, fontWeight: "800", marginTop: 8 },
+  notaEtica: {
+    alignItems: "center",
+    borderRadius: 18,
+    flexDirection: "row",
+    gap: 10,
+    padding: 14,
+  },
+  notaEticaTexto: { flex: 1, fontSize: 12, lineHeight: 18 },
 });

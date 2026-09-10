@@ -23,12 +23,28 @@ export default function LayoutAbas() {
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
           backgroundColor: tema.cores.elevado,
-          borderTopColor: tema.cores.borda,
-          height: 64,
-          paddingBottom: 7,
+          borderColor: tema.cores.borda,
+          borderRadius: 24,
+          borderTopWidth: 1,
+          borderWidth: 1,
+          elevation: 10,
+          height: 72,
+          marginBottom: 10,
+          marginHorizontal: 12,
+          paddingBottom: 6,
           paddingTop: 6,
+          shadowColor: "#000000",
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: tema.escuro ? 0.3 : 0.09,
+          shadowRadius: 18,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+        tabBarActiveBackgroundColor: tema.cores.marcaSuave,
+        tabBarItemStyle: {
+          borderRadius: 17,
+          marginHorizontal: 2,
+          marginVertical: 3,
+        },
+        tabBarLabelStyle: { fontSize: 10, fontWeight: "700" },
       }}
     >
       <Tabs.Screen
