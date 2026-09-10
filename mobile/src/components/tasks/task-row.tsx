@@ -36,7 +36,16 @@ export function TaskRow({
   }[tarefa.priority];
 
   return (
-    <View style={[styles.linha, { borderBottomColor: tema.cores.borda, opacity: desabilitada ? 0.58 : 1 }]}>
+    <View
+      style={[
+        styles.linha,
+        {
+          backgroundColor: tema.cores.elevado,
+          borderColor: tema.cores.borda,
+          opacity: desabilitada ? 0.58 : 1,
+        },
+      ]}
+    >
       <Pressable
         accessibilityLabel={traduzir(concluida ? "tarefas.reabrir" : "tarefas.concluir", { titulo: tarefa.title })}
         accessibilityRole="checkbox"
@@ -94,12 +103,14 @@ export function TaskRow({
 const styles = StyleSheet.create({
   linha: {
     alignItems: "stretch",
-    borderBottomWidth: 1,
+    borderRadius: 18,
+    borderWidth: 1,
     flexDirection: "row",
-    minHeight: 68,
+    minHeight: 74,
+    overflow: "hidden",
   },
-  checkbox: { alignItems: "center", justifyContent: "center", width: 48 },
-  conteudoPressionavel: { alignItems: "center", borderRadius: 10, flex: 1, flexDirection: "row", gap: 8, minHeight: 60, paddingHorizontal: 6, paddingVertical: 10 },
+  checkbox: { alignItems: "center", justifyContent: "center", width: 54 },
+  conteudoPressionavel: { alignItems: "center", flex: 1, flexDirection: "row", gap: 8, minHeight: 68, paddingHorizontal: 10, paddingVertical: 12 },
   conteudo: { flex: 1, gap: 6 },
   titulo: { fontSize: 16, fontWeight: "600", lineHeight: 21 },
   detalhes: { alignItems: "center", flexDirection: "row", flexWrap: "wrap", gap: 10 },

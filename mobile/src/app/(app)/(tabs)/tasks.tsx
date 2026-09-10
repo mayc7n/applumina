@@ -19,6 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { TaskRow } from "@/components/tasks/task-row";
 import { AppButton } from "@/components/ui/app-button";
+import { AnimatedEntry } from "@/components/ui/animated-entry";
 import { FeedbackState } from "@/components/ui/feedback-state";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { useAlternarTarefa, useCriarTarefa, useListaTarefas } from "@/features/tasks/hooks";
@@ -127,55 +128,152 @@ export default function TelaTarefas() {
             titulo={traduzir("tarefas.titulo")}
           />
 
-          <View style={[styles.criacao, { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda }]}>
-            <Plus color={tema.cores.textoSutil} size={19} />
-            <TextInput
-              accessibilityLabel={traduzir("tarefas.novaPlaceholder")}
-              autoCorrect
-              maxLength={500}
-              onChangeText={definirTitulo}
-              onSubmitEditing={() => void criarTarefa()}
-              placeholder={traduzir("tarefas.novaPlaceholder")}
-              placeholderTextColor={tema.cores.textoSutil}
-              returnKeyType="done"
-              selectionColor={tema.cores.marca}
-              style={[styles.entrada, { color: tema.cores.texto }]}
-              value={titulo}
-            />
-            {titulo.trim() ? <AppButton carregando={criar.isPending} onPress={() => void criarTarefa()} rotulo={traduzir("tarefas.criar")} style={styles.botaoCriar} /> : null}
-          </View>
-
-          <View style={[styles.busca, { borderColor: tema.cores.borda, backgroundColor: tema.cores.sobreposicao }]}>
-            <Search color={tema.cores.textoSutil} size={19} />
-            <TextInput
-              accessibilityLabel={traduzir("tarefas.buscar")}
-              autoCorrect
-              onChangeText={definirBusca}
-              placeholder={traduzir("tarefas.buscar")}
-              placeholderTextColor={tema.cores.textoSutil}
-              returnKeyType="search"
-              selectionColor={tema.cores.marca}
-              style={[styles.entrada, { color: tema.cores.texto }]}
-              value={busca}
-            />
-          </View>
-
-          <ScrollView horizontal contentContainerStyle={styles.filtros} showsHorizontalScrollIndicator={false}>
-            {filtros.map(([valor, chave]) => {
-              const selecionado = filtro === valor;
-              return (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: selecionado }}
-                  key={valor}
-                  onPress={() => definirFiltro(valor)}
-                  style={({ pressed }) => [styles.filtro, { backgroundColor: selecionado ? tema.cores.marcaSuave : tema.cores.elevado, borderColor: selecionado ? tema.cores.marcaContorno : tema.cores.borda, opacity: pressed ? 0.7 : 1 }]}
+          <AnimatedEntry>
+            <View
+              style={[
+                styles.criacao,
+                {
+                  backgroundColor: tema.cores.marcaSuave,
+                  borderColor: tema.cores.marcaContorno,
+                },
+              ]}
+            >
+              <View style={styles.criacaoCabecalho}>
+                <View
+                  style={[
+                    styles.criacaoIcone,
+                    { backgroundColor: tema.cores.elevado },
+                  ]}
                 >
-                  <Text style={[styles.filtroTexto, { color: selecionado ? tema.cores.marca : tema.cores.textoSecundario }]}>{traduzir(chave)}</Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+                  <Plus color={tema.cores.marca} size={20} />
+                </View>
+                <View style={styles.criacaoTextos}>
+                  <Text
+                    style={[styles.criacaoTitulo, { color: tema.cores.texto }]}
+                  >
+                    {traduzir("tarefas.capturaTitulo")}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.criacaoAjuda,
+                      { color: tema.cores.textoSecundario },
+                    ]}
+                  >
+                    {traduzir("tarefas.capturaAjuda")}
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={[
+                  styles.criacaoEntrada,
+                  {
+                    backgroundColor: tema.cores.elevado,
+                    borderColor: tema.cores.borda,
+                  },
+                ]}
+              >
+                <TextInput
+                  accessibilityLabel={traduzir("tarefas.novaPlaceholder")}
+                  autoCorrect
+                  maxLength={500}
+                  onChangeText={definirTitulo}
+                  onSubmitEditing={() => void criarTarefa()}
+                  placeholder={traduzir("tarefas.novaPlaceholder")}
+                  placeholderTextColor={tema.cores.textoSutil}
+                  returnKeyType="done"
+                  selectionColor={tema.cores.marca}
+                  style={[styles.entrada, { color: tema.cores.texto }]}
+                  value={titulo}
+                />
+                {titulo.trim() ? (
+                  <AppButton
+                    carregando={criar.isPending}
+                    onPress={() => void criarTarefa()}
+                    rotulo={traduzir("tarefas.criar")}
+                    style={styles.botaoCriar}
+                  />
+                ) : null}
+              </View>
+            </View>
+          </AnimatedEntry>
+
+          <AnimatedEntry>
+            <View
+              style={[
+                styles.ferramentas,
+                {
+                  backgroundColor: tema.cores.elevado,
+                  borderColor: tema.cores.borda,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.busca,
+                  {
+                    borderColor: tema.cores.borda,
+                    backgroundColor: tema.cores.sobreposicao,
+                  },
+                ]}
+              >
+                <Search color={tema.cores.textoSutil} size={19} />
+                <TextInput
+                  accessibilityLabel={traduzir("tarefas.buscar")}
+                  autoCorrect
+                  onChangeText={definirBusca}
+                  placeholder={traduzir("tarefas.buscar")}
+                  placeholderTextColor={tema.cores.textoSutil}
+                  returnKeyType="search"
+                  selectionColor={tema.cores.marca}
+                  style={[styles.entrada, { color: tema.cores.texto }]}
+                  value={busca}
+                />
+              </View>
+
+              <ScrollView
+                horizontal
+                contentContainerStyle={styles.filtros}
+                showsHorizontalScrollIndicator={false}
+              >
+                {filtros.map(([valor, chave]) => {
+                  const selecionado = filtro === valor;
+                  return (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: selecionado }}
+                      key={valor}
+                      onPress={() => definirFiltro(valor)}
+                      style={({ pressed }) => [
+                        styles.filtro,
+                        {
+                          backgroundColor: selecionado
+                            ? tema.cores.marca
+                            : tema.cores.sobreposicao,
+                          borderColor: selecionado
+                            ? tema.cores.marca
+                            : tema.cores.borda,
+                          opacity: pressed ? 0.7 : 1,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.filtroTexto,
+                          {
+                            color: selecionado
+                              ? tema.cores.sobreMarca
+                              : tema.cores.textoSecundario,
+                          },
+                        ]}
+                      >
+                        {traduzir(chave)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          </AnimatedEntry>
 
           {erroAcao ? <Text accessibilityLiveRegion="assertive" style={[styles.erro, { color: tema.cores.perigo }]}>{erroAcao}</Text> : null}
 
@@ -217,18 +315,25 @@ export default function TelaTarefas() {
 
 const styles = StyleSheet.create({
   tela: { flex: 1 },
-  conteudo: { gap: 20, paddingBottom: 40, paddingHorizontal: 20, paddingTop: 18 },
+  conteudo: { gap: 18, paddingBottom: 40, paddingHorizontal: 20, paddingTop: 18 },
   conteudoVisitante: { flex: 1, gap: 22, paddingBottom: 32, paddingHorizontal: 20, paddingTop: 18 },
   acaoCabecalho: { alignItems: "center", borderRadius: 22, height: 44, justifyContent: "center", width: 44 },
-  criacao: { alignItems: "center", borderRadius: 12, borderWidth: 1, flexDirection: "row", gap: 10, minHeight: 58, paddingHorizontal: 14, paddingVertical: 7 },
-  busca: { alignItems: "center", borderRadius: 12, borderWidth: 1, flexDirection: "row", gap: 9, minHeight: 50, paddingHorizontal: 14 },
+  criacao: { borderRadius: 24, borderWidth: 1, gap: 14, padding: 18 },
+  criacaoCabecalho: { alignItems: "center", flexDirection: "row", gap: 12 },
+  criacaoIcone: { alignItems: "center", borderRadius: 17, height: 42, justifyContent: "center", width: 42 },
+  criacaoTextos: { flex: 1, gap: 2 },
+  criacaoTitulo: { fontSize: 17, fontWeight: "800", letterSpacing: -0.25 },
+  criacaoAjuda: { fontSize: 12, lineHeight: 17 },
+  criacaoEntrada: { alignItems: "center", borderRadius: 16, borderWidth: 1, flexDirection: "row", gap: 8, minHeight: 56, paddingHorizontal: 14, paddingVertical: 5 },
+  ferramentas: { borderRadius: 22, borderWidth: 1, gap: 12, padding: 12 },
+  busca: { alignItems: "center", borderRadius: 14, borderWidth: 1, flexDirection: "row", gap: 9, minHeight: 50, paddingHorizontal: 14 },
   entrada: { flex: 1, fontSize: 16, paddingVertical: 9 },
   botaoCriar: { minHeight: 44, paddingHorizontal: 14 },
-  filtros: { gap: 8 },
-  filtro: { borderRadius: 999, borderWidth: 1, justifyContent: "center", minHeight: 44, paddingHorizontal: 15 },
-  filtroTexto: { fontSize: 14, fontWeight: "600" },
+  filtros: { gap: 8, paddingRight: 4 },
+  filtro: { borderRadius: 999, borderWidth: 1, justifyContent: "center", minHeight: 42, paddingHorizontal: 15 },
+  filtroTexto: { fontSize: 13, fontWeight: "700" },
   erro: { fontSize: 13, lineHeight: 19 },
   carregando: { marginTop: 42 },
-  lista: { marginTop: -4 },
+  lista: { gap: 10, marginTop: 2 },
   carregarMais: { marginTop: 14 },
 });
