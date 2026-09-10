@@ -3,6 +3,7 @@ import {
   atualizarParcialApi,
   excluirApi,
   enviarApi,
+  enviarSemConteudoApi,
   enviarPublico,
   obterApi,
 } from "./client";
@@ -29,6 +30,7 @@ import type {
   UpdateWorkoutInput,
   FriendRequest,
   SocialUser,
+  CreateUserReportInput,
 } from "@/types/api";
 
 export const apiAutenticacaoMobile = {
@@ -107,4 +109,10 @@ export const apiAmigos = {
   rejeitar: (requestId: string) =>
     excluirApi(`/social/friends/request/${requestId}/reject`),
   remover: (friendId: string) => excluirApi(`/social/friends/${friendId}`),
+  bloquear: (userId: string) =>
+    enviarSemConteudoApi("/social/blocks", { userId }),
+  desbloquear: (userId: string) => excluirApi(`/social/blocks/${userId}`),
+  listarBloqueados: () => obterApi<SocialUser[]>("/social/blocks"),
+  denunciar: (entrada: CreateUserReportInput) =>
+    enviarSemConteudoApi("/social/reports", entrada),
 };

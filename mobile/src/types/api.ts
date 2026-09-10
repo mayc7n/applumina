@@ -170,6 +170,20 @@ export interface FriendRequest {
   createdAt: string;
 }
 
+export type ReportCategory =
+  | "HARASSMENT"
+  | "SPAM"
+  | "HATE"
+  | "IMPERSONATION"
+  | "INAPPROPRIATE_CONTENT"
+  | "OTHER";
+
+export interface CreateUserReportInput {
+  userId: string;
+  category: ReportCategory;
+  details?: string;
+}
+
 export interface TaskProject {
   id: string;
   name: string;

@@ -17,6 +17,7 @@ import { FriendRow } from "@/components/friends/friend-row";
 import { FriendSection } from "@/components/friends/friend-section";
 import { FriendsSearch } from "@/components/friends/friends-search";
 import { FeedbackState } from "@/components/ui/feedback-state";
+import { AppButton } from "@/components/ui/app-button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import {
   useAceitarAmizade,
@@ -126,6 +127,15 @@ export default function TelaAmigos() {
         }
       >
         <ScreenHeader
+          acao={
+            autenticado ? (
+              <AppButton
+                onPress={() => router.push("/friends/blocked")}
+                rotulo={traduzir("amigos.bloqueados")}
+                variante="secondary"
+              />
+            ) : undefined
+          }
           subtitulo={autenticado ? traduzir("amigos.subtitulo") : undefined}
           titulo={traduzir("amigos.titulo")}
         />
@@ -202,11 +212,25 @@ export default function TelaAmigos() {
               {amigos.data?.length ? (
                 amigos.data.map((amigo) => (
                   <FriendRow
+                    acoesDesabilitadas={
+                      remover.isPending && remover.variables === amigo.id
+                    }
                     agindo={remover.isPending && remover.variables === amigo.id}
                     key={amigo.id}
+                    aoAbrirSeguranca={() =>
+                      router.push({
+                        pathname: "/friends/safety/[id]",
+                        params: {
+                          id: amigo.id,
+                          displayName: amigo.displayName,
+                          username: amigo.username,
+                        },
+                      })
+                    }
                     aoAgir={() => confirmarDesfazer("REMOVER", amigo.id)}
                     rotuloAcao={traduzir("amigos.remover")}
                     rotuloOnline={traduzir("amigos.online")}
+                    rotuloSeguranca={traduzir("amigos.seguranca")}
                     usuario={amigo}
                   />
                 ))

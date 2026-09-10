@@ -391,6 +391,41 @@ const portuguesBrasil = {
   "amigos.confirmarRemocaoTitulo": "Remover esta amizade?",
   "amigos.confirmarRemocaoDescricao":
     "A pessoa sairá da sua lista de amigos.",
+  "amigos.seguranca": "Segurança",
+  "amigos.segurancaTitulo": "Segurança da conexão",
+  "amigos.voltarAmigos": "Voltar para amigos",
+  "amigos.bloqueados": "Bloqueados",
+  "amigos.bloqueadosTitulo": "Pessoas bloqueadas",
+  "amigos.bloqueadosDescricao": "Somente você pode ver e alterar esta lista.",
+  "amigos.semBloqueados": "Você não bloqueou ninguém.",
+  "amigos.erroBloqueadosTitulo": "Lista indisponível",
+  "amigos.erroBloqueadosDescricao": "Não foi possível carregar as pessoas bloqueadas.",
+  "amigos.bloquearTitulo": "Bloquear esta pessoa",
+  "amigos.bloquearDescricao":
+    "O vínculo atual será removido e vocês deixarão de aparecer um para o outro.",
+  "amigos.bloquear": "Bloquear",
+  "amigos.desbloquear": "Desbloquear",
+  "amigos.confirmarBloqueioTitulo": "Bloquear esta pessoa?",
+  "amigos.confirmarBloqueioDescricao":
+    "Amizade ou solicitação existente será removida. A pessoa não será avisada.",
+  "amigos.erroBloquear": "Não foi possível bloquear esta pessoa.",
+  "amigos.erroDesbloquear": "Não foi possível desbloquear esta pessoa.",
+  "amigos.denunciarTitulo": "Denunciar",
+  "amigos.denunciarDescricao":
+    "Escolha o motivo. A pessoa denunciada não verá os detalhes enviados.",
+  "amigos.denunciaCategoriaObrigatoria": "Escolha um motivo.",
+  "amigos.denunciaDetalhes": "Detalhes opcionais",
+  "amigos.denunciaDetalhesPlaceholder": "Descreva o ocorrido sem incluir dados desnecessários.",
+  "amigos.denunciaDetalhesMaximo": "Use no máximo 1.000 caracteres.",
+  "amigos.enviarDenuncia": "Enviar denúncia",
+  "amigos.denunciaSucesso": "Denúncia enviada com segurança.",
+  "amigos.erroDenunciar": "Não foi possível enviar a denúncia.",
+  "amigos.denunciaCategoria.HARASSMENT": "Assédio",
+  "amigos.denunciaCategoria.SPAM": "Spam",
+  "amigos.denunciaCategoria.HATE": "Discurso de ódio",
+  "amigos.denunciaCategoria.IMPERSONATION": "Falsidade ideológica",
+  "amigos.denunciaCategoria.INAPPROPRIATE_CONTENT": "Conteúdo impróprio",
+  "amigos.denunciaCategoria.OTHER": "Outro",
 } as const;
 
 type ChaveTraducao = keyof typeof portuguesBrasil;
@@ -783,6 +818,41 @@ const ingles: Record<ChaveTraducao, string> = {
   "amigos.confirmarRemocaoTitulo": "Remove this friendship?",
   "amigos.confirmarRemocaoDescricao":
     "This person will leave your friends list.",
+  "amigos.seguranca": "Safety",
+  "amigos.segurancaTitulo": "Connection safety",
+  "amigos.voltarAmigos": "Back to friends",
+  "amigos.bloqueados": "Blocked",
+  "amigos.bloqueadosTitulo": "Blocked people",
+  "amigos.bloqueadosDescricao": "Only you can see and change this list.",
+  "amigos.semBloqueados": "You have not blocked anyone.",
+  "amigos.erroBloqueadosTitulo": "List unavailable",
+  "amigos.erroBloqueadosDescricao": "We could not load blocked people.",
+  "amigos.bloquearTitulo": "Block this person",
+  "amigos.bloquearDescricao":
+    "Your current connection will be removed and you will no longer appear to each other.",
+  "amigos.bloquear": "Block",
+  "amigos.desbloquear": "Unblock",
+  "amigos.confirmarBloqueioTitulo": "Block this person?",
+  "amigos.confirmarBloqueioDescricao":
+    "Any friendship or request will be removed. This person will not be notified.",
+  "amigos.erroBloquear": "We could not block this person.",
+  "amigos.erroDesbloquear": "We could not unblock this person.",
+  "amigos.denunciarTitulo": "Report",
+  "amigos.denunciarDescricao":
+    "Choose a reason. The reported person will not see the details you send.",
+  "amigos.denunciaCategoriaObrigatoria": "Choose a reason.",
+  "amigos.denunciaDetalhes": "Optional details",
+  "amigos.denunciaDetalhesPlaceholder": "Describe what happened without adding unnecessary personal data.",
+  "amigos.denunciaDetalhesMaximo": "Use at most 1,000 characters.",
+  "amigos.enviarDenuncia": "Send report",
+  "amigos.denunciaSucesso": "Report sent securely.",
+  "amigos.erroDenunciar": "We could not send the report.",
+  "amigos.denunciaCategoria.HARASSMENT": "Harassment",
+  "amigos.denunciaCategoria.SPAM": "Spam",
+  "amigos.denunciaCategoria.HATE": "Hate speech",
+  "amigos.denunciaCategoria.IMPERSONATION": "Impersonation",
+  "amigos.denunciaCategoria.INAPPROPRIATE_CONTENT": "Inappropriate content",
+  "amigos.denunciaCategoria.OTHER": "Other",
 };
 
 type VariaveisTraducao = Record<string, string | number>;
