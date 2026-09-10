@@ -1,4 +1,13 @@
-import { CalendarDays, ChevronRight, Clock3 } from "lucide-react-native";
+import {
+  Activity,
+  Bike,
+  CalendarDays,
+  ChevronRight,
+  Dumbbell,
+  Footprints,
+  PersonStanding,
+  Waves,
+} from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTemaApp } from "@/theme/theme";
@@ -27,6 +36,19 @@ export function WorkoutRow({
     month: "short",
     year: "numeric",
   }).format(new Date(`${treino.activityDate}T12:00:00`));
+  const IconeTreino = {
+    WALKING: Footprints,
+    RUNNING: Activity,
+    STRENGTH: Dumbbell,
+    CYCLING: Bike,
+    SWIMMING: Waves,
+    MARTIAL_ARTS: Activity,
+    TEAM_SPORT: Activity,
+    YOGA: PersonStanding,
+    MOBILITY: PersonStanding,
+    PILATES: PersonStanding,
+    CUSTOM: Activity,
+  }[treino.type];
 
   return (
     <Pressable
@@ -35,11 +57,14 @@ export function WorkoutRow({
       onPress={aoEditar}
       style={({ pressed }) => [
         styles.linha,
-        { borderColor: tema.cores.borda, opacity: pressed ? 0.72 : 1 },
+        {
+          backgroundColor: pressed ? tema.cores.sobreposicao : tema.cores.elevado,
+          borderColor: tema.cores.borda,
+        },
       ]}
     >
       <View style={[styles.icone, { backgroundColor: tema.cores.marcaSuave }]}>
-        <Clock3 color={tema.cores.marca} size={21} />
+        <IconeTreino color={tema.cores.marca} size={22} />
       </View>
       <View style={styles.conteudo}>
         <Text style={[styles.titulo, { color: tema.cores.texto }]}>
@@ -68,10 +93,12 @@ export function WorkoutRow({
 const styles = StyleSheet.create({
   linha: {
     alignItems: "center",
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderRadius: 18,
+    borderWidth: 1,
     flexDirection: "row",
     gap: 12,
-    paddingVertical: 16,
+    minHeight: 84,
+    padding: 15,
   },
   icone: {
     alignItems: "center",

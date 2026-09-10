@@ -301,6 +301,10 @@ const portuguesBrasil = {
   "treinos.modalidadeOutras": "Natação e atividades personalizadas",
   "treinos.subtitulo": "Seus 100 registros mais recentes.",
   "treinos.registrar": "Registrar treino",
+  "treinos.acaoRapidaDescricao":
+    "Leva menos de um minuto e começa sempre privado.",
+  "treinos.historicoTitulo": "Seu histórico",
+  "treinos.totalRegistros": "{quantidade} registros",
   "treinos.erroTitulo": "Treinos indisponíveis",
   "treinos.erroDescricao": "Não foi possível carregar seus treinos.",
   "treinos.novoTitulo": "Novo treino",
@@ -732,6 +736,10 @@ const ingles: Record<ChaveTraducao, string> = {
   "treinos.modalidadeOutras": "Swimming and custom activities",
   "treinos.subtitulo": "Your 100 most recent records.",
   "treinos.registrar": "Log workout",
+  "treinos.acaoRapidaDescricao":
+    "Takes less than a minute and always starts private.",
+  "treinos.historicoTitulo": "Your history",
+  "treinos.totalRegistros": "{quantidade} records",
   "treinos.erroTitulo": "Workouts unavailable",
   "treinos.erroDescricao": "We could not load your workouts.",
   "treinos.novoTitulo": "New workout",
