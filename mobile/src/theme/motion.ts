@@ -8,6 +8,10 @@ export function criarMovimento(reduzirMovimento: boolean) {
       duracao: reduzirMovimento ? 0 : 90,
       escala: reduzirMovimento ? 1 : 0.98,
     },
+    selecao: {
+      duracao: reduzirMovimento ? 0 : 180,
+      escalaInativa: reduzirMovimento ? 1 : 0.86,
+    },
   } as const;
 }
 

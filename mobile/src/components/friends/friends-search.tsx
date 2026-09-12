@@ -115,7 +115,7 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
     }
   }
 
-  function resultadoBusca(usuario: SocialUser) {
+  function resultadoBusca(usuario: SocialUser, indice: number) {
     const acao = acaoDisponivelAmigo(usuario.friendshipStatus);
     const rotulos = {
       ADICIONAR: traduzir("amigos.adicionar"),
@@ -124,7 +124,8 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
       REMOVER: traduzir("amigos.remover"),
     };
     return (
-      <FriendRow
+      <AnimatedEntry atraso={Math.min(indice, 6) * 35} key={usuario.id}>
+        <FriendRow
         acoesDesabilitadas={
           (solicitar.isPending && solicitar.variables === usuario.id) ||
           (cancelar.isPending && cancelar.variables === usuario.id) ||
@@ -144,7 +145,6 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
               ? () => confirmarDesfazer(acao, usuario.id)
             : undefined
         }
-        key={usuario.id}
         aoAbrirSeguranca={() =>
           router.push({
             pathname: "/friends/safety/[id]",
@@ -159,7 +159,8 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
         rotuloOnline={traduzir("amigos.online")}
         rotuloSeguranca={traduzir("amigos.seguranca")}
         usuario={usuario}
-      />
+        />
+      </AnimatedEntry>
     );
   }
 

@@ -5,10 +5,59 @@ import {
   Home,
   UserRound,
   UsersRound,
+  type LucideIcon,
 } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import { Animated, StyleSheet, View } from "react-native";
 
 import { useIdioma } from "@/i18n/idioma";
 import { useTemaApp } from "@/theme/theme";
+import { criarMovimento } from "@/theme/motion";
+import { useReducaoMovimento } from "@/theme/use-reduced-motion";
+
+function IconeAba({ ativo, Icone, tamanho }: { ativo: boolean; Icone: LucideIcon; tamanho: number }) {
+  const tema = useTemaApp();
+  const reduzirMovimento = useReducaoMovimento();
+  const movimento = criarMovimento(reduzirMovimento !== false).selecao;
+  const [progresso] = useState(() => new Animated.Value(ativo ? 1 : 0));
+
+  useEffect(() => {
+    const transicao = Animated.timing(progresso, {
+      duration: movimento.duracao,
+      toValue: ativo ? 1 : 0,
+      useNativeDriver: true,
+    });
+    transicao.start();
+    return () => transicao.stop();
+  }, [ativo, movimento.duracao, progresso]);
+
+  return (
+    <View style={styles.iconeAba}>
+      <Animated.View
+        style={[
+          styles.indicadorAba,
+          {
+            backgroundColor: tema.cores.marca,
+            opacity: progresso,
+            transform: [
+              {
+                scale: progresso.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [movimento.escalaInativa, 1],
+                }),
+              },
+            ],
+          },
+        ]}
+      />
+      <Icone
+        color={ativo ? tema.cores.sobreMarca : tema.cores.textoSutil}
+        size={tamanho}
+        strokeWidth={ativo ? 2.5 : 2}
+      />
+    </View>
+  );
+}
 
 export default function LayoutAbas() {
   const tema = useTemaApp();
@@ -18,16 +67,15 @@ export default function LayoutAbas() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        animation: "shift",
         tabBarActiveTintColor: tema.cores.marca,
         tabBarInactiveTintColor: tema.cores.textoSutil,
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
           backgroundColor: tema.cores.elevado,
-          borderColor: tema.cores.borda,
           borderRadius: 24,
-          borderTopWidth: 1,
-          borderWidth: 1,
-          elevation: 10,
+          borderTopWidth: 0,
+          elevation: 14,
           height: 72,
           marginBottom: 10,
           marginHorizontal: 12,
@@ -35,14 +83,14 @@ export default function LayoutAbas() {
           paddingTop: 6,
           shadowColor: "#000000",
           shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: tema.escuro ? 0.3 : 0.09,
-          shadowRadius: 18,
+          shadowOpacity: tema.escuro ? 0.34 : 0.13,
+          shadowRadius: 20,
         },
-        tabBarActiveBackgroundColor: tema.cores.marcaSuave,
         tabBarItemStyle: {
           borderRadius: 17,
           marginHorizontal: 2,
           marginVertical: 3,
+          overflow: "hidden",
         },
         tabBarLabelStyle: { fontSize: 10, fontWeight: "700" },
       }}
@@ -51,8 +99,8 @@ export default function LayoutAbas() {
         name="home"
         options={{
           title: traduzir("navegacao.inicio"),
-          tabBarIcon: ({ color: cor, size: tamanho }) => (
-            <Home color={cor} size={tamanho} />
+          tabBarIcon: ({ focused: ativo, size: tamanho }) => (
+            <IconeAba ativo={ativo} Icone={Home} tamanho={tamanho} />
           ),
         }}
       />
@@ -60,8 +108,8 @@ export default function LayoutAbas() {
         name="tasks"
         options={{
           title: traduzir("navegacao.tarefas"),
-          tabBarIcon: ({ color: cor, size: tamanho }) => (
-            <CheckSquare2 color={cor} size={tamanho} />
+          tabBarIcon: ({ focused: ativo, size: tamanho }) => (
+            <IconeAba ativo={ativo} Icone={CheckSquare2} tamanho={tamanho} />
           ),
         }}
       />
@@ -69,8 +117,8 @@ export default function LayoutAbas() {
         name="workouts"
         options={{
           title: traduzir("navegacao.treinos"),
-          tabBarIcon: ({ color: cor, size: tamanho }) => (
-            <Dumbbell color={cor} size={tamanho} />
+          tabBarIcon: ({ focused: ativo, size: tamanho }) => (
+            <IconeAba ativo={ativo} Icone={Dumbbell} tamanho={tamanho} />
           ),
         }}
       />
@@ -78,8 +126,8 @@ export default function LayoutAbas() {
         name="friends"
         options={{
           title: traduzir("navegacao.amigos"),
-          tabBarIcon: ({ color: cor, size: tamanho }) => (
-            <UsersRound color={cor} size={tamanho} />
+          tabBarIcon: ({ focused: ativo, size: tamanho }) => (
+            <IconeAba ativo={ativo} Icone={UsersRound} tamanho={tamanho} />
           ),
         }}
       />
@@ -87,11 +135,16 @@ export default function LayoutAbas() {
         name="account"
         options={{
           title: traduzir("navegacao.conta"),
-          tabBarIcon: ({ color: cor, size: tamanho }) => (
-            <UserRound color={cor} size={tamanho} />
+          tabBarIcon: ({ focused: ativo, size: tamanho }) => (
+            <IconeAba ativo={ativo} Icone={UserRound} tamanho={tamanho} />
           ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  iconeAba: { alignItems: "center", height: 32, justifyContent: "center", width: 48 },
+  indicadorAba: { borderRadius: 16, bottom: 0, left: 0, position: "absolute", right: 0, top: 0 },
+});

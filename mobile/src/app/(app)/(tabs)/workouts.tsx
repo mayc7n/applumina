@@ -179,25 +179,26 @@ export default function TelaTreinos() {
               </View>
             </View>
             <View style={styles.lista}>
-            {consulta.data.map((treino) => (
-              <WorkoutRow
-                aoEditar={() =>
-                  router.push({
-                    pathname: "/workouts/[id]",
-                    params: { id: treino.id },
-                  })
-                }
-                idioma={idioma}
-                key={treino.id}
-                rotuloEditar={traduzir("treinos.editarAcessibilidade", {
-                  treino: treino.customActivity || rotulos[treino.type],
-                })}
-                rotuloMinutos={traduzir("treinos.minutos", {
-                  quantidade: treino.durationMins,
-                })}
-                rotuloTipo={rotulos[treino.type]}
-                treino={treino}
-              />
+            {consulta.data.map((treino, indice) => (
+              <AnimatedEntry atraso={Math.min(indice, 6) * 35} key={treino.id}>
+                <WorkoutRow
+                  aoEditar={() =>
+                    router.push({
+                      pathname: "/workouts/[id]",
+                      params: { id: treino.id },
+                    })
+                  }
+                  idioma={idioma}
+                  rotuloEditar={traduzir("treinos.editarAcessibilidade", {
+                    treino: treino.customActivity || rotulos[treino.type],
+                  })}
+                  rotuloMinutos={traduzir("treinos.minutos", {
+                    quantidade: treino.durationMins,
+                  })}
+                  rotuloTipo={rotulos[treino.type]}
+                  treino={treino}
+                />
+              </AnimatedEntry>
             ))}
             </View>
           </View>

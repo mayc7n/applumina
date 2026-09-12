@@ -3,6 +3,7 @@ import type { ReactElement } from "react";
 import {
   Animated,
   Pressable,
+  StyleSheet,
   type GestureResponderEvent,
 } from "react-native";
 
@@ -83,6 +84,7 @@ interface AnimatedEntryPropsTest {
 }
 
 interface AppButtonPropsTest {
+  android_ripple?: { color: string };
   onPressIn: (evento: GestureResponderEvent) => void;
   onPressOut: (evento: GestureResponderEvent) => void;
   style: (estado: { pressed: boolean }) => unknown[];
@@ -134,6 +136,23 @@ describe("superfícies animadas", () => {
     );
   });
 
+  test("oferece resposta de toque nativa no Android", () => {
+    mockUseReducaoMovimento.mockReturnValue(false);
+
+    const superficie = renderizar(() =>
+      AppButton({ rotulo: "Continuar" }),
+    ) as ReactElement<AnimatedSurfacePropsTest>;
+
+    expect(superficie.props.children.props.android_ripple).toEqual({
+      color: "#FFFFFF33",
+    });
+    expect(
+      StyleSheet.flatten(
+        superficie.props.children.props.style({ pressed: false })[0],
+      ),
+    ).toMatchObject({ overflow: "hidden" });
+  });
+
   test("não faz instância já visível desaparecer quando null muda para false", () => {
     mockUseReducaoMovimento.mockReturnValue(null);
     const inicial = renderizar(() =>
@@ -167,6 +186,20 @@ describe("superfícies animadas", () => {
 
     executarEfeitos();
     expect(mockTiming).toHaveBeenCalledTimes(2);
+  });
+
+  test("escalona a entrada quando recebe atraso", () => {
+    mockUseReducaoMovimento.mockReturnValue(false);
+
+    renderizar(() =>
+      AnimatedEntry({ children: "Item", ...({ atraso: 70 } as object) }),
+    );
+    executarEfeitos();
+
+    expect(mockTiming).toHaveBeenCalledWith(
+      expect.any(Animated.Value),
+      expect.objectContaining({ delay: 70 }),
+    );
   });
 
   test("não agenda timing quando a redução de movimento está ativa", () => {

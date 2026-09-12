@@ -26,6 +26,7 @@ export function AppButton({
   carregando = false,
   variante = "primary",
   disabled,
+  android_ripple,
   onPressIn,
   onPressOut,
   style,
@@ -77,6 +78,9 @@ export function AppButton({
   return (
     <Animated.View style={{ transform: [{ scale: escala }] }}>
       <Pressable
+        android_ripple={android_ripple ?? {
+          color: variante === "secondary" ? tema.cores.marcaContorno : "#FFFFFF33",
+        }}
         accessibilityRole="button"
         accessibilityState={{
           disabled: Boolean(disabled || carregando),
@@ -119,6 +123,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 48,
+    overflow: "hidden",
     paddingHorizontal: 18,
   },
   label: {

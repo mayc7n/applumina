@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Plus, Search } from "lucide-react-native";
+import { Check, Plus, Search } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -28,10 +28,12 @@ import { useIdioma } from "@/i18n/idioma";
 import { obterMensagemErroApi } from "@/lib/api/errors";
 import { useArmazenamentoAutenticacao } from "@/store/auth-store";
 import { useTemaApp } from "@/theme/theme";
+import { useReducaoMovimento } from "@/theme/use-reduced-motion";
 import type { Task } from "@/types/api";
 
 export default function TelaTarefas() {
   const tema = useTemaApp();
+  const reduzirMovimento = useReducaoMovimento();
   const { traduzir } = useIdioma();
   const [titulo, definirTitulo] = useState("");
   const [busca, definirBusca] = useState("");
@@ -239,8 +241,13 @@ export default function TelaTarefas() {
                   const selecionado = filtro === valor;
                   return (
                     <Pressable
-                      accessibilityRole="button"
+                      accessibilityRole="radio"
                       accessibilityState={{ selected: selecionado }}
+                      android_ripple={{
+                        color: selecionado
+                          ? "#FFFFFF33"
+                          : tema.cores.marcaContorno,
+                      }}
                       key={valor}
                       onPress={() => definirFiltro(valor)}
                       style={({ pressed }) => [
@@ -249,10 +256,12 @@ export default function TelaTarefas() {
                           backgroundColor: selecionado
                             ? tema.cores.marca
                             : tema.cores.sobreposicao,
-                          borderColor: selecionado
-                            ? tema.cores.marca
-                            : tema.cores.borda,
-                          opacity: pressed ? 0.7 : 1,
+                          elevation: selecionado ? 3 : 0,
+                          shadowColor: tema.cores.marca,
+                          shadowOffset: { width: 0, height: 3 },
+                          shadowOpacity: selecionado ? 0.22 : 0,
+                          shadowRadius: 7,
+                          transform: [{ scale: pressed && reduzirMovimento === false ? 0.96 : 1 }],
                         },
                       ]}
                     >
@@ -268,6 +277,9 @@ export default function TelaTarefas() {
                       >
                         {traduzir(chave)}
                       </Text>
+                      {selecionado ? (
+                        <Check color={tema.cores.sobreMarca} size={14} strokeWidth={3} />
+                      ) : null}
                     </Pressable>
                   );
                 })}
@@ -287,14 +299,15 @@ export default function TelaTarefas() {
             <FeedbackState descricao={traduzir("tarefas.semResultadoDescricao")} titulo={traduzir("tarefas.semResultadoTitulo")} />
           ) : (
             <View style={styles.lista}>
-              {tarefasVisiveis.map((tarefa) => (
-                <TaskRow
-                  aoAlternar={() => void alternarTarefa(tarefa)}
-                  aoEditar={() => router.push({ pathname: "/tasks/[id]", params: { id: tarefa.id } })}
-                  desabilitada={alternar.isPending && alternar.variables === tarefa.id}
-                  key={tarefa.id}
-                  tarefa={tarefa}
-                />
+              {tarefasVisiveis.map((tarefa, indice) => (
+                <AnimatedEntry atraso={Math.min(indice, 6) * 35} key={tarefa.id}>
+                  <TaskRow
+                    aoAlternar={() => void alternarTarefa(tarefa)}
+                    aoEditar={() => router.push({ pathname: "/tasks/[id]", params: { id: tarefa.id } })}
+                    desabilitada={alternar.isPending && alternar.variables === tarefa.id}
+                    tarefa={tarefa}
+                  />
+                </AnimatedEntry>
               ))}
               {consulta.hasNextPage ? (
                 <AppButton
@@ -330,7 +343,7 @@ const styles = StyleSheet.create({
   entrada: { flex: 1, fontSize: 16, paddingVertical: 9 },
   botaoCriar: { minHeight: 44, paddingHorizontal: 14 },
   filtros: { gap: 8, paddingRight: 4 },
-  filtro: { borderRadius: 999, borderWidth: 1, justifyContent: "center", minHeight: 42, paddingHorizontal: 15 },
+  filtro: { alignItems: "center", borderRadius: 999, flexDirection: "row", gap: 6, justifyContent: "center", minHeight: 42, overflow: "hidden", paddingHorizontal: 15 },
   filtroTexto: { fontSize: 13, fontWeight: "700" },
   erro: { fontSize: 13, lineHeight: 19 },
   carregando: { marginTop: 42 },
