@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import {
   CircleAlert,
@@ -213,32 +214,58 @@ export default function TelaConta() {
       <ScrollView contentContainerStyle={styles.conteudo}>
         <ScreenHeader titulo={traduzir("conta.titulo")} />
         <AnimatedEntry>
-          <View style={[styles.perfil, { backgroundColor: tema.cores.marca }]}>
+          <View
+            style={[
+              styles.perfil,
+              { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
+            ]}
+          >
             <View
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              pointerEvents="none"
-              style={[styles.planoPerfil, { borderColor: tema.cores.sobreMarca }]}
-            />
-            <View
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              pointerEvents="none"
-              style={[styles.haloPerfil, { backgroundColor: tema.cores.sobreMarca }]}
-            />
-            <View style={[styles.avatar, { backgroundColor: tema.cores.sobreMarca }]}>
-              <Text style={[styles.inicial, { color: tema.cores.marca }]}>
-                {usuario?.displayName?.trim().charAt(0).toUpperCase() ?? "L"}
-              </Text>
+              style={[
+                styles.perfilVisual,
+                {
+                  backgroundColor: tema.cores.sobreposicao,
+                  borderBottomColor: tema.cores.borda,
+                },
+              ]}
+            >
+              <View
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                pointerEvents="none"
+                style={[styles.trilhoPerfil, { backgroundColor: tema.cores.marca }]}
+              />
+              <View
+                style={[
+                  styles.avatar,
+                  {
+                    backgroundColor: tema.cores.marcaSuave,
+                    borderColor: tema.cores.marcaContorno,
+                  },
+                ]}
+              >
+                {usuario?.avatarUrl ? (
+                  <Image
+                    accessibilityLabel={usuario.displayName}
+                    contentFit="cover"
+                    source={{ uri: usuario.avatarUrl }}
+                    style={styles.avatarImagem}
+                  />
+                ) : (
+                  <Text style={[styles.inicial, { color: tema.cores.marca }]}>
+                    {usuario?.displayName?.trim().charAt(0).toUpperCase() ?? "L"}
+                  </Text>
+                )}
+              </View>
             </View>
             <View style={styles.dadosPerfil}>
-              <Text style={[styles.nomePerfil, { color: tema.cores.sobreMarca }]}>
+              <Text style={[styles.nomePerfil, { color: tema.cores.texto }]}>
                 {usuario?.displayName}
               </Text>
-              <Text style={[styles.emailPerfil, { color: tema.cores.sobreMarca }]}>
+              <Text style={[styles.emailPerfil, { color: tema.cores.textoSecundario }]}>
                 {usuario?.email}
               </Text>
-              <View style={[styles.planoPill, { backgroundColor: tema.cores.sobreMarca }]}>
+              <View style={[styles.planoPill, { backgroundColor: tema.cores.marcaSuave }]}>
                 <Text style={[styles.plano, { color: tema.cores.marca }]}>
                   {traduzir("conta.plano", { plano: usuario?.plan ?? "FREE" })}
                 </Text>
@@ -539,38 +566,34 @@ const styles = StyleSheet.create({
     paddingTop: 18,
   },
   perfil: {
-    alignItems: "center",
     borderRadius: 26,
-    flexDirection: "row",
-    gap: 16,
-    minHeight: 140,
+    borderWidth: 1,
+    minHeight: 260,
     overflow: "hidden",
-    padding: 22,
     elevation: 7,
     shadowColor: "#2B1712",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.16,
     shadowRadius: 22,
   },
-  planoPerfil: {
-    borderRadius: 30,
-    borderWidth: 1,
-    height: 184,
-    opacity: 0.14,
-    position: "absolute",
-    right: -31,
-    top: -82,
-    transform: [{ rotate: "-18deg" }],
-    width: 180,
+  perfilVisual: {
+    alignItems: "center",
+    borderBottomWidth: 1,
+    justifyContent: "center",
+    minHeight: 152,
+    overflow: "hidden",
   },
-  haloPerfil: {
-    borderRadius: 72,
-    bottom: -78,
-    height: 144,
-    opacity: 0.07,
+  trilhoPerfil: {
+    bottom: 0,
+    elevation: 8,
     position: "absolute",
-    right: 26,
-    width: 144,
+    right: 0,
+    shadowColor: "#C63C24",
+    shadowOffset: { width: -5, height: 0 },
+    shadowOpacity: 0.55,
+    shadowRadius: 12,
+    top: 0,
+    width: 6,
   },
   visitante: {
     borderRadius: 20,
@@ -581,23 +604,25 @@ const styles = StyleSheet.create({
   visitanteIcone: { alignItems: "center", borderRadius: 25, height: 50, justifyContent: "center", width: 50 },
   avatar: {
     alignItems: "center",
-    borderRadius: 32,
-    height: 64,
+    borderRadius: 44,
+    borderWidth: 2,
+    height: 88,
     justifyContent: "center",
     elevation: 3,
     shadowColor: "#2B1712",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.16,
     shadowRadius: 9,
-    width: 64,
+    width: 88,
     zIndex: 1,
   },
-  inicial: { fontSize: 26, fontWeight: "800" },
-  dadosPerfil: { alignItems: "flex-start", flex: 1, gap: 5, zIndex: 1 },
+  avatarImagem: { borderRadius: 40, height: 80, width: 80 },
+  inicial: { fontSize: 30, fontWeight: "900" },
+  dadosPerfil: { alignItems: "center", gap: 5, padding: 20 },
   nome: { fontSize: 17, fontWeight: "700" },
-  nomePerfil: { fontSize: 21, fontWeight: "800", lineHeight: 27 },
+  nomePerfil: { fontSize: 22, fontWeight: "900", lineHeight: 28, textAlign: "center" },
   emailPerfil: { fontSize: 13, lineHeight: 18, opacity: 0.88 },
-  planoPill: { borderRadius: 12, marginTop: 5, paddingHorizontal: 10, paddingVertical: 5 },
+  planoPill: { alignSelf: "flex-end", borderRadius: 12, marginTop: 10, paddingHorizontal: 10, paddingVertical: 5 },
   plano: { fontSize: 11, fontWeight: "800" },
   icone: {
     alignItems: "center",
