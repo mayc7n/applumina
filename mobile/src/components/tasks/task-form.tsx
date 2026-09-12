@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 
 import { AppButton } from "@/components/ui/app-button";
 import { FormField } from "@/components/ui/form-field";
+import { GrupoSelecao } from "@/components/ui/selection-group";
 import {
   useCriarEtiquetaTarefa,
   useCriarProjetoTarefa,
@@ -181,11 +182,11 @@ export function TaskForm({ tarefa, salvando, userId, aoSalvar, aoExcluir, aoDupl
 
       <View style={styles.grupo}>
         <Text style={[styles.rotulo, { color: tema.cores.texto }]}>{traduzir("tarefas.prioridade")}</Text>
-        <View style={styles.opcoes}>
+        <GrupoSelecao rotulo={traduzir("tarefas.prioridade")} style={styles.opcoes}>
           {prioridades.map(([valor, chave, corIndicador]) => (
             <Opcao corIndicador={corIndicador} key={valor} selecionada={valores.priority === valor} rotulo={traduzir(chave)} aoPressionar={() => atualizar("priority", valor)} />
           ))}
-        </View>
+        </GrupoSelecao>
       </View>
 
       <View style={styles.duasColunas}>
@@ -232,11 +233,11 @@ export function TaskForm({ tarefa, salvando, userId, aoSalvar, aoExcluir, aoDupl
 
       <View style={styles.grupo}>
         <Text style={[styles.rotulo, { color: tema.cores.texto }]}>{traduzir("tarefas.recorrencia")}</Text>
-        <View style={styles.opcoes}>
+        <GrupoSelecao rotulo={traduzir("tarefas.recorrencia")} style={styles.opcoes}>
           {recorrencias.map(([valor, chave]) => (
             <Opcao key={valor} selecionada={valores.recurrenceType === valor} rotulo={traduzir(chave)} aoPressionar={() => atualizar("recurrenceType", valor)} />
           ))}
-        </View>
+        </GrupoSelecao>
       </View>
 
       <View style={styles.grupo}>
@@ -248,12 +249,12 @@ export function TaskForm({ tarefa, salvando, userId, aoSalvar, aoExcluir, aoDupl
             <AppButton onPress={() => void projetos.refetch()} rotulo={traduzir("comum.tentarNovamente")} variante="secondary" />
           </View>
         ) : null}
-        <View style={styles.opcoes}>
+        <GrupoSelecao rotulo={traduzir("tarefas.projeto")} style={styles.opcoes}>
           <Opcao selecionada={!valores.projectId} rotulo={traduzir("tarefas.caixaEntrada")} aoPressionar={() => atualizar("projectId", "")} />
           {(projetos.data ?? []).map((projeto) => (
             <Opcao key={projeto.id} selecionada={valores.projectId === projeto.id} rotulo={projeto.name} aoPressionar={() => atualizar("projectId", projeto.id)} />
           ))}
-        </View>
+        </GrupoSelecao>
         <View style={styles.adicionarLinha}>
           <FormField
             accessibilityLabel={traduzir("tarefas.novoProjeto")}

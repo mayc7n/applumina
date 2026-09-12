@@ -233,6 +233,8 @@ export default function TelaTarefas() {
               </View>
 
               <ScrollView
+                accessibilityLabel={traduzir("tarefas.filtros")}
+                accessibilityRole="radiogroup"
                 horizontal
                 contentContainerStyle={styles.filtros}
                 showsHorizontalScrollIndicator={false}

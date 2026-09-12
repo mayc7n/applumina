@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppButton } from "@/components/ui/app-button";
 import { FormField } from "@/components/ui/form-field";
+import { GrupoSelecao } from "@/components/ui/selection-group";
 import {
   montarEntradaTreino,
   validarFormularioTreino,
@@ -79,7 +80,7 @@ export function WorkoutForm({ salvando, aoSalvar, treino }: WorkoutFormProps) {
         <Text style={[styles.rotulo, { color: tema.cores.texto }]}>
           {traduzir("treinos.modalidade")}
         </Text>
-        <View style={styles.opcoes}>
+        <GrupoSelecao rotulo={traduzir("treinos.modalidade")} style={styles.opcoes}>
           {modalidades.map(({ tipo, rotulo }) => {
             const selecionada = valores.type === tipo;
             return (
@@ -117,7 +118,7 @@ export function WorkoutForm({ salvando, aoSalvar, treino }: WorkoutFormProps) {
               </Pressable>
             );
           })}
-        </View>
+        </GrupoSelecao>
       </View>
 
       {valores.type === "CUSTOM" ? (
