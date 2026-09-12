@@ -147,6 +147,8 @@ export default function TelaInicio() {
           <View style={[styles.hero, { backgroundColor: tema.cores.marca }]}>
             <View
               pointerEvents="none"
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
               style={[
                 styles.orbeMaior,
                 { backgroundColor: tema.cores.sobreMarca },
@@ -154,9 +156,23 @@ export default function TelaInicio() {
             />
             <View
               pointerEvents="none"
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
               style={[
                 styles.orbeMenor,
                 { backgroundColor: tema.cores.sobreMarca },
+              ]}
+            />
+            <View
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              pointerEvents="none"
+              style={[
+                styles.planoHero,
+                {
+                  backgroundColor: tema.cores.sobreMarca,
+                  borderColor: tema.cores.sobreMarca,
+                },
               ]}
             />
             <Text style={[styles.sobretitulo, { color: tema.cores.sobreMarca }]}>
@@ -209,6 +225,7 @@ export default function TelaInicio() {
                 </Text>
                 <Pressable
                   accessibilityRole="button"
+                  android_ripple={{ color: "#0000001F" }}
                   onPress={() =>
                     router.push(tarefaPendente ? "/tasks" : "/workouts")
                   }
@@ -495,6 +512,11 @@ const styles = StyleSheet.create({
     minHeight: 284,
     overflow: "hidden",
     padding: 24,
+    elevation: 7,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.18,
+    shadowRadius: 22,
   },
   orbeMaior: {
     borderRadius: 90,
@@ -513,6 +535,17 @@ const styles = StyleSheet.create({
     opacity: 0.06,
     position: "absolute",
     width: 100,
+  },
+  planoHero: {
+    borderRadius: 34,
+    borderWidth: 1,
+    bottom: -116,
+    height: 230,
+    opacity: 0.08,
+    position: "absolute",
+    right: -52,
+    transform: [{ rotate: "-15deg" }],
+    width: 260,
   },
   sobretitulo: {
     fontSize: 12,
@@ -547,6 +580,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 22,
     minHeight: 50,
+    overflow: "hidden",
     paddingHorizontal: 18,
   },
   acaoHeroTexto: { fontSize: 15, fontWeight: "800" },
@@ -569,6 +603,11 @@ const styles = StyleSheet.create({
     flex: 1.25,
     minHeight: 260,
     padding: 18,
+    elevation: 2,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
   },
   arco: {
     alignItems: "center",
@@ -595,6 +634,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-between",
     padding: 16,
+    elevation: 2,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
   },
   iconeMetrica: {
     alignItems: "center",
@@ -613,6 +657,11 @@ const styles = StyleSheet.create({
     gap: 14,
     minHeight: 132,
     padding: 18,
+    elevation: 2,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
   },
   socialIcone: {
     alignItems: "center",
