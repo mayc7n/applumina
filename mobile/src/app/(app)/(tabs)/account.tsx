@@ -214,6 +214,18 @@ export default function TelaConta() {
         <ScreenHeader titulo={traduzir("conta.titulo")} />
         <AnimatedEntry>
           <View style={[styles.perfil, { backgroundColor: tema.cores.marca }]}>
+            <View
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              pointerEvents="none"
+              style={[styles.planoPerfil, { borderColor: tema.cores.sobreMarca }]}
+            />
+            <View
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              pointerEvents="none"
+              style={[styles.haloPerfil, { backgroundColor: tema.cores.sobreMarca }]}
+            />
             <View style={[styles.avatar, { backgroundColor: tema.cores.sobreMarca }]}>
               <Text style={[styles.inicial, { color: tema.cores.marca }]}>
                 {usuario?.displayName?.trim().charAt(0).toUpperCase() ?? "L"}
@@ -532,7 +544,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 16,
     minHeight: 140,
+    overflow: "hidden",
     padding: 22,
+    elevation: 7,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.16,
+    shadowRadius: 22,
+  },
+  planoPerfil: {
+    borderRadius: 30,
+    borderWidth: 1,
+    height: 184,
+    opacity: 0.14,
+    position: "absolute",
+    right: -31,
+    top: -82,
+    transform: [{ rotate: "-18deg" }],
+    width: 180,
+  },
+  haloPerfil: {
+    borderRadius: 72,
+    bottom: -78,
+    height: 144,
+    opacity: 0.07,
+    position: "absolute",
+    right: 26,
+    width: 144,
   },
   visitante: {
     borderRadius: 20,
@@ -546,10 +584,16 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     height: 64,
     justifyContent: "center",
+    elevation: 3,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 9,
     width: 64,
+    zIndex: 1,
   },
   inicial: { fontSize: 26, fontWeight: "800" },
-  dadosPerfil: { alignItems: "flex-start", flex: 1, gap: 5 },
+  dadosPerfil: { alignItems: "flex-start", flex: 1, gap: 5, zIndex: 1 },
   nome: { fontSize: 17, fontWeight: "700" },
   nomePerfil: { fontSize: 21, fontWeight: "800", lineHeight: 27 },
   emailPerfil: { fontSize: 13, lineHeight: 18, opacity: 0.88 },
@@ -565,7 +609,17 @@ const styles = StyleSheet.create({
   textoCartao: { flex: 1, gap: 4 },
   tituloCartao: { fontSize: 15, fontWeight: "700" },
   descricaoCartao: { fontSize: 13, lineHeight: 19 },
-  secaoSessoes: { borderRadius: 22, borderWidth: 1, gap: 15, padding: 18 },
+  secaoSessoes: {
+    borderRadius: 22,
+    borderWidth: 1,
+    elevation: 2,
+    gap: 15,
+    padding: 18,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+  },
   cabecalhoSecao: { alignItems: "flex-start", flexDirection: "row", gap: 13 },
   tituloSecao: { fontSize: 18, fontWeight: "700" },
   carregandoSessoes: { alignItems: "center", minHeight: 72, justifyContent: "center" },
