@@ -37,7 +37,8 @@ function IconeAba({ ativo, Icone, tamanho }: { ativo: boolean; Icone: LucideIcon
         style={[
           styles.indicadorAba,
           {
-            backgroundColor: tema.cores.marca,
+            backgroundColor: tema.cores.marcaSuave,
+            borderColor: tema.cores.marcaContorno,
             opacity: progresso,
             transform: [
               {
@@ -51,10 +52,37 @@ function IconeAba({ ativo, Icone, tamanho }: { ativo: boolean; Icone: LucideIcon
         ]}
       />
       <Icone
-        color={ativo ? tema.cores.sobreMarca : tema.cores.textoSutil}
+        color={ativo ? tema.cores.marca : tema.cores.textoSutil}
         size={tamanho}
         strokeWidth={ativo ? 2.5 : 2}
       />
+    </View>
+  );
+}
+
+function FundoBarra3D() {
+  const tema = useTemaApp();
+
+  return (
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      pointerEvents="none"
+      style={[
+        styles.barra3D,
+        {
+          backgroundColor: tema.cores.elevado,
+          borderColor: tema.cores.borda,
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.luzBarra,
+          { backgroundColor: tema.escuro ? tema.cores.texto : tema.cores.sobreMarca },
+        ]}
+      />
+      <View style={[styles.baseBarra, { backgroundColor: tema.cores.borda }]} />
     </View>
   );
 }
@@ -71,25 +99,26 @@ export default function LayoutAbas() {
         tabBarActiveTintColor: tema.cores.marca,
         tabBarInactiveTintColor: tema.cores.textoSutil,
         tabBarHideOnKeyboard: true,
+        tabBarBackground: () => <FundoBarra3D />,
         tabBarStyle: {
-          backgroundColor: tema.cores.elevado,
-          borderRadius: 24,
+          backgroundColor: "transparent",
+          borderRadius: 26,
           borderTopWidth: 0,
-          elevation: 14,
-          height: 72,
+          elevation: 16,
+          height: 74,
           marginBottom: 10,
           marginHorizontal: 12,
           paddingBottom: 6,
           paddingTop: 6,
           shadowColor: "#000000",
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: tema.escuro ? 0.34 : 0.13,
-          shadowRadius: 20,
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: tema.escuro ? 0.42 : 0.2,
+          shadowRadius: 22,
         },
         tabBarItemStyle: {
-          borderRadius: 17,
+          borderRadius: 19,
           marginHorizontal: 2,
-          marginVertical: 3,
+          marginVertical: 4,
           overflow: "hidden",
         },
         tabBarLabelStyle: { fontSize: 10, fontWeight: "700" },
@@ -146,5 +175,44 @@ export default function LayoutAbas() {
 
 const styles = StyleSheet.create({
   iconeAba: { alignItems: "center", height: 32, justifyContent: "center", width: 48 },
-  indicadorAba: { borderRadius: 16, bottom: 0, left: 0, position: "absolute", right: 0, top: 0 },
+  indicadorAba: {
+    borderRadius: 16,
+    borderWidth: 1,
+    bottom: 0,
+    elevation: 3,
+    left: 0,
+    position: "absolute",
+    right: 0,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.16,
+    shadowRadius: 6,
+    top: 0,
+  },
+  barra3D: {
+    borderRadius: 26,
+    borderWidth: 1,
+    bottom: 0,
+    left: 0,
+    overflow: "hidden",
+    position: "absolute",
+    right: 0,
+    top: 0,
+  },
+  luzBarra: {
+    height: 2,
+    left: 22,
+    opacity: 0.72,
+    position: "absolute",
+    right: 22,
+    top: 1,
+  },
+  baseBarra: {
+    bottom: 0,
+    height: 9,
+    left: 18,
+    opacity: 0.28,
+    position: "absolute",
+    right: 18,
+  },
 });
