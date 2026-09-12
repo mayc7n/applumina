@@ -128,6 +128,7 @@ export default function TelaTreinos() {
               <Pressable
                 accessibilityLabel={traduzir("treinos.registrar")}
                 accessibilityRole="button"
+                android_ripple={{ color: "#FFFFFF29" }}
                 onPress={() => router.push("/workouts/new")}
                 style={({ pressed }) => [
                   styles.acaoPrincipal,
@@ -138,6 +139,18 @@ export default function TelaTreinos() {
                   },
                 ]}
               >
+                <View
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                  pointerEvents="none"
+                  style={[styles.planoAcao, { borderColor: tema.cores.sobreMarca }]}
+                />
+                <View
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                  pointerEvents="none"
+                  style={[styles.aroAcao, { borderColor: tema.cores.sobreMarca }]}
+                />
                 <View style={styles.acaoTexto}>
                   <Text style={[styles.acaoTitulo, { color: tema.cores.sobreMarca }]}>
                     {traduzir("treinos.registrar")}
@@ -248,11 +261,57 @@ const styles = StyleSheet.create({
   },
   iconeModalidade: { alignItems: "center", borderRadius: 20, height: 40, justifyContent: "center", width: 40 },
   modalidadeTexto: { fontSize: 14, fontWeight: "600", lineHeight: 20 },
-  acaoPrincipal: { alignItems: "center", borderRadius: 24, flexDirection: "row", gap: 16, minHeight: 112, padding: 20 },
-  acaoTexto: { flex: 1, gap: 5 },
+  acaoPrincipal: {
+    alignItems: "center",
+    borderRadius: 24,
+    elevation: 7,
+    flexDirection: "row",
+    gap: 16,
+    minHeight: 124,
+    overflow: "hidden",
+    padding: 20,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 9 },
+    shadowOpacity: 0.16,
+    shadowRadius: 20,
+  },
+  planoAcao: {
+    borderRadius: 34,
+    borderWidth: 1,
+    height: 154,
+    opacity: 0.16,
+    position: "absolute",
+    right: -31,
+    top: -64,
+    transform: [{ rotate: "-22deg" }],
+    width: 190,
+  },
+  aroAcao: {
+    borderRadius: 80,
+    borderWidth: 18,
+    bottom: -76,
+    height: 160,
+    opacity: 0.08,
+    position: "absolute",
+    right: 18,
+    width: 160,
+  },
+  acaoTexto: { flex: 1, gap: 5, zIndex: 1 },
   acaoTitulo: { fontSize: 21, fontWeight: "800", lineHeight: 27 },
   acaoDescricao: { fontSize: 14, lineHeight: 20, opacity: 0.9 },
-  acaoIcone: { alignItems: "center", borderRadius: 24, height: 48, justifyContent: "center", width: 48 },
+  acaoIcone: {
+    alignItems: "center",
+    borderRadius: 24,
+    elevation: 3,
+    height: 52,
+    justifyContent: "center",
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.16,
+    shadowRadius: 8,
+    width: 52,
+    zIndex: 1,
+  },
   carregando: { marginTop: 42 },
   historico: { gap: 14 },
   cabecalhoHistorico: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
