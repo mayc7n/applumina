@@ -99,6 +99,10 @@ const portuguesBrasil = {
   "inicio.semRegistroDescricao":
     "Uma atividade curta já conta. Você escolhe o ritmo.",
   "inicio.progressoTitulo": "Sua semana",
+  "inicio.atividadeSemanal": "Atividade semanal",
+  "inicio.diasAtivosRotulo": "Dias ativos",
+  "inicio.tarefasRotulo": "Tarefas",
+  "inicio.focoRotulo": "Foco",
   "inicio.diasAtivos": "{quantidade} de 7 dias com registros.",
   "inicio.resumoSemana":
     "{tarefas} tarefas concluídas · {minutos} min de foco",
@@ -541,6 +545,10 @@ const ingles: Record<ChaveTraducao, string> = {
   "inicio.semRegistroDescricao":
     "A short activity still counts. You set the pace.",
   "inicio.progressoTitulo": "Your week",
+  "inicio.atividadeSemanal": "Weekly activity",
+  "inicio.diasAtivosRotulo": "Active days",
+  "inicio.tarefasRotulo": "Tasks",
+  "inicio.focoRotulo": "Focus",
   "inicio.diasAtivos": "Records on {quantidade} of 7 days.",
   "inicio.resumoSemana":
     "{tarefas} tasks completed · {minutos} focus min",

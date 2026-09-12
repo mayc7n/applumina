@@ -2,11 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import {
+  Activity,
   ArrowUpRight,
   Bell,
   CheckCircle2,
   ChevronRight,
-  Clock3,
   Flame,
   UsersRound,
 } from "lucide-react-native";
@@ -273,132 +273,168 @@ export default function TelaInicio() {
         {autenticado && consulta.data ? (
           <AnimatedEntry>
             <View style={styles.blocoSemana}>
-              <View style={styles.tituloLinha}>
-                <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
-                  {traduzir("inicio.progressoTitulo")}
-                </Text>
-                <View
-                  style={[
-                    styles.selo,
-                    { backgroundColor: tema.cores.marcaSuave },
-                  ]}
-                >
-                  <Text style={[styles.seloTexto, { color: tema.cores.marca }]}>
-                    {traduzir("inicio.diasAtivos", {
-                      quantidade: resumo.diasAtivos,
-                    })}
-                  </Text>
+              <View
+                style={[
+                  styles.cardAtividade,
+                  {
+                    backgroundColor: tema.cores.elevado,
+                    borderColor: tema.cores.borda,
+                  },
+                ]}
+              >
+                <View style={styles.cabecalhoAtividade}>
+                  <View
+                    style={[
+                      styles.iconeAtividade,
+                      { backgroundColor: tema.cores.marcaSuave },
+                    ]}
+                  >
+                    <Activity color={tema.cores.marca} size={21} />
+                  </View>
+                  <View style={styles.textoAtividade}>
+                    <Text
+                      style={[styles.tituloSecao, { color: tema.cores.texto }]}
+                    >
+                      {traduzir("inicio.progressoTitulo")}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.subtituloAtividade,
+                        { color: tema.cores.textoSecundario },
+                      ]}
+                    >
+                      {traduzir("inicio.atividadeSemanal")}
+                    </Text>
+                  </View>
                 </View>
-              </View>
 
-              <View style={styles.bentoLinha}>
+                <View style={styles.metricasAtividade}>
+                  <View style={styles.metricaAtividade}>
+                    <View style={styles.anelMetrica}>
+                      <WeeklyArc
+                        progresso={resumo.diasAtivos / 7}
+                        rotulo={traduzir("inicio.diasAtivos", {
+                          quantidade: resumo.diasAtivos,
+                        })}
+                        tamanho={84}
+                      />
+                      <View
+                        accessibilityElementsHidden
+                        importantForAccessibility="no-hide-descendants"
+                        style={styles.valorAnel}
+                      >
+                        <Text
+                          style={[
+                            styles.numeroAnel,
+                            { color: tema.cores.texto },
+                          ]}
+                        >
+                          {resumo.diasAtivos}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.unidadeAnel,
+                            { color: tema.cores.textoSutil },
+                          ]}
+                        >
+                          /7
+                        </Text>
+                      </View>
+                    </View>
+                    <Text
+                      style={[
+                        styles.rotuloAnel,
+                        { color: tema.cores.textoSecundario },
+                      ]}
+                    >
+                      {traduzir("inicio.diasAtivosRotulo")}
+                    </Text>
+                  </View>
+
+                  <View style={styles.metricaAtividade}>
+                    <View
+                      accessible
+                      accessibilityLabel={`${traduzir("inicio.tarefasRotulo")}: ${resumo.tarefasConcluidas}`}
+                      style={[
+                        styles.anelResumo,
+                        { borderColor: tema.cores.sucesso },
+                      ]}
+                    >
+                      <Text
+                        style={[styles.numeroAnel, { color: tema.cores.texto }]}
+                      >
+                        {resumo.tarefasConcluidas}
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.rotuloAnel,
+                        { color: tema.cores.textoSecundario },
+                      ]}
+                    >
+                      {traduzir("inicio.tarefasRotulo")}
+                    </Text>
+                  </View>
+
+                  <View style={styles.metricaAtividade}>
+                    <View
+                      accessible
+                      accessibilityLabel={`${traduzir("inicio.focoRotulo")}: ${traduzir("inicio.minutos", { quantidade: resumo.minutosFoco })}`}
+                      style={[
+                        styles.anelResumo,
+                        { borderColor: tema.cores.informacao },
+                      ]}
+                    >
+                      <Text
+                        style={[styles.numeroAnel, { color: tema.cores.texto }]}
+                      >
+                        {resumo.minutosFoco}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.unidadeAnel,
+                          { color: tema.cores.textoSutil },
+                        ]}
+                      >
+                        min
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.rotuloAnel,
+                        { color: tema.cores.textoSecundario },
+                      ]}
+                    >
+                      {traduzir("inicio.focoRotulo")}
+                    </Text>
+                  </View>
+                </View>
+
                 <View
                   style={[
-                    styles.cardProgresso,
+                    styles.metaAtividade,
                     {
-                      backgroundColor: tema.cores.elevado,
+                      backgroundColor: tema.cores.sobreposicao,
                       borderColor: tema.cores.borda,
                     },
                   ]}
                 >
-                  <View style={styles.arco}>
-                    <WeeklyArc
-                      progresso={resumo.diasAtivos / 7}
-                      rotulo={traduzir("inicio.diasAtivos", {
-                        quantidade: resumo.diasAtivos,
-                      })}
-                      tamanho={106}
-                    />
-                    <View
-                      accessibilityElementsHidden
-                      importantForAccessibility="no-hide-descendants"
-                      style={styles.arcoCentro}
-                    >
-                      <Text
-                        style={[styles.arcoNumero, { color: tema.cores.texto }]}
-                      >
-                        {resumo.diasAtivos}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.arcoTotal,
-                          { color: tema.cores.textoSutil },
-                        ]}
-                      >
-                        / 7
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={[styles.cardTitulo, { color: tema.cores.texto }]}>
-                    {traduzir("inicio.constanciaTitulo")}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.cardApoio,
-                      { color: tema.cores.textoSecundario },
-                    ]}
-                  >
-                    {resumo.diasAtivos
-                      ? traduzir("inicio.retomada")
-                      : traduzir("inicio.primeiroPasso")}
-                  </Text>
-                </View>
-
-                <View style={styles.metricasColuna}>
-                  <View
-                    style={[
-                      styles.cardMetrica,
-                      { backgroundColor: tema.cores.sucessoSuave },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.iconeMetrica,
-                        { backgroundColor: tema.cores.elevado },
-                      ]}
-                    >
-                      <CheckCircle2 color={tema.cores.sucesso} size={18} />
-                    </View>
+                  <CheckCircle2 color={tema.cores.sucesso} size={20} />
+                  <View style={styles.textoMeta}>
                     <Text
-                      style={[styles.numeroMetrica, { color: tema.cores.texto }]}
+                      style={[styles.tituloMeta, { color: tema.cores.texto }]}
                     >
-                      {resumo.tarefasConcluidas}
+                      {traduzir("inicio.constanciaTitulo")}
                     </Text>
                     <Text
                       style={[
-                        styles.rotuloMetrica,
+                        styles.descricaoMeta,
                         { color: tema.cores.textoSecundario },
                       ]}
                     >
-                      {traduzir("inicio.tarefasConcluidasSemana")}
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.cardMetrica,
-                      { backgroundColor: tema.cores.informacaoSuave },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.iconeMetrica,
-                        { backgroundColor: tema.cores.elevado },
-                      ]}
-                    >
-                      <Clock3 color={tema.cores.informacao} size={18} />
-                    </View>
-                    <Text
-                      style={[styles.numeroMetrica, { color: tema.cores.texto }]}
-                    >
-                      {resumo.minutosFoco}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.rotuloMetrica,
-                        { color: tema.cores.textoSecundario },
-                      ]}
-                    >
-                      {traduzir("inicio.focoSemana")}
+                      {resumo.diasAtivos
+                        ? traduzir("inicio.retomada")
+                        : traduzir("inicio.primeiroPasso")}
                     </Text>
                   </View>
                 </View>
@@ -587,40 +623,66 @@ const styles = StyleSheet.create({
   linkEntrar: { alignSelf: "flex-start", minHeight: 44, paddingVertical: 12 },
   linkEntrarTexto: { fontSize: 14, fontWeight: "700", opacity: 0.9 },
   blocoSemana: { gap: 14 },
-  tituloLinha: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 10,
-    justifyContent: "space-between",
-  },
   tituloSecao: { fontSize: 21, fontWeight: "800", letterSpacing: -0.45 },
-  selo: { borderRadius: 999, paddingHorizontal: 11, paddingVertical: 7 },
-  seloTexto: { fontSize: 11, fontWeight: "800" },
-  bentoLinha: { flexDirection: "row", gap: 12 },
-  cardProgresso: {
+  cardAtividade: {
     borderRadius: 24,
     borderWidth: 1,
-    flex: 1.25,
-    minHeight: 260,
-    padding: 18,
+    padding: 20,
     elevation: 2,
     shadowColor: "#2B1712",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
   },
-  arco: {
+  cabecalhoAtividade: {
     alignItems: "center",
-    alignSelf: "flex-start",
-    justifyContent: "center",
+    flexDirection: "row",
+    gap: 12,
   },
-  arcoCentro: {
+  iconeAtividade: {
+    alignItems: "center",
+    borderRadius: 22,
+    height: 44,
+    justifyContent: "center",
+    width: 44,
+  },
+  textoAtividade: { flex: 1, gap: 2 },
+  subtituloAtividade: { fontSize: 13 },
+  metricasAtividade: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 24,
+  },
+  metricaAtividade: { alignItems: "center", flex: 1, gap: 7 },
+  anelMetrica: { alignItems: "center", justifyContent: "center" },
+  valorAnel: {
     alignItems: "baseline",
     flexDirection: "row",
     position: "absolute",
   },
-  arcoNumero: { fontSize: 26, fontWeight: "900", letterSpacing: -1 },
-  arcoTotal: { fontSize: 12, fontWeight: "700" },
+  anelResumo: {
+    alignItems: "center",
+    borderRadius: 42,
+    borderWidth: 7,
+    height: 84,
+    justifyContent: "center",
+    width: 84,
+  },
+  numeroAnel: { fontSize: 22, fontWeight: "900", letterSpacing: -0.7 },
+  unidadeAnel: { fontSize: 10, fontWeight: "700" },
+  rotuloAnel: { fontSize: 11, fontWeight: "700", textAlign: "center" },
+  metaAtividade: {
+    alignItems: "center",
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 12,
+    minHeight: 72,
+    padding: 14,
+  },
+  textoMeta: { flex: 1 },
+  tituloMeta: { fontSize: 14, fontWeight: "800" },
+  descricaoMeta: { fontSize: 12, lineHeight: 17, marginTop: 3 },
   cardTitulo: {
     fontSize: 17,
     fontWeight: "800",
@@ -628,27 +690,6 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   cardApoio: { fontSize: 13, lineHeight: 19, marginTop: 6 },
-  metricasColuna: { flex: 0.9, gap: 12 },
-  cardMetrica: {
-    borderRadius: 22,
-    flex: 1,
-    justifyContent: "space-between",
-    padding: 16,
-    elevation: 2,
-    shadowColor: "#2B1712",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-  },
-  iconeMetrica: {
-    alignItems: "center",
-    borderRadius: 16,
-    height: 34,
-    justifyContent: "center",
-    width: 34,
-  },
-  numeroMetrica: { fontSize: 27, fontWeight: "900", letterSpacing: -0.8 },
-  rotuloMetrica: { fontSize: 12, fontWeight: "700", lineHeight: 16 },
   social: {
     alignItems: "center",
     borderRadius: 24,
