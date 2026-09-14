@@ -134,24 +134,69 @@ describe("callbacks privados de tarefas", () => {
     });
   });
 
-  test("não cria caches ausentes durante a alternância otimista", async () => {
+  test("alterna imediatamente DONE para TODO nos três caches", async () => {
     const chaves = chavesTarefasUsuario(usuarioA.id);
+    const tarefaConcluida = { ...tarefaA, status: "DONE" as const };
+    const listaConcluida: InfiniteData<PagedResponse<Task>, number> = {
+      ...listaA,
+      pages: [
+        {
+          ...listaA.pages[0],
+          content: [tarefaConcluida, outraTarefaA],
+        },
+      ],
+    };
+    const painelConcluido: DashboardData = {
+      ...painelA,
+      todayTasks: [tarefaConcluida, outraTarefaA],
+    };
     autenticar(usuarioA);
-    clienteConsultas.setQueryData(chaves.lista, listaA);
+    clienteConsultas.setQueryData(chaves.lista, listaConcluida);
+    clienteConsultas.setQueryData(chaves.painel, painelConcluido);
+    clienteConsultas.setQueryData(
+      chaves.detalhe(tarefaConcluida.id),
+      tarefaConcluida,
+    );
 
     await prepararAlternanciaOtimistaTarefa(
       clienteConsultas,
       usuarioA.id,
-      tarefaA,
+      tarefaConcluida,
     );
 
+    const listaAtualizada = clienteConsultas.getQueryData<
+      InfiniteData<PagedResponse<Task>, number>
+    >(chaves.lista);
+    const painelAtualizado = clienteConsultas.getQueryData<DashboardData>(
+      chaves.painel,
+    );
+    expect(listaAtualizada?.pages[0]?.content[0]?.status).toBe("TODO");
+    expect(painelAtualizado?.todayTasks[0]?.status).toBe("TODO");
+    expect(
+      clienteConsultas.getQueryData<Task>(chaves.detalhe(tarefaConcluida.id))
+        ?.status,
+    ).toBe("TODO");
+  });
+
+  test("não cria lista, painel nem detalhe quando todos estão ausentes", async () => {
+    const chaves = chavesTarefasUsuario(usuarioA.id);
+    autenticar(usuarioA);
+
+    const contexto = await prepararAlternanciaOtimistaTarefa(
+      clienteConsultas,
+      usuarioA.id,
+      tarefaA,
+    );
+    restaurarAlternanciaOtimistaTarefa(clienteConsultas, contexto);
+
+    expect(clienteConsultas.getQueryState(chaves.lista)).toBeUndefined();
     expect(clienteConsultas.getQueryState(chaves.painel)).toBeUndefined();
     expect(
       clienteConsultas.getQueryState(chaves.detalhe(tarefaA.id)),
     ).toBeUndefined();
   });
 
-  test("restaura literalmente os snapshots após falha da alternância", async () => {
+  test("restaura os três caches após falha sem mutações concorrentes", async () => {
     const chaves = chavesTarefasUsuario(usuarioA.id);
     autenticar(usuarioA);
     clienteConsultas.setQueryData(chaves.lista, listaA);
@@ -174,6 +219,119 @@ describe("callbacks privados de tarefas", () => {
     expect(clienteConsultas.getQueryData(chaves.painel)).toEqual(snapshotPainel);
     expect(clienteConsultas.getQueryData(chaves.detalhe(tarefaA.id))).toEqual(
       snapshotDetalhe,
+    );
+  });
+
+  test("erro tardio de uma tarefa preserva o sucesso autoritativo de outra", async () => {
+    const chaves = chavesTarefasUsuario(usuarioA.id);
+    autenticar(usuarioA);
+    clienteConsultas.setQueryData(chaves.lista, listaA);
+    clienteConsultas.setQueryData(chaves.painel, painelA);
+    clienteConsultas.setQueryData(chaves.detalhe(tarefaA.id), tarefaA);
+    clienteConsultas.setQueryData(
+      chaves.detalhe(outraTarefaA.id),
+      outraTarefaA,
+    );
+
+    const contextoFalhaA = await prepararAlternanciaOtimistaTarefa(
+      clienteConsultas,
+      usuarioA.id,
+      tarefaA,
+    );
+    await prepararAlternanciaOtimistaTarefa(
+      clienteConsultas,
+      usuarioA.id,
+      outraTarefaA,
+    );
+    const tarefaBConfirmada = { ...outraTarefaA, status: "DONE" as const };
+    atualizarCacheEdicaoTarefa(
+      clienteConsultas,
+      usuarioA.id,
+      tarefaBConfirmada,
+    );
+
+    restaurarAlternanciaOtimistaTarefa(clienteConsultas, contextoFalhaA);
+
+    const listaAtualizada = clienteConsultas.getQueryData<
+      InfiniteData<PagedResponse<Task>, number>
+    >(chaves.lista);
+    const painelAtualizado = clienteConsultas.getQueryData<DashboardData>(
+      chaves.painel,
+    );
+    expect(listaAtualizada?.pages[0]?.content.map(({ id, status }) => ({
+      id,
+      status,
+    }))).toEqual([
+      { id: tarefaA.id, status: "TODO" },
+      { id: outraTarefaA.id, status: "DONE" },
+    ]);
+    expect(painelAtualizado?.todayTasks.map(({ id, status }) => ({
+      id,
+      status,
+    }))).toEqual([
+      { id: tarefaA.id, status: "TODO" },
+      { id: outraTarefaA.id, status: "DONE" },
+    ]);
+    expect(
+      clienteConsultas.getQueryData(chaves.detalhe(outraTarefaA.id)),
+    ).toEqual(tarefaBConfirmada);
+  });
+
+  test("erro tardio não desfaz alternância mais nova da mesma tarefa", async () => {
+    const chaves = chavesTarefasUsuario(usuarioA.id);
+    autenticar(usuarioA);
+    clienteConsultas.setQueryData(chaves.lista, listaA);
+    clienteConsultas.setQueryData(chaves.painel, painelA);
+    clienteConsultas.setQueryData(chaves.detalhe(tarefaA.id), tarefaA);
+
+    const contextoAntigo = await prepararAlternanciaOtimistaTarefa(
+      clienteConsultas,
+      usuarioA.id,
+      tarefaA,
+    );
+    const tarefaDepoisDaPrimeiraAlternancia = {
+      ...tarefaA,
+      status: "DONE" as const,
+    };
+    await prepararAlternanciaOtimistaTarefa(
+      clienteConsultas,
+      usuarioA.id,
+      tarefaDepoisDaPrimeiraAlternancia,
+    );
+    const tarefaAutoritativa = {
+      ...tarefaDepoisDaPrimeiraAlternancia,
+      updatedAt: "2030-01-02T00:00:00Z",
+    };
+    const listaAutoritativa: InfiniteData<PagedResponse<Task>, number> = {
+      ...listaA,
+      pages: [
+        {
+          ...listaA.pages[0],
+          content: [tarefaAutoritativa, outraTarefaA],
+        },
+      ],
+    };
+    const painelAutoritativo: DashboardData = {
+      ...painelA,
+      todayTasks: [tarefaAutoritativa, outraTarefaA],
+    };
+    clienteConsultas.setQueryData(chaves.lista, listaAutoritativa);
+    clienteConsultas.setQueryData(chaves.painel, painelAutoritativo);
+    clienteConsultas.setQueryData(
+      chaves.detalhe(tarefaA.id),
+      tarefaAutoritativa,
+    );
+
+    restaurarAlternanciaOtimistaTarefa(clienteConsultas, contextoAntigo);
+
+    expect(clienteConsultas.getQueryData(chaves.lista)).toEqual(
+      listaAutoritativa,
+    );
+    expect(clienteConsultas.getQueryData(chaves.painel)).toEqual(
+      painelAutoritativo,
+    );
+    expect(clienteConsultas.getQueryData(chaves.detalhe(tarefaA.id))).toEqual(
+      tarefaAutoritativa,
     );
   });
 

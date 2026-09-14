@@ -34,9 +34,60 @@ function sessaoTarefasEstaAtiva(userId?: string): boolean {
 export interface ContextoAlternanciaOtimistaTarefa {
   userId: string | undefined;
   tarefaId: string;
-  lista: InfiniteData<PagedResponse<Task>, number> | undefined;
-  painel: DashboardData | undefined;
-  detalhe: Task | undefined;
+  versao: symbol | undefined;
+  statusLista: Task["status"] | undefined;
+  statusPainel: Task["status"] | undefined;
+  statusDetalhe: Task["status"] | undefined;
+}
+
+const versoesAlternanciaTarefa = new WeakMap<
+  QueryClient,
+  Map<string, symbol>
+>();
+
+function chaveVersaoAlternancia(
+  userId: string | undefined,
+  tarefaId: string,
+): string {
+  return JSON.stringify([userId, tarefaId]);
+}
+
+function registrarVersaoAlternancia(
+  clienteConsultas: QueryClient,
+  userId: string | undefined,
+  tarefaId: string,
+): symbol {
+  const versoes =
+    versoesAlternanciaTarefa.get(clienteConsultas) ?? new Map<string, symbol>();
+  const versao = Symbol(tarefaId);
+  versoes.set(chaveVersaoAlternancia(userId, tarefaId), versao);
+  versoesAlternanciaTarefa.set(clienteConsultas, versoes);
+  return versao;
+}
+
+function finalizarVersaoAlternancia(
+  clienteConsultas: QueryClient,
+  contexto: ContextoAlternanciaOtimistaTarefa | undefined,
+): void {
+  if (!contexto?.versao) return;
+  const versoes = versoesAlternanciaTarefa.get(clienteConsultas);
+  const chave = chaveVersaoAlternancia(contexto.userId, contexto.tarefaId);
+  if (versoes?.get(chave) !== contexto.versao) return;
+  versoes.delete(chave);
+  if (versoes.size === 0) versoesAlternanciaTarefa.delete(clienteConsultas);
+}
+
+function versaoAlternanciaEstaAtiva(
+  clienteConsultas: QueryClient,
+  contexto: ContextoAlternanciaOtimistaTarefa,
+): boolean {
+  return (
+    contexto.versao !== undefined &&
+    versoesAlternanciaTarefa
+      .get(clienteConsultas)
+      ?.get(chaveVersaoAlternancia(contexto.userId, contexto.tarefaId)) ===
+      contexto.versao
+  );
 }
 
 function alternarStatusTarefa(tarefa: Task, tarefaId: string): Task {
@@ -45,6 +96,33 @@ function alternarStatusTarefa(tarefa: Task, tarefaId: string): Task {
     ...tarefa,
     status: tarefa.status === "DONE" ? "TODO" : "DONE",
   };
+}
+
+function definirStatusTarefa(
+  tarefa: Task,
+  tarefaId: string,
+  status: Task["status"],
+): Task {
+  if (tarefa.id !== tarefaId) return tarefa;
+  return { ...tarefa, status };
+}
+
+function obterStatusTarefaLista(
+  lista: InfiniteData<PagedResponse<Task>, number> | undefined,
+  tarefaId: string,
+): Task["status"] | undefined {
+  for (const pagina of lista?.pages ?? []) {
+    const tarefa = pagina.content.find((item) => item.id === tarefaId);
+    if (tarefa) return tarefa.status;
+  }
+  return undefined;
+}
+
+function obterStatusTarefaPainel(
+  painel: DashboardData | undefined,
+  tarefaId: string,
+): Task["status"] | undefined {
+  return painel?.todayTasks.find((item) => item.id === tarefaId)?.status;
 }
 
 export async function prepararAlternanciaOtimistaTarefa(
@@ -58,9 +136,10 @@ export async function prepararAlternanciaOtimistaTarefa(
     return {
       userId,
       tarefaId: tarefa.id,
-      lista: undefined,
-      painel: undefined,
-      detalhe: undefined,
+      versao: undefined,
+      statusLista: undefined,
+      statusPainel: undefined,
+      statusDetalhe: undefined,
     };
   }
 
@@ -73,12 +152,20 @@ export async function prepararAlternanciaOtimistaTarefa(
     }),
   ]);
 
+  const lista = clienteConsultas.getQueryData<
+    InfiniteData<PagedResponse<Task>, number>
+  >(chaves.lista);
+  const painel = clienteConsultas.getQueryData<DashboardData>(chaves.painel);
+  const detalhe = clienteConsultas.getQueryData<Task>(
+    chaves.detalhe(tarefa.id),
+  );
   const contexto: ContextoAlternanciaOtimistaTarefa = {
     userId,
     tarefaId: tarefa.id,
-    lista: clienteConsultas.getQueryData(chaves.lista),
-    painel: clienteConsultas.getQueryData(chaves.painel),
-    detalhe: clienteConsultas.getQueryData(chaves.detalhe(tarefa.id)),
+    versao: registrarVersaoAlternancia(clienteConsultas, userId, tarefa.id),
+    statusLista: obterStatusTarefaLista(lista, tarefa.id),
+    statusPainel: obterStatusTarefaPainel(painel, tarefa.id),
+    statusDetalhe: detalhe?.status,
   };
 
   clienteConsultas.setQueryData<InfiniteData<PagedResponse<Task>, number>>(
@@ -117,21 +204,67 @@ export function restaurarAlternanciaOtimistaTarefa(
   clienteConsultas: QueryClient,
   contexto: ContextoAlternanciaOtimistaTarefa | undefined,
 ): void {
-  if (!contexto || !sessaoTarefasEstaAtiva(contexto.userId)) return;
+  if (
+    !contexto ||
+    !sessaoTarefasEstaAtiva(contexto.userId) ||
+    !versaoAlternanciaEstaAtiva(clienteConsultas, contexto)
+  ) {
+    return;
+  }
   const chaves = chavesTarefasUsuario(contexto.userId);
 
-  if (contexto.lista !== undefined) {
-    clienteConsultas.setQueryData(chaves.lista, contexto.lista);
-  }
-  if (contexto.painel !== undefined) {
-    clienteConsultas.setQueryData(chaves.painel, contexto.painel);
-  }
-  if (contexto.detalhe !== undefined) {
-    clienteConsultas.setQueryData(
-      chaves.detalhe(contexto.tarefaId),
-      contexto.detalhe,
+  const { statusLista, statusPainel, statusDetalhe } = contexto;
+  if (statusLista !== undefined) {
+    clienteConsultas.setQueryData<InfiniteData<PagedResponse<Task>, number>>(
+      chaves.lista,
+      (lista) =>
+        lista
+          ? {
+              ...lista,
+              pages: lista.pages.map((pagina) => ({
+                ...pagina,
+                content: pagina.content.map((item) =>
+                  definirStatusTarefa(
+                    item,
+                    contexto.tarefaId,
+                    statusLista,
+                  ),
+                ),
+              })),
+            }
+          : undefined,
     );
   }
+  if (statusPainel !== undefined) {
+    clienteConsultas.setQueryData<DashboardData>(chaves.painel, (painel) =>
+      painel
+        ? {
+            ...painel,
+            todayTasks: painel.todayTasks.map((item) =>
+              definirStatusTarefa(
+                item,
+                contexto.tarefaId,
+                statusPainel,
+              ),
+            ),
+          }
+        : undefined,
+    );
+  }
+  if (statusDetalhe !== undefined) {
+    clienteConsultas.setQueryData<Task>(
+      chaves.detalhe(contexto.tarefaId),
+      (detalhe) =>
+        detalhe
+          ? definirStatusTarefa(
+              detalhe,
+              contexto.tarefaId,
+              statusDetalhe,
+            )
+          : undefined,
+    );
+  }
+  finalizarVersaoAlternancia(clienteConsultas, contexto);
 }
 
 function invalidarTarefasEPainel(
@@ -256,6 +389,8 @@ export function useAlternarTarefa(userId?: string) {
       restaurarAlternanciaOtimistaTarefa(clienteConsultas, contexto),
     onSuccess: (tarefa) =>
       atualizarCacheEdicaoTarefa(clienteConsultas, userId, tarefa),
+    onSettled: (_tarefa, _erro, _variaveis, contexto) =>
+      finalizarVersaoAlternancia(clienteConsultas, contexto),
   });
 }
 
