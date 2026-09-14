@@ -37,6 +37,7 @@ export default function TelaTarefas() {
   const { traduzir } = useIdioma();
   const [titulo, definirTitulo] = useState("");
   const [busca, definirBusca] = useState("");
+  const [buscaFocada, definirBuscaFocada] = useState(false);
   const [filtro, definirFiltro] = useState<FiltroTarefa>("TODAY");
   const [erroAcao, definirErroAcao] = useState("");
   const autenticado = useArmazenamentoAutenticacao((armazenamento) => armazenamento.estado === "autenticado");
@@ -144,16 +145,18 @@ export default function TelaTarefas() {
                 style={[
                   styles.busca,
                   {
-                    borderColor: tema.cores.borda,
-                    backgroundColor: tema.cores.sobreposicao,
+                    borderColor: buscaFocada ? tema.cores.marca : tema.cores.borda,
+                    backgroundColor: buscaFocada ? tema.cores.elevado : tema.cores.sobreposicao,
                   },
                 ]}
               >
-                <Search color={tema.cores.textoSutil} size={19} />
+                <Search color={buscaFocada ? tema.cores.marca : tema.cores.textoSutil} size={19} />
                 <TextInput
                   accessibilityLabel={traduzir("tarefas.buscar")}
                   autoCorrect
+                  onBlur={() => definirBuscaFocada(false)}
                   onChangeText={definirBusca}
+                  onFocus={() => definirBuscaFocada(true)}
                   placeholder={traduzir("tarefas.buscar")}
                   placeholderTextColor={tema.cores.textoSutil}
                   returnKeyType="search"
@@ -301,7 +304,7 @@ const styles = StyleSheet.create({
   criacaoIcone: { alignItems: "center", borderRadius: 17, height: 42, justifyContent: "center", width: 42 },
   dockCaptura: { alignItems: "center", borderRadius: 22, borderWidth: 1, flexDirection: "row", gap: 8, marginHorizontal: 16, marginTop: 8, minHeight: 66, paddingHorizontal: 10, paddingVertical: 8, shadowColor: "#000000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.14, shadowRadius: 18 },
   ferramentas: { borderRadius: 22, borderWidth: 1, gap: 12, padding: 12 },
-  busca: { alignItems: "center", borderRadius: 14, borderWidth: 1, flexDirection: "row", gap: 9, minHeight: 50, paddingHorizontal: 14 },
+  busca: { alignItems: "center", borderRadius: 16, borderWidth: 1, flexDirection: "row", gap: 9, minHeight: 50, paddingHorizontal: 14 },
   entrada: { flex: 1, fontSize: 16, paddingVertical: 9 },
   botaoCriar: { minHeight: 44, paddingHorizontal: 14 },
   filtros: { gap: 8, paddingRight: 4 },
