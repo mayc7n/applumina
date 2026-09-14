@@ -133,75 +133,6 @@ export default function TelaTarefas() {
           <AnimatedEntry>
             <View
               style={[
-                styles.criacao,
-                {
-                  backgroundColor: tema.cores.marcaSuave,
-                  borderColor: tema.cores.marcaContorno,
-                },
-              ]}
-            >
-              <View style={styles.criacaoCabecalho}>
-                <View
-                  style={[
-                    styles.criacaoIcone,
-                    { backgroundColor: tema.cores.elevado },
-                  ]}
-                >
-                  <Plus color={tema.cores.marca} size={20} />
-                </View>
-                <View style={styles.criacaoTextos}>
-                  <Text
-                    style={[styles.criacaoTitulo, { color: tema.cores.texto }]}
-                  >
-                    {traduzir("tarefas.capturaTitulo")}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.criacaoAjuda,
-                      { color: tema.cores.textoSecundario },
-                    ]}
-                  >
-                    {traduzir("tarefas.capturaAjuda")}
-                  </Text>
-                </View>
-              </View>
-              <View
-                style={[
-                  styles.criacaoEntrada,
-                  {
-                    backgroundColor: tema.cores.elevado,
-                    borderColor: tema.cores.borda,
-                  },
-                ]}
-              >
-                <TextInput
-                  accessibilityLabel={traduzir("tarefas.novaPlaceholder")}
-                  autoCorrect
-                  maxLength={500}
-                  onChangeText={definirTitulo}
-                  onSubmitEditing={() => void criarTarefa()}
-                  placeholder={traduzir("tarefas.novaPlaceholder")}
-                  placeholderTextColor={tema.cores.textoSutil}
-                  returnKeyType="done"
-                  selectionColor={tema.cores.marca}
-                  style={[styles.entrada, { color: tema.cores.texto }]}
-                  value={titulo}
-                />
-                {titulo.trim() ? (
-                  <AppButton
-                    carregando={criar.isPending}
-                    onPress={() => void criarTarefa()}
-                    rotulo={traduzir("tarefas.criar")}
-                    style={styles.botaoCriar}
-                  />
-                ) : null}
-              </View>
-            </View>
-          </AnimatedEntry>
-
-          <AnimatedEntry>
-            <View
-              style={[
                 styles.ferramentas,
                 {
                   backgroundColor: tema.cores.elevado,
@@ -323,6 +254,40 @@ export default function TelaTarefas() {
             </View>
           )}
         </ScrollView>
+        <AnimatedEntry
+          style={[
+            styles.dockCaptura,
+            {
+              backgroundColor: tema.cores.elevado,
+              borderColor: tema.cores.marcaContorno,
+            },
+          ]}
+        >
+          <View style={[styles.criacaoIcone, { backgroundColor: tema.cores.marcaSuave }]}>
+            <Plus color={tema.cores.marca} size={20} />
+          </View>
+          <TextInput
+            accessibilityLabel={traduzir("tarefas.novaPlaceholder")}
+            autoCorrect
+            maxLength={500}
+            onChangeText={definirTitulo}
+            onSubmitEditing={() => void criarTarefa()}
+            placeholder={traduzir("tarefas.novaPlaceholder")}
+            placeholderTextColor={tema.cores.textoSutil}
+            returnKeyType="done"
+            selectionColor={tema.cores.marca}
+            style={[styles.entrada, { color: tema.cores.texto }]}
+            value={titulo}
+          />
+          {titulo.trim() ? (
+            <AppButton
+              carregando={criar.isPending}
+              onPress={() => void criarTarefa()}
+              rotulo={traduzir("tarefas.criar")}
+              style={styles.botaoCriar}
+            />
+          ) : null}
+        </AnimatedEntry>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -330,16 +295,11 @@ export default function TelaTarefas() {
 
 const styles = StyleSheet.create({
   tela: { flex: 1 },
-  conteudo: { gap: 18, paddingBottom: 40, paddingHorizontal: 20, paddingTop: 18 },
+  conteudo: { gap: 18, paddingBottom: 18, paddingHorizontal: 20, paddingTop: 18 },
   conteudoVisitante: { flex: 1, gap: 22, paddingBottom: 32, paddingHorizontal: 20, paddingTop: 18 },
   acaoCabecalho: { alignItems: "center", borderRadius: 22, height: 44, justifyContent: "center", width: 44 },
-  criacao: { borderRadius: 24, borderWidth: 1, gap: 14, padding: 18 },
-  criacaoCabecalho: { alignItems: "center", flexDirection: "row", gap: 12 },
   criacaoIcone: { alignItems: "center", borderRadius: 17, height: 42, justifyContent: "center", width: 42 },
-  criacaoTextos: { flex: 1, gap: 2 },
-  criacaoTitulo: { fontSize: 17, fontWeight: "800", letterSpacing: -0.25 },
-  criacaoAjuda: { fontSize: 12, lineHeight: 17 },
-  criacaoEntrada: { alignItems: "center", borderRadius: 16, borderWidth: 1, flexDirection: "row", gap: 8, minHeight: 56, paddingHorizontal: 14, paddingVertical: 5 },
+  dockCaptura: { alignItems: "center", borderRadius: 22, borderWidth: 1, flexDirection: "row", gap: 8, marginHorizontal: 16, marginTop: 8, minHeight: 66, paddingHorizontal: 10, paddingVertical: 8, shadowColor: "#000000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.14, shadowRadius: 18 },
   ferramentas: { borderRadius: 22, borderWidth: 1, gap: 12, padding: 12 },
   busca: { alignItems: "center", borderRadius: 14, borderWidth: 1, flexDirection: "row", gap: 9, minHeight: 50, paddingHorizontal: 14 },
   entrada: { flex: 1, fontSize: 16, paddingVertical: 9 },
