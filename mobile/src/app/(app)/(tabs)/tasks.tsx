@@ -90,7 +90,7 @@ export default function TelaTarefas() {
   async function alternarTarefa(tarefa: Task): Promise<void> {
     definirErroAcao("");
     try {
-      await alternar.mutateAsync(tarefa.id);
+      await alternar.mutateAsync(tarefa);
       if (tarefa.status === "DONE") void Haptics.selectionAsync();
       else void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (erro) {
@@ -306,7 +306,7 @@ export default function TelaTarefas() {
                   <TaskRow
                     aoAlternar={() => void alternarTarefa(tarefa)}
                     aoEditar={() => router.push({ pathname: "/tasks/[id]", params: { id: tarefa.id } })}
-                    desabilitada={alternar.isPending && alternar.variables === tarefa.id}
+                    desabilitada={alternar.isPending && alternar.variables?.id === tarefa.id}
                     tarefa={tarefa}
                   />
                 </AnimatedEntry>

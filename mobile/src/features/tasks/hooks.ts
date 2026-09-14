@@ -3,6 +3,7 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  type InfiniteData,
   type QueryClient,
 } from "@tanstack/react-query";
 
@@ -10,6 +11,8 @@ import { apiTarefas } from "@/lib/api/resources";
 import { useArmazenamentoAutenticacao } from "@/store/auth-store";
 import type {
   CreateTaskInput,
+  DashboardData,
+  PagedResponse,
   Task,
   UpdateTaskInput,
 } from "@/types/api";
@@ -26,6 +29,109 @@ export {
 function sessaoTarefasEstaAtiva(userId?: string): boolean {
   const { estado, usuario } = useArmazenamentoAutenticacao.getState();
   return estado === "autenticado" && Boolean(userId) && usuario?.id === userId;
+}
+
+export interface ContextoAlternanciaOtimistaTarefa {
+  userId: string | undefined;
+  tarefaId: string;
+  lista: InfiniteData<PagedResponse<Task>, number> | undefined;
+  painel: DashboardData | undefined;
+  detalhe: Task | undefined;
+}
+
+function alternarStatusTarefa(tarefa: Task, tarefaId: string): Task {
+  if (tarefa.id !== tarefaId) return tarefa;
+  return {
+    ...tarefa,
+    status: tarefa.status === "DONE" ? "TODO" : "DONE",
+  };
+}
+
+export async function prepararAlternanciaOtimistaTarefa(
+  clienteConsultas: QueryClient,
+  userId: string | undefined,
+  tarefa: Task,
+): Promise<ContextoAlternanciaOtimistaTarefa> {
+  const chaves = chavesTarefasUsuario(userId);
+
+  if (!sessaoTarefasEstaAtiva(userId)) {
+    return {
+      userId,
+      tarefaId: tarefa.id,
+      lista: undefined,
+      painel: undefined,
+      detalhe: undefined,
+    };
+  }
+
+  await Promise.all([
+    clienteConsultas.cancelQueries({ exact: true, queryKey: chaves.lista }),
+    clienteConsultas.cancelQueries({ exact: true, queryKey: chaves.painel }),
+    clienteConsultas.cancelQueries({
+      exact: true,
+      queryKey: chaves.detalhe(tarefa.id),
+    }),
+  ]);
+
+  const contexto: ContextoAlternanciaOtimistaTarefa = {
+    userId,
+    tarefaId: tarefa.id,
+    lista: clienteConsultas.getQueryData(chaves.lista),
+    painel: clienteConsultas.getQueryData(chaves.painel),
+    detalhe: clienteConsultas.getQueryData(chaves.detalhe(tarefa.id)),
+  };
+
+  clienteConsultas.setQueryData<InfiniteData<PagedResponse<Task>, number>>(
+    chaves.lista,
+    (lista) =>
+      lista
+        ? {
+            ...lista,
+            pages: lista.pages.map((pagina) => ({
+              ...pagina,
+              content: pagina.content.map((item) =>
+                alternarStatusTarefa(item, tarefa.id),
+              ),
+            })),
+          }
+        : undefined,
+  );
+  clienteConsultas.setQueryData<DashboardData>(chaves.painel, (painel) =>
+    painel
+      ? {
+          ...painel,
+          todayTasks: painel.todayTasks.map((item) =>
+            alternarStatusTarefa(item, tarefa.id),
+          ),
+        }
+      : undefined,
+  );
+  clienteConsultas.setQueryData<Task>(chaves.detalhe(tarefa.id), (detalhe) =>
+    detalhe ? alternarStatusTarefa(detalhe, tarefa.id) : undefined,
+  );
+
+  return contexto;
+}
+
+export function restaurarAlternanciaOtimistaTarefa(
+  clienteConsultas: QueryClient,
+  contexto: ContextoAlternanciaOtimistaTarefa | undefined,
+): void {
+  if (!contexto || !sessaoTarefasEstaAtiva(contexto.userId)) return;
+  const chaves = chavesTarefasUsuario(contexto.userId);
+
+  if (contexto.lista !== undefined) {
+    clienteConsultas.setQueryData(chaves.lista, contexto.lista);
+  }
+  if (contexto.painel !== undefined) {
+    clienteConsultas.setQueryData(chaves.painel, contexto.painel);
+  }
+  if (contexto.detalhe !== undefined) {
+    clienteConsultas.setQueryData(
+      chaves.detalhe(contexto.tarefaId),
+      contexto.detalhe,
+    );
+  }
 }
 
 function invalidarTarefasEPainel(
@@ -143,7 +249,11 @@ export function useExcluirTarefa(userId?: string) {
 export function useAlternarTarefa(userId?: string) {
   const clienteConsultas = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => apiTarefas.alternarConclusao(id),
+    mutationFn: (tarefa: Task) => apiTarefas.alternarConclusao(tarefa.id),
+    onMutate: (tarefa) =>
+      prepararAlternanciaOtimistaTarefa(clienteConsultas, userId, tarefa),
+    onError: (_erro, _tarefa, contexto) =>
+      restaurarAlternanciaOtimistaTarefa(clienteConsultas, contexto),
     onSuccess: (tarefa) =>
       atualizarCacheEdicaoTarefa(clienteConsultas, userId, tarefa),
   });
