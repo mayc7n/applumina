@@ -17,6 +17,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -44,6 +45,7 @@ function obterSaudacao(
 export default function TelaInicio() {
   const tema = useTemaApp();
   const { idioma, traduzir } = useIdioma();
+  const { fontScale } = useWindowDimensions();
   const estadoAutenticacao = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado,
   );
@@ -66,6 +68,8 @@ export default function TelaInicio() {
   const tarefasHoje = consulta.data?.todayTasks ?? [];
   const tarefaPendente = tarefasHoje.find((tarefa) => tarefa.status !== "DONE");
   const resumo = resumirSemana(consulta.data?.weeklyData ?? []);
+  const metricasAmpliadas = fontScale >= 1.3;
+  const tamanhoAnel = metricasAmpliadas ? 112 : 84;
 
   return (
     <SafeAreaView
@@ -308,15 +312,25 @@ export default function TelaInicio() {
                   </View>
                 </View>
 
-                <View style={styles.metricasAtividade}>
-                  <View style={styles.metricaAtividade}>
+                <View
+                  style={[
+                    styles.metricasAtividade,
+                    metricasAmpliadas && styles.metricasAtividadeAmpliadas,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.metricaAtividade,
+                      metricasAmpliadas && styles.metricaAtividadeAmpliada,
+                    ]}
+                  >
                     <View style={styles.anelMetrica}>
                       <WeeklyArc
                         progresso={resumo.diasAtivos / 7}
                         rotulo={traduzir("inicio.diasAtivos", {
                           quantidade: resumo.diasAtivos,
                         })}
-                        tamanho={84}
+                        tamanho={tamanhoAnel}
                       />
                       <View
                         accessibilityElementsHidden
@@ -324,6 +338,9 @@ export default function TelaInicio() {
                         style={styles.valorAnel}
                       >
                         <Text
+                          adjustsFontSizeToFit
+                          minimumFontScale={0.6}
+                          numberOfLines={1}
                           style={[
                             styles.numeroAnel,
                             { color: tema.cores.texto },
@@ -351,16 +368,25 @@ export default function TelaInicio() {
                     </Text>
                   </View>
 
-                  <View style={styles.metricaAtividade}>
+                  <View
+                    style={[
+                      styles.metricaAtividade,
+                      metricasAmpliadas && styles.metricaAtividadeAmpliada,
+                    ]}
+                  >
                     <View
                       accessible
                       accessibilityLabel={`${traduzir("inicio.tarefasRotulo")}: ${resumo.tarefasConcluidas}`}
                       style={[
                         styles.anelResumo,
+                        metricasAmpliadas && styles.anelResumoAmpliado,
                         { borderColor: tema.cores.sucesso },
                       ]}
                     >
                       <Text
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.5}
+                        numberOfLines={1}
                         style={[styles.numeroAnel, { color: tema.cores.texto }]}
                       >
                         {resumo.tarefasConcluidas}
@@ -376,16 +402,25 @@ export default function TelaInicio() {
                     </Text>
                   </View>
 
-                  <View style={styles.metricaAtividade}>
+                  <View
+                    style={[
+                      styles.metricaAtividade,
+                      metricasAmpliadas && styles.metricaAtividadeAmpliada,
+                    ]}
+                  >
                     <View
                       accessible
                       accessibilityLabel={`${traduzir("inicio.focoRotulo")}: ${traduzir("inicio.minutos", { quantidade: resumo.minutosFoco })}`}
                       style={[
                         styles.anelResumo,
+                        metricasAmpliadas && styles.anelResumoAmpliado,
                         { borderColor: tema.cores.informacao },
                       ]}
                     >
                       <Text
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.5}
+                        numberOfLines={1}
                         style={[styles.numeroAnel, { color: tema.cores.texto }]}
                       >
                         {resumo.minutosFoco}
@@ -653,7 +688,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginVertical: 24,
   },
+  metricasAtividadeAmpliadas: { alignItems: "center", flexDirection: "column", gap: 20 },
   metricaAtividade: { alignItems: "center", flex: 1, gap: 7 },
+  metricaAtividadeAmpliada: { flex: 0, width: "100%" },
   anelMetrica: { alignItems: "center", justifyContent: "center" },
   valorAnel: {
     alignItems: "baseline",
@@ -668,6 +705,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: 84,
   },
+  anelResumoAmpliado: { borderRadius: 56, height: 112, width: 112 },
   numeroAnel: { fontSize: 22, fontWeight: "900", letterSpacing: -0.7 },
   unidadeAnel: { fontSize: 10, fontWeight: "700" },
   rotuloAnel: { fontSize: 11, fontWeight: "700", textAlign: "center" },
