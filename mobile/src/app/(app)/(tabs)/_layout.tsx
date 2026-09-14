@@ -51,10 +51,35 @@ function IconeAba({ ativo, Icone, tamanho }: { ativo: boolean; Icone: LucideIcon
           },
         ]}
       />
-      <Icone
-        color={ativo ? tema.cores.marca : tema.cores.textoSutil}
-        size={tamanho}
-        strokeWidth={ativo ? 2.5 : 2}
+      <Animated.View
+        style={{
+          transform: [
+            {
+              translateY: progresso.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, -3],
+              }),
+            },
+          ],
+        }}
+      >
+        <Icone
+          color={ativo ? tema.cores.marca : tema.cores.textoSutil}
+          size={tamanho}
+          strokeWidth={ativo ? 2.7 : 2}
+        />
+      </Animated.View>
+      <Animated.View
+        accessibilityElementsHidden
+        importantForAccessibility="no"
+        style={[
+          styles.pontoAtivo,
+          {
+            backgroundColor: tema.cores.marca,
+            opacity: progresso,
+            transform: [{ scale: progresso }],
+          },
+        ]}
       />
     </View>
   );
@@ -103,26 +128,26 @@ export default function LayoutAbas() {
         tabBarBackground: () => <FundoBarra3D />,
         tabBarStyle: {
           backgroundColor: "transparent",
-          borderRadius: 26,
+          borderRadius: 30,
           borderTopWidth: 0,
           elevation: 16,
-          height: 74,
+          height: 78,
           marginBottom: 10,
           marginHorizontal: 12,
-          paddingBottom: 6,
-          paddingTop: 6,
+          paddingBottom: 7,
+          paddingTop: 7,
           shadowColor: "#000000",
           shadowOffset: { width: 0, height: 10 },
           shadowOpacity: tema.escuro ? 0.42 : 0.2,
           shadowRadius: 22,
         },
         tabBarItemStyle: {
-          borderRadius: 19,
+          borderRadius: 22,
           marginHorizontal: 2,
           marginVertical: 4,
           overflow: "hidden",
         },
-        tabBarLabelStyle: { fontSize: 10, fontWeight: "700" },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "800", letterSpacing: -0.15 },
       }}
     >
       <Tabs.Screen
@@ -175,11 +200,11 @@ export default function LayoutAbas() {
 }
 
 const styles = StyleSheet.create({
-  iconeAba: { alignItems: "center", height: 32, justifyContent: "center", width: 48 },
+  iconeAba: { alignItems: "center", height: 34, justifyContent: "center", width: 50 },
   indicadorAba: {
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
-    bottom: 0,
+    bottom: -2,
     elevation: 3,
     left: 0,
     position: "absolute",
@@ -188,10 +213,17 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.16,
     shadowRadius: 6,
-    top: 0,
+    top: -2,
+  },
+  pontoAtivo: {
+    borderRadius: 3,
+    bottom: 0,
+    height: 4,
+    position: "absolute",
+    width: 4,
   },
   barra3D: {
-    borderRadius: 26,
+    borderRadius: 30,
     borderWidth: 1,
     bottom: 0,
     left: 0,
