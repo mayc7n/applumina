@@ -388,7 +388,10 @@ export default function TelaInicio() {
                       style={[
                         styles.anelResumo,
                         metricasAmpliadas && styles.anelResumoAmpliado,
-                        { borderColor: tema.cores.sucesso },
+                        {
+                          backgroundColor: tema.cores.sucessoSuave,
+                          borderColor: tema.cores.sucesso,
+                        },
                       ]}
                     >
                       <Text
@@ -422,7 +425,10 @@ export default function TelaInicio() {
                       style={[
                         styles.anelResumo,
                         metricasAmpliadas && styles.anelResumoAmpliado,
-                        { borderColor: tema.cores.informacao },
+                        {
+                          backgroundColor: tema.cores.informacaoSuave,
+                          borderColor: tema.cores.informacao,
+                        },
                       ]}
                     >
                       <Text
@@ -710,9 +716,14 @@ const styles = StyleSheet.create({
   anelResumo: {
     alignItems: "center",
     borderRadius: 42,
-    borderWidth: 7,
+    borderWidth: 4,
+    elevation: 2,
     height: 84,
     justifyContent: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.09,
+    shadowRadius: 9,
     width: 84,
   },
   anelResumoAmpliado: { borderRadius: 56, height: 112, width: 112 },
