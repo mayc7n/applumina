@@ -179,9 +179,17 @@ export default function TelaInicio() {
                 },
               ]}
             />
-            <Text style={[styles.sobretitulo, { color: tema.cores.sobreMarca }]}>
-              {traduzir("inicio.hoje")}
-            </Text>
+            <View style={styles.heroTopo}>
+              <View style={styles.hojePill}>
+                <View style={[styles.hojePonto, { backgroundColor: tema.cores.sobreMarca }]} />
+                <Text style={[styles.sobretitulo, { color: tema.cores.sobreMarca }]}>
+                  {traduzir("inicio.hoje")}
+                </Text>
+              </View>
+              <View style={styles.heroSelo}>
+                <CheckCircle2 color={tema.cores.sobreMarca} size={24} />
+              </View>
+            </View>
             {consulta.isLoading && autenticado ? (
               <ActivityIndicator
                 color={tema.cores.sobreMarca}
@@ -622,10 +630,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "800",
     letterSpacing: 1.4,
-    marginBottom: 16,
-    opacity: 0.8,
     textTransform: "uppercase",
   },
+  heroTopo: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 20 },
+  hojePill: { alignItems: "center", backgroundColor: "#FFFFFF1F", borderRadius: 999, flexDirection: "row", gap: 8, minHeight: 34, paddingHorizontal: 12 },
+  hojePonto: { borderRadius: 4, height: 7, width: 7 },
+  heroSelo: { alignItems: "center", backgroundColor: "#FFFFFF1A", borderRadius: 18, height: 40, justifyContent: "center", width: 40 },
   tituloHero: {
     fontSize: 30,
     fontWeight: "900",
