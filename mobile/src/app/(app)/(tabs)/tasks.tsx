@@ -1,7 +1,16 @@
 import { format } from "date-fns";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Check, Plus, Search, SlidersHorizontal } from "lucide-react-native";
+import {
+  CalendarClock,
+  CalendarDays,
+  CheckCircle2,
+  List,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  TriangleAlert,
+} from "lucide-react-native";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -100,11 +109,11 @@ export default function TelaTarefas() {
   }
 
   const filtros = [
-    ["TODAY", "tarefas.filtroHoje"],
-    ["UPCOMING", "tarefas.filtroProximas"],
-    ["OVERDUE", "tarefas.filtroAtrasadas"],
-    ["DONE", "tarefas.filtroConcluidas"],
-    ["ALL", "tarefas.filtroTodas"],
+    ["TODAY", "tarefas.filtroHoje", CalendarDays],
+    ["UPCOMING", "tarefas.filtroProximas", CalendarClock],
+    ["OVERDUE", "tarefas.filtroAtrasadas", TriangleAlert],
+    ["DONE", "tarefas.filtroConcluidas", CheckCircle2],
+    ["ALL", "tarefas.filtroTodas", List],
   ] as const;
 
   return (
@@ -186,7 +195,7 @@ export default function TelaTarefas() {
                 contentContainerStyle={styles.filtros}
                 showsHorizontalScrollIndicator={false}
               >
-                {filtros.map(([valor, chave]) => {
+                {filtros.map(([valor, chave, IconeFiltro]) => {
                   const selecionado = filtro === valor;
                   return (
                     <Pressable
@@ -214,6 +223,10 @@ export default function TelaTarefas() {
                         },
                       ]}
                     >
+                      <IconeFiltro
+                        color={selecionado ? tema.cores.sobreMarca : tema.cores.textoSutil}
+                        size={15}
+                      />
                       <Text
                         style={[
                           styles.filtroTexto,
@@ -226,9 +239,6 @@ export default function TelaTarefas() {
                       >
                         {traduzir(chave)}
                       </Text>
-                      {selecionado ? (
-                        <Check color={tema.cores.sobreMarca} size={14} strokeWidth={3} />
-                      ) : null}
                     </Pressable>
                   );
                 })}
