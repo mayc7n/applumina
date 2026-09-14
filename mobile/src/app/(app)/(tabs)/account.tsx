@@ -236,6 +236,17 @@ export default function TelaConta() {
                 style={[styles.trilhoPerfil, { backgroundColor: tema.cores.marca }]}
               />
               <View
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+                pointerEvents="none"
+                style={[styles.orbePerfil, { backgroundColor: tema.cores.marcaSuave }]}
+              />
+              <View style={[styles.planoPill, { backgroundColor: tema.cores.marcaSuave }]}>
+                <Text style={[styles.plano, { color: tema.cores.marca }]}>
+                  {traduzir("conta.plano", { plano: usuario?.plan ?? "FREE" })}
+                </Text>
+              </View>
+              <View
                 style={[
                   styles.avatar,
                   {
@@ -265,11 +276,6 @@ export default function TelaConta() {
               <Text style={[styles.emailPerfil, { color: tema.cores.textoSecundario }]}>
                 {usuario?.email}
               </Text>
-              <View style={[styles.planoPill, { backgroundColor: tema.cores.marcaSuave }]}>
-                <Text style={[styles.plano, { color: tema.cores.marca }]}>
-                  {traduzir("conta.plano", { plano: usuario?.plan ?? "FREE" })}
-                </Text>
-              </View>
             </View>
           </View>
         </AnimatedEntry>
@@ -595,6 +601,7 @@ const styles = StyleSheet.create({
     top: 0,
     width: 6,
   },
+  orbePerfil: { borderRadius: 90, height: 180, opacity: 0.7, position: "absolute", right: -72, top: -84, width: 180 },
   visitante: {
     borderRadius: 20,
     borderWidth: 1,
@@ -622,7 +629,7 @@ const styles = StyleSheet.create({
   nome: { fontSize: 17, fontWeight: "700" },
   nomePerfil: { fontSize: 22, fontWeight: "900", lineHeight: 28, textAlign: "center" },
   emailPerfil: { fontSize: 13, lineHeight: 18, opacity: 0.88 },
-  planoPill: { alignSelf: "flex-end", borderRadius: 12, marginTop: 10, paddingHorizontal: 10, paddingVertical: 5 },
+  planoPill: { borderRadius: 999, paddingHorizontal: 11, paddingVertical: 6, position: "absolute", right: 16, top: 16, zIndex: 2 },
   plano: { fontSize: 11, fontWeight: "800" },
   icone: {
     alignItems: "center",
