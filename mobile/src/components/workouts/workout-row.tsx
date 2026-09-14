@@ -73,7 +73,7 @@ export function WorkoutRow({
         <View style={styles.metadados}>
           <CalendarDays color={tema.cores.textoSutil} size={15} />
           <Text style={[styles.detalhe, { color: tema.cores.textoSecundario }]}>
-            {data} · {rotuloMinutos}
+            {data}
           </Text>
         </View>
         {treino.notes ? (
@@ -85,7 +85,14 @@ export function WorkoutRow({
           </Text>
         ) : null}
       </View>
-      <ChevronRight color={tema.cores.textoSutil} size={20} />
+      <View style={styles.resumo}>
+        <View style={[styles.duracao, { backgroundColor: tema.cores.marcaSuave }]}>
+          <Text style={[styles.duracaoTexto, { color: tema.cores.marca }]}>
+            {rotuloMinutos}
+          </Text>
+        </View>
+        <ChevronRight color={tema.cores.textoSutil} size={20} />
+      </View>
     </Pressable>
   );
 }
@@ -112,4 +119,7 @@ const styles = StyleSheet.create({
   metadados: { alignItems: "center", flexDirection: "row", gap: 6 },
   detalhe: { fontSize: 13, lineHeight: 18 },
   observacoes: { fontSize: 14, lineHeight: 20 },
+  resumo: { alignItems: "flex-end", alignSelf: "stretch", justifyContent: "space-between" },
+  duracao: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 },
+  duracaoTexto: { fontSize: 12, fontWeight: "800" },
 });
