@@ -182,11 +182,14 @@ export default function TelaTreinos() {
             ) : consulta.data?.length ? (
           <View style={styles.historico}>
             <View style={styles.cabecalhoHistorico}>
-              <Text style={[styles.historicoTitulo, { color: tema.cores.texto }]}>
-                {traduzir("treinos.historicoTitulo")}
-              </Text>
-              <View style={[styles.contagem, { backgroundColor: tema.cores.sobreposicao }]}>
-                <Text style={[styles.contagemTexto, { color: tema.cores.textoSecundario }]}>
+              <View style={styles.historicoTituloLinha}>
+                <View style={[styles.historicoMarca, { backgroundColor: tema.cores.marca }]} />
+                <Text style={[styles.historicoTitulo, { color: tema.cores.texto }]}>
+                  {traduzir("treinos.historicoTitulo")}
+                </Text>
+              </View>
+              <View style={[styles.contagem, { backgroundColor: tema.cores.marcaSuave }]}>
+                <Text style={[styles.contagemTexto, { color: tema.cores.marca }]}>
                   {traduzir("treinos.totalRegistros", { quantidade: consulta.data.length })}
                 </Text>
               </View>
@@ -315,7 +318,9 @@ const styles = StyleSheet.create({
   carregando: { marginTop: 42 },
   historico: { gap: 14 },
   cabecalhoHistorico: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
-  historicoTitulo: { fontSize: 20, fontWeight: "800", lineHeight: 26 },
+  historicoTituloLinha: { alignItems: "center", flexDirection: "row", flexShrink: 1, gap: 9 },
+  historicoMarca: { borderRadius: 3, height: 22, width: 5 },
+  historicoTitulo: { flexShrink: 1, fontSize: 20, fontWeight: "800", lineHeight: 26 },
   contagem: { borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6 },
   contagemTexto: { fontSize: 12, fontWeight: "700", lineHeight: 16 },
   lista: { gap: 10 },
