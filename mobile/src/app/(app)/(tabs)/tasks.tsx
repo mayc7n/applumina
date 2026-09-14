@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Check, Plus, Search } from "lucide-react-native";
+import { Check, Plus, Search, SlidersHorizontal } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -141,6 +141,19 @@ export default function TelaTarefas() {
                 },
               ]}
             >
+              <View style={styles.ferramentasCabecalho}>
+                <View style={[styles.ferramentasIcone, { backgroundColor: tema.cores.marcaSuave }]}>
+                  <SlidersHorizontal color={tema.cores.marca} size={17} />
+                </View>
+                <Text style={[styles.ferramentasTitulo, { color: tema.cores.texto }]}>
+                  {traduzir("tarefas.filtros")}
+                </Text>
+                <View style={[styles.resultados, { backgroundColor: tema.cores.sobreposicao }]}>
+                  <Text style={[styles.resultadosTexto, { color: tema.cores.textoSecundario }]}>
+                    {tarefasVisiveis.length}
+                  </Text>
+                </View>
+              </View>
               <View
                 style={[
                   styles.busca,
@@ -304,6 +317,11 @@ const styles = StyleSheet.create({
   criacaoIcone: { alignItems: "center", borderRadius: 17, height: 42, justifyContent: "center", width: 42 },
   dockCaptura: { alignItems: "center", borderRadius: 22, borderWidth: 1, flexDirection: "row", gap: 8, marginHorizontal: 16, marginTop: 8, minHeight: 66, paddingHorizontal: 10, paddingVertical: 8, shadowColor: "#000000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.14, shadowRadius: 18 },
   ferramentas: { borderRadius: 22, borderWidth: 1, gap: 12, padding: 12 },
+  ferramentasCabecalho: { alignItems: "center", flexDirection: "row", gap: 9, paddingHorizontal: 2 },
+  ferramentasIcone: { alignItems: "center", borderRadius: 10, height: 32, justifyContent: "center", width: 32 },
+  ferramentasTitulo: { flex: 1, fontSize: 14, fontWeight: "800" },
+  resultados: { alignItems: "center", borderRadius: 999, justifyContent: "center", minHeight: 28, minWidth: 34, paddingHorizontal: 8 },
+  resultadosTexto: { fontSize: 12, fontWeight: "800" },
   busca: { alignItems: "center", borderRadius: 16, borderWidth: 1, flexDirection: "row", gap: 9, minHeight: 50, paddingHorizontal: 14 },
   entrada: { flex: 1, fontSize: 16, paddingVertical: 9 },
   botaoCriar: { minHeight: 44, paddingHorizontal: 14 },
