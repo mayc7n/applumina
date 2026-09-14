@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, test } from "@jest/globals";
+import { afterEach, describe, expect, jest, test } from "@jest/globals";
+import * as ReactQuery from "@tanstack/react-query";
 import type { InfiniteData } from "@tanstack/react-query";
 
 import { clienteConsultas } from "@/providers/query-provider";
@@ -6,11 +7,24 @@ import { useArmazenamentoAutenticacao } from "@/store/auth-store";
 import type { DashboardData, PagedResponse, Task, User } from "@/types/api";
 
 import {
+  type ContextoAlternanciaOtimistaTarefa,
   atualizarCacheEdicaoTarefa,
   prepararAlternanciaOtimistaTarefa,
   restaurarAlternanciaOtimistaTarefa,
+  useAlternarTarefa,
 } from "./hooks";
 import { chavesTarefasUsuario } from "./task-query-keys";
+
+jest.mock("@tanstack/react-query", () => {
+  const moduloReal = jest.requireActual<typeof import("@tanstack/react-query")>(
+    "@tanstack/react-query",
+  );
+  return {
+    ...moduloReal,
+    useMutation: jest.fn(),
+    useQueryClient: jest.fn(),
+  };
+});
 
 const usuarioA: User = {
   id: "usuario-a",
@@ -91,8 +105,30 @@ function autenticar(usuario: User): void {
   });
 }
 
+interface CallbacksAlternanciaTeste {
+  onMutate: (
+    tarefa: Task,
+  ) => Promise<ContextoAlternanciaOtimistaTarefa>;
+  onSuccess: (
+    tarefa: Task,
+    variaveis: Task,
+    contexto: ContextoAlternanciaOtimistaTarefa,
+  ) => void;
+}
+
+function CapturarCallbacksAlternanciaTeste(): CallbacksAlternanciaTeste {
+  jest.mocked(ReactQuery.useQueryClient).mockReturnValue(clienteConsultas);
+  jest
+    .mocked(ReactQuery.useMutation)
+    .mockImplementation((opcoes) => opcoes as never);
+  return useAlternarTarefa(
+    usuarioA.id,
+  ) as unknown as CallbacksAlternanciaTeste;
+}
+
 describe("callbacks privados de tarefas", () => {
   afterEach(() => {
+    jest.restoreAllMocks();
     clienteConsultas.clear();
     useArmazenamentoAutenticacao.setState({
       estado: "naoAutenticado",
@@ -332,6 +368,67 @@ describe("callbacks privados de tarefas", () => {
     );
     expect(clienteConsultas.getQueryData(chaves.detalhe(tarefaA.id))).toEqual(
       tarefaAutoritativa,
+    );
+  });
+
+  test("sucesso antigo não sobrescreve alternância mais nova ainda pendente", async () => {
+    const chaves = chavesTarefasUsuario(usuarioA.id);
+    autenticar(usuarioA);
+    clienteConsultas.setQueryData(chaves.lista, listaA);
+    clienteConsultas.setQueryData(chaves.painel, painelA);
+    clienteConsultas.setQueryData(chaves.detalhe(tarefaA.id), tarefaA);
+    const callbacks = CapturarCallbacksAlternanciaTeste();
+
+    const contextoAntigo = await callbacks.onMutate(tarefaA);
+    const tarefaDepoisDaPrimeiraAlternancia = clienteConsultas.getQueryData<Task>(
+      chaves.detalhe(tarefaA.id),
+    ) as Task;
+    await callbacks.onMutate(tarefaDepoisDaPrimeiraAlternancia);
+    const estadoOtimistaNovo = clienteConsultas.getQueryData<Task>(
+      chaves.detalhe(tarefaA.id),
+    );
+    const respostaAntiga = {
+      ...tarefaDepoisDaPrimeiraAlternancia,
+      updatedAt: "2030-01-02T00:00:00Z",
+    };
+
+    callbacks.onSuccess(respostaAntiga, tarefaA, contextoAntigo);
+
+    expect(clienteConsultas.getQueryData(chaves.detalhe(tarefaA.id))).toEqual(
+      estadoOtimistaNovo,
+    );
+    expect(clienteConsultas.getQueryState(chaves.lista)?.isInvalidated).toBe(
+      false,
+    );
+    expect(clienteConsultas.getQueryState(chaves.painel)?.isInvalidated).toBe(
+      false,
+    );
+  });
+
+  test("sucesso da versão vigente atualiza detalhe e invalida lista e painel", async () => {
+    const chaves = chavesTarefasUsuario(usuarioA.id);
+    autenticar(usuarioA);
+    clienteConsultas.setQueryData(chaves.lista, listaA);
+    clienteConsultas.setQueryData(chaves.painel, painelA);
+    clienteConsultas.setQueryData(chaves.detalhe(tarefaA.id), tarefaA);
+    const callbacks = CapturarCallbacksAlternanciaTeste();
+    const contexto = await callbacks.onMutate(tarefaA);
+    const respostaVigente = {
+      ...tarefaA,
+      status: "DONE" as const,
+      updatedAt: "2030-01-03T00:00:00Z",
+    };
+
+    callbacks.onSuccess(respostaVigente, tarefaA, contexto);
+
+    expect(clienteConsultas.getQueryData(chaves.detalhe(tarefaA.id))).toEqual(
+      respostaVigente,
+    );
+    expect(clienteConsultas.getQueryState(chaves.lista)?.isInvalidated).toBe(
+      true,
+    );
+    expect(clienteConsultas.getQueryState(chaves.painel)?.isInvalidated).toBe(
+      true,
     );
   });
 

@@ -387,8 +387,15 @@ export function useAlternarTarefa(userId?: string) {
       prepararAlternanciaOtimistaTarefa(clienteConsultas, userId, tarefa),
     onError: (_erro, _tarefa, contexto) =>
       restaurarAlternanciaOtimistaTarefa(clienteConsultas, contexto),
-    onSuccess: (tarefa) =>
-      atualizarCacheEdicaoTarefa(clienteConsultas, userId, tarefa),
+    onSuccess: (tarefa, _variaveis, contexto) => {
+      if (
+        !contexto ||
+        !versaoAlternanciaEstaAtiva(clienteConsultas, contexto)
+      ) {
+        return;
+      }
+      atualizarCacheEdicaoTarefa(clienteConsultas, contexto.userId, tarefa);
+    },
     onSettled: (_tarefa, _erro, _variaveis, contexto) =>
       finalizarVersaoAlternancia(clienteConsultas, contexto),
   });
