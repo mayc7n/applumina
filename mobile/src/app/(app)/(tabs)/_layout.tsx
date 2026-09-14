@@ -90,12 +90,13 @@ function FundoBarra3D() {
 export default function LayoutAbas() {
   const tema = useTemaApp();
   const { traduzir } = useIdioma();
+  const reduzirMovimento = useReducaoMovimento();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        animation: "shift",
+        animation: reduzirMovimento === false ? "shift" : "none",
         tabBarActiveTintColor: tema.cores.marca,
         tabBarInactiveTintColor: tema.cores.textoSutil,
         tabBarHideOnKeyboard: true,
