@@ -763,7 +763,7 @@ const ingles: Record<ChaveTraducao, string> = {
     "Lumina is temporarily unavailable. Try again in a moment.",
   "senha.erro": "We could not change your password.",
   "treinos.titulo": "Workouts",
-  "treinos.seuRitmo": "Your rhythm",
+  "treinos.seuRitmo": "Your pace",
   "treinos.subtituloRitmo": "Frequency that becomes memory.",
   "treinos.resumoSemana": "Weekly summary",
   "treinos.diasTreinados": "You trained on {quantidade} days this week.",
