@@ -46,6 +46,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   textos: { flex: 1, gap: 4 },
-  titulo: { fontSize: 26, fontWeight: "800", letterSpacing: -0.6 },
-  subtitulo: { fontSize: 14, lineHeight: 20 },
+  titulo: { fontSize: 22, fontWeight: "700", letterSpacing: -0.4 },
+  subtitulo: { fontSize: 14, fontWeight: "400", lineHeight: 20 },
 });
