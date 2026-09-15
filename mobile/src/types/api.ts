@@ -149,6 +149,30 @@ export interface CreateWorkoutInput {
 
 export type UpdateWorkoutInput = CreateWorkoutInput;
 
+export interface WorkoutCalendarItem {
+  id: string;
+  type: WorkoutType;
+  customActivity?: string;
+  durationMins: number;
+}
+
+export interface WorkoutCalendarDay {
+  date: string;
+  workoutCount: number;
+  totalMinutes: number;
+  hasMoment: boolean;
+  workouts: WorkoutCalendarItem[];
+}
+
+export interface WorkoutMedia {
+  id: string;
+  workoutId: string;
+  status: "PENDING" | "READY" | "FAILED";
+  caption?: string;
+  contentType: string;
+  byteSize: number;
+}
+
 export type FriendshipStatus =
   | "PENDING_SENT"
   | "PENDING_RECEIVED"

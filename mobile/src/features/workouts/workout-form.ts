@@ -33,6 +33,7 @@ function dataValida(valor: string): boolean {
 export function valoresIniciaisTreino(
   treino?: Workout,
   hoje = new Date(),
+  dataInicial?: string,
 ): ValoresFormularioTreino {
   if (treino) {
     return {
@@ -47,7 +48,7 @@ export function valoresIniciaisTreino(
   return {
     type: "WALKING",
     customActivity: "",
-    activityDate: dataLocal(hoje),
+    activityDate: dataInicial ?? dataLocal(hoje),
     durationMins: "",
     notes: "",
   };

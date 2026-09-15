@@ -6,6 +6,7 @@ import {
   enviarSemConteudoApi,
   enviarPublico,
   obterApi,
+  enviarMultipartApi,
 } from "./client";
 
 import type {
@@ -28,6 +29,8 @@ import type {
   Workout,
   CreateWorkoutInput,
   UpdateWorkoutInput,
+  WorkoutCalendarDay,
+  WorkoutMedia,
   FriendRequest,
   SocialUser,
   CreateUserReportInput,
@@ -86,12 +89,21 @@ export const apiTarefas = {
 
 export const apiTreinos = {
   listar: () => obterApi<Workout[]>("/workouts"),
+  calendario: (from: string, to: string) =>
+    obterApi<WorkoutCalendarDay[]>("/workouts/calendar", { from, to }),
   obter: (id: string) => obterApi<Workout>(`/workouts/${id}`),
   criar: (entrada: CreateWorkoutInput) =>
     enviarApi<Workout>("/workouts", entrada),
   editar: (id: string, entrada: UpdateWorkoutInput) =>
     atualizarApi<Workout>(`/workouts/${id}`, entrada),
   excluir: (id: string) => excluirApi(`/workouts/${id}`),
+  enviarMomento: (id: string, uri: string, mimeType: string, caption?: string) => {
+    const dados = new FormData();
+    dados.append("file", { uri, name: `moment-${Date.now()}.jpg`, type: mimeType } as unknown as Blob);
+    if (caption) dados.append("caption", caption);
+    return enviarMultipartApi<WorkoutMedia>(`/workouts/${id}/moment`, dados);
+  },
+  removerMomento: (id: string) => excluirApi(`/workouts/${id}/moment`),
 };
 
 export const apiAmigos = {

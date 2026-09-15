@@ -11,6 +11,7 @@ import type {
   CreateWorkoutInput,
   UpdateWorkoutInput,
   Workout,
+  WorkoutCalendarDay,
 } from "@/types/api";
 
 import { chavesTreinosUsuario } from "./workout-query-keys";
@@ -31,6 +32,9 @@ function invalidarListaTreinos(
   void clienteConsultas.invalidateQueries({
     exact: true,
     queryKey: chaves.lista,
+  });
+  void clienteConsultas.invalidateQueries({
+    queryKey: chaves.calendarioBase,
   });
 }
 
@@ -65,6 +69,24 @@ export function useListaTreinos(userId?: string) {
     queryKey: chaves.lista,
     queryFn: apiTreinos.listar,
     enabled: Boolean(userId),
+  });
+}
+
+export function useCalendarioTreinos(
+  userId: string | undefined,
+  geracaoSessao: number,
+  from: string | undefined,
+  to: string | undefined,
+) {
+  const chaves = chavesTreinosUsuario(userId);
+  return useQuery<WorkoutCalendarDay[]>({
+    queryKey: chaves.calendario(
+      geracaoSessao,
+      from ?? "sem-inicio",
+      to ?? "sem-fim",
+    ),
+    queryFn: () => apiTreinos.calendario(from as string, to as string),
+    enabled: Boolean(userId && from && to),
   });
 }
 

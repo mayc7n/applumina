@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { ChevronLeft } from "lucide-react-native";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -9,6 +10,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -26,12 +28,27 @@ import { useIdioma } from "@/i18n/idioma";
 import { obterMensagemErroApi } from "@/lib/api/errors";
 import { useArmazenamentoAutenticacao } from "@/store/auth-store";
 import { useTemaApp } from "@/theme/theme";
-import type { CreateWorkoutInput } from "@/types/api";
+import type { CreateWorkoutInput, Workout, WorkoutType } from "@/types/api";
+
+function DetalheTreino({ treino, traduzir, onEditar, onExcluir }: { treino: Workout; traduzir: ReturnType<typeof useIdioma>["traduzir"]; onEditar: () => void; onExcluir: () => void }) {
+  const tema = useTemaApp();
+  const rotulos: Partial<Record<WorkoutType, string>> = {
+    WALKING: traduzir("treinos.caminhada"), RUNNING: traduzir("treinos.corrida"), STRENGTH: traduzir("treinos.forca"), CYCLING: traduzir("treinos.ciclismo"), SWIMMING: traduzir("treinos.natacao"), CUSTOM: traduzir("treinos.personalizada"),
+  };
+  return <View style={styles.detalhe}>
+    <View style={styles.detalheCabecalho}><Text style={[styles.detalheTipo, { color: tema.cores.texto }]}>{treino.customActivity || rotulos[treino.type] || treino.type}</Text><Text style={[styles.detalheData, { color: tema.cores.textoSecundario }]}>{treino.activityDate}</Text></View>
+    <Text style={[styles.detalheDuracao, { color: tema.cores.marca }]}>{treino.durationMins} {traduzir("treinos.minutos")}</Text>
+    {treino.notes ? <Text style={[styles.detalheNotas, { color: tema.cores.textoSecundario }]}>{treino.notes}</Text> : null}
+    <AppButton onPress={onEditar} rotulo={traduzir("treinos.editar")} />
+    <AppButton onPress={onExcluir} rotulo={traduzir("treinos.excluir")} variante="danger" />
+  </View>;
+}
 
 export default function TelaEditarTreino() {
   const tema = useTemaApp();
   const { traduzir } = useIdioma();
   const parametros = useLocalSearchParams<{ id: string }>();
+  const [editando, definirEditando] = useState(false);
   const autenticado = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado === "autenticado",
   );
@@ -145,17 +162,10 @@ export default function TelaEditarTreino() {
             </View>
           ) : (
             <View style={styles.formulario}>
-              <WorkoutForm
-                aoSalvar={salvar}
-                salvando={editar.isPending || excluir.isPending}
-                treino={consulta.data}
-              />
-              <AppButton
-                disabled={editar.isPending || excluir.isPending}
-                onPress={confirmarExclusao}
-                rotulo={traduzir("treinos.excluir")}
-                variante="danger"
-              />
+              {editando ? <>
+                <WorkoutForm aoSalvar={salvar} salvando={editar.isPending || excluir.isPending} treino={consulta.data} />
+                <AppButton disabled={editar.isPending || excluir.isPending} onPress={() => definirEditando(false)} rotulo={traduzir("treinos.cancelar")} variante="secondary" />
+              </> : <DetalheTreino onEditar={() => definirEditando(true)} onExcluir={confirmarExclusao} treino={consulta.data} traduzir={traduzir} />}
             </View>
           )}
         </ScrollView>
@@ -181,4 +191,10 @@ const styles = StyleSheet.create({
   },
   estado: { marginTop: 40 },
   formulario: { gap: 16 },
+  detalhe: { gap: 16 },
+  detalheCabecalho: { gap: 5 },
+  detalheTipo: { fontSize: 24, fontWeight: "800" },
+  detalheData: { fontSize: 15 },
+  detalheDuracao: { fontSize: 32, fontWeight: "800" },
+  detalheNotas: { fontSize: 16, lineHeight: 23 },
 });

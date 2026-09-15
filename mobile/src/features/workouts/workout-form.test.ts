@@ -34,6 +34,10 @@ describe("formulário de treino", () => {
     });
   });
 
+  test("aceita uma data passada ao registrar pelo calendário", () => {
+    expect(valoresIniciaisTreino(undefined, new Date(2030, 5, 10), "2029-12-24").activityDate).toBe("2029-12-24");
+  });
+
   test("valida data, duração e nome de atividade personalizada", () => {
     const valores = {
       ...valoresIniciaisTreino(undefined, new Date(2030, 5, 10)),

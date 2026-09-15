@@ -32,18 +32,20 @@ import com.lumina.domain.workout.entity.Workout;
 import com.lumina.domain.workout.entity.WorkoutPrivacy;
 import com.lumina.domain.workout.entity.WorkoutType;
 import com.lumina.domain.workout.repository.WorkoutRepository;
+import com.lumina.domain.workout.repository.WorkoutMediaRepository;
 
 @ExtendWith(MockitoExtension.class)
 class WorkoutServiceTest {
     @Mock private WorkoutRepository workoutRepository;
     @Mock private UserRepository userRepository;
+    @Mock private WorkoutMediaRepository workoutMediaRepository;
 
     private WorkoutService workoutService;
     private UUID userId;
 
     @BeforeEach
     void setUp() {
-        workoutService = new WorkoutService(workoutRepository, userRepository);
+        workoutService = new WorkoutService(workoutRepository, userRepository, workoutMediaRepository);
         userId = UUID.randomUUID();
     }
 
@@ -105,6 +107,45 @@ class WorkoutServiceTest {
         );
         assertThat(requestedUser.getValue()).isEqualTo(userId);
         assertThat(page.getValue().getPageSize()).isEqualTo(100);
+    }
+
+    @Test
+    void buildsCalendarDaysFromInclusiveRangeWithMultipleWorkouts() {
+        LocalDate from = LocalDate.of(2030, 7, 1);
+        LocalDate to = LocalDate.of(2030, 7, 31);
+        Workout first = existingWorkout(UUID.randomUUID(), userId);
+        first.setActivityDate(LocalDate.of(2030, 7, 11));
+        Workout second = existingWorkout(UUID.randomUUID(), userId);
+        second.setActivityDate(LocalDate.of(2030, 7, 11));
+        second.setDurationMins(60);
+        Workout third = existingWorkout(UUID.randomUUID(), userId);
+        third.setActivityDate(LocalDate.of(2030, 7, 12));
+        when(workoutRepository.findByUserIdAndActivityDateBetweenOrderByActivityDateAscCreatedAtAsc(userId, from, to))
+            .thenReturn(List.of(first, second, third));
+
+        var days = workoutService.calendar(userId, from, to);
+
+        assertThat(days).hasSize(2);
+        assertThat(days.get(0).date()).isEqualTo("2030-07-11");
+        assertThat(days.get(0).workoutCount()).isEqualTo(2);
+        assertThat(days.get(0).totalMinutes()).isEqualTo(105);
+        assertThat(days.get(0).workouts()).extracting("id")
+            .containsExactly(first.getId().toString(), second.getId().toString());
+        assertThat(days.get(0).hasMoment()).isFalse();
+        assertThat(days.get(1).date()).isEqualTo("2030-07-12");
+    }
+
+    @Test
+    void rejectsInvertedCalendarRange() {
+        assertThatThrownBy(() -> workoutService.calendar(
+            userId,
+            LocalDate.of(2030, 7, 31),
+            LocalDate.of(2030, 7, 1)
+        )).isInstanceOf(BusinessException.class)
+            .hasMessage("O período do calendário é inválido");
+        verify(workoutRepository, never()).findByUserIdAndActivityDateBetweenOrderByActivityDateAscCreatedAtAsc(
+            any(UUID.class), any(LocalDate.class), any(LocalDate.class)
+        );
     }
 
     @Test

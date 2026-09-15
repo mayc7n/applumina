@@ -1,8 +1,11 @@
 package com.lumina.application.service;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -13,6 +16,7 @@ import org.springframework.util.StringUtils;
 import com.lumina.api.dto.CreateWorkoutRequest;
 import com.lumina.api.dto.UpdateWorkoutRequest;
 import com.lumina.api.dto.WorkoutResponse;
+import com.lumina.api.dto.WorkoutCalendarDayResponse;
 import com.lumina.api.middleware.GlobalExceptionHandler.BusinessException;
 import com.lumina.api.middleware.GlobalExceptionHandler.ResourceNotFoundException;
 import com.lumina.domain.user.repository.UserRepository;
@@ -20,6 +24,7 @@ import com.lumina.domain.workout.entity.Workout;
 import com.lumina.domain.workout.entity.WorkoutPrivacy;
 import com.lumina.domain.workout.entity.WorkoutType;
 import com.lumina.domain.workout.repository.WorkoutRepository;
+import com.lumina.domain.workout.repository.WorkoutMediaRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,6 +35,7 @@ public class WorkoutService {
 
     private final WorkoutRepository workoutRepository;
     private final UserRepository userRepository;
+    private final WorkoutMediaRepository workoutMediaRepository;
 
     @Transactional(readOnly = true)
     public List<WorkoutResponse> list(UUID userId) {
@@ -37,6 +43,28 @@ public class WorkoutService {
             userId,
             PageRequest.of(0, MAX_RECENT_WORKOUTS)
         ).stream().map(this::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<WorkoutCalendarDayResponse> calendar(UUID userId, LocalDate from, LocalDate to) {
+        if (from == null || to == null || from.isAfter(to)) {
+            throw validation("O período do calendário é inválido");
+        }
+        var workouts = workoutRepository
+            .findByUserIdAndActivityDateBetweenOrderByActivityDateAscCreatedAtAsc(userId, from, to)
+            ;
+        var idsWithMedia = workoutMediaRepository.findByWorkoutIdInAndUserId(workouts.stream().map(Workout::getId).toList(), userId)
+            .stream().map(media -> media.getWorkout().getId()).collect(java.util.stream.Collectors.toSet());
+        return workouts.stream()
+            .collect(Collectors.groupingBy(
+                Workout::getActivityDate,
+                LinkedHashMap::new,
+                Collectors.toList()
+            ))
+            .entrySet()
+            .stream()
+            .map(entry -> toCalendarDay(entry.getKey(), entry.getValue(), idsWithMedia))
+            .toList();
     }
 
     @Transactional(readOnly = true)
@@ -98,6 +126,21 @@ public class WorkoutService {
             workout.getNotes(),
             workout.getPrivacy().name(),
             string(workout.getCreatedAt())
+        );
+    }
+
+    private WorkoutCalendarDayResponse toCalendarDay(LocalDate date, List<Workout> workouts, java.util.Set<UUID> idsWithMedia) {
+        return new WorkoutCalendarDayResponse(
+            date.toString(),
+            workouts.size(),
+            workouts.stream().mapToInt(Workout::getDurationMins).sum(),
+            workouts.stream().anyMatch(workout -> idsWithMedia.contains(workout.getId())),
+            workouts.stream().map(workout -> new WorkoutCalendarDayResponse.WorkoutSummary(
+                workout.getId().toString(),
+                workout.getType().name(),
+                workout.getCustomActivity(),
+                workout.getDurationMins()
+            )).toList()
         );
     }
 

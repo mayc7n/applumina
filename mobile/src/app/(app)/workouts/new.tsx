@@ -1,8 +1,11 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import { ChevronLeft } from "lucide-react-native";
 import {
   KeyboardAvoidingView,
+  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -17,12 +20,14 @@ import { ScreenHeader } from "@/components/ui/screen-header";
 import { useCriarTreino } from "@/features/workouts/hooks";
 import { useIdioma } from "@/i18n/idioma";
 import { useArmazenamentoAutenticacao } from "@/store/auth-store";
+import { apiTreinos } from "@/lib/api/resources";
 import { useTemaApp } from "@/theme/theme";
 import type { CreateWorkoutInput } from "@/types/api";
 
 export default function TelaNovoTreino() {
   const tema = useTemaApp();
   const { traduzir } = useIdioma();
+  const parametros = useLocalSearchParams<{ date?: string }>();
   const autenticado = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado === "autenticado",
   );
@@ -32,8 +37,28 @@ export default function TelaNovoTreino() {
   const criar = useCriarTreino(userId);
 
   async function salvar(entrada: CreateWorkoutInput): Promise<void> {
-    await criar.mutateAsync(entrada);
+    const treino = await criar.mutateAsync(entrada);
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert(traduzir("treinos.momentoTitulo"), traduzir("treinos.momentoDescricao"), [
+      { text: traduzir("treinos.agoraNao"), style: "cancel", onPress: () => router.back() },
+      { text: traduzir("treinos.tirarFoto"), onPress: () => void escolherMomento(treino.id, "camera") },
+      { text: traduzir("treinos.escolherFoto"), onPress: () => void escolherMomento(treino.id, "biblioteca") },
+    ]);
+  }
+
+  async function escolherMomento(workoutId: string, origem: "camera" | "biblioteca"): Promise<void> {
+    const permissao = origem === "camera" ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissao.granted) { Alert.alert(traduzir("treinos.permissaoFoto")); router.back(); return; }
+    const resultado = origem === "camera"
+      ? await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], allowsEditing: true, quality: 0.82, exif: false })
+      : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: true, quality: 0.82, exif: false });
+    if (!resultado.canceled) {
+      try {
+        const processada = await ImageManipulator.manipulateAsync(resultado.assets[0].uri, [{ resize: { width: 1600 } }], { compress: 0.82, format: ImageManipulator.SaveFormat.JPEG });
+        await apiTreinos.enviarMomento(workoutId, processada.uri, "image/jpeg");
+      }
+      catch { Alert.alert(traduzir("treinos.erroMomento")); }
+    }
     router.back();
   }
 
@@ -74,7 +99,7 @@ export default function TelaNovoTreino() {
             titulo={traduzir("treinos.novoTitulo")}
           />
           {autenticado ? (
-            <WorkoutForm aoSalvar={salvar} salvando={criar.isPending} />
+            <WorkoutForm aoSalvar={salvar} dataInicial={parametros.date} salvando={criar.isPending} />
           ) : (
             <View style={styles.visitante}>
               <FeedbackState

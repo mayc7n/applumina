@@ -1,13 +1,11 @@
 import { beforeEach, describe, expect, jest, test } from "@jest/globals";
-import {
-  Children,
-  isValidElement,
-  type ReactElement,
-  type ReactNode,
-} from "react";
+import { Children, type ReactNode } from "react";
 import { StyleSheet } from "react-native";
+import React from "react";
+import { act, create } from "react-test-renderer";
 
 const mockUseListaTreinos = jest.fn();
+const mockUseCalendarioTreinos = jest.fn();
 
 jest.mock("expo-router", () => ({ router: { push: jest.fn() } }));
 jest.mock("expo-haptics", () => ({
@@ -17,8 +15,11 @@ jest.mock("expo-haptics", () => ({
 jest.mock("lucide-react-native", () => ({
   Activity: () => null,
   Bike: () => null,
+  ChevronLeft: () => null,
+  ChevronRight: () => null,
   Dumbbell: () => null,
   Footprints: () => null,
+  Image: () => null,
   Plus: () => null,
   Waves: () => null,
 }));
@@ -30,6 +31,7 @@ jest.mock("@/components/ui/feedback-state", () => ({ FeedbackState: () => null }
 jest.mock("@/components/workouts/workout-row", () => ({ WorkoutRow: () => null }));
 jest.mock("@/features/workouts/hooks", () => ({
   useListaTreinos: mockUseListaTreinos,
+  useCalendarioTreinos: mockUseCalendarioTreinos,
 }));
 jest.mock("@/i18n/idioma", () => ({
   useIdioma: () => ({ idioma: "pt-BR", traduzir: (chave: string) => chave }),
@@ -48,23 +50,11 @@ const TelaTreinos = jest.requireActual<
   typeof import("../../app/(app)/(tabs)/workouts")
 >("../../app/(app)/(tabs)/workouts").default;
 
-function encontrarElemento(
-  raiz: ReactNode,
-  predicado: (elemento: ReactElement<Record<string, unknown>>) => boolean,
-): ReactElement<Record<string, unknown>> | undefined {
-  if (!isValidElement<Record<string, unknown>>(raiz)) return undefined;
-  if (predicado(raiz)) return raiz;
-
-  for (const filho of Children.toArray(raiz.props.children as ReactNode)) {
-    const encontrado = encontrarElemento(filho, predicado);
-    if (encontrado) return encontrado;
-  }
-
-  return undefined;
-}
-
 describe("ação principal de treinos", () => {
   beforeEach(() => {
+    mockUseCalendarioTreinos.mockReturnValue({
+      data: [], isError: false, isLoading: false, isRefetching: false, refetch: jest.fn(),
+    });
     mockUseListaTreinos.mockReturnValue({
       data: [],
       isError: false,
@@ -75,19 +65,14 @@ describe("ação principal de treinos", () => {
   });
 
   test("mantém um CTA compacto sem camadas decorativas", () => {
-    const tela = TelaTreinos();
-    const acao = encontrarElemento(
-      tela,
-      (elemento) => elemento.props.accessibilityLabel === "treinos.registrar",
-    );
-    const filhos = Children.toArray(acao?.props.children as ReactNode);
-    const estilo = (
-      acao?.props.style as
-        | ((estado: { pressed: boolean }) => unknown)
-        | undefined
-    )?.({ pressed: false });
+    mockUseCalendarioTreinos.mockReturnValue({ data: [], isError: false, isLoading: false, isRefetching: false, refetch: jest.fn() });
+    let arvore!: ReturnType<typeof create>;
+    act(() => { arvore = create(React.createElement(TelaTreinos)); });
+    const acao = arvore.root.find((elemento) => elemento.props.accessibilityLabel === "treinos.registrar");
+    const filhos = acao.props.children;
+    const estilo = acao.props.style({ pressed: false });
 
-    expect(filhos).toHaveLength(2);
+    expect(Children.toArray(filhos)).toHaveLength(2);
     expect(StyleSheet.flatten(estilo as object)).toMatchObject({
       borderRadius: 18,
       elevation: 1,

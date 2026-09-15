@@ -22,14 +22,15 @@ interface WorkoutFormProps {
   salvando: boolean;
   aoSalvar: (entrada: CreateWorkoutInput) => Promise<void>;
   treino?: Workout;
+  dataInicial?: string;
 }
 
-export function WorkoutForm({ salvando, aoSalvar, treino }: WorkoutFormProps) {
+export function WorkoutForm({ salvando, aoSalvar, treino, dataInicial }: WorkoutFormProps) {
   const tema = useTemaApp();
   const reduzirMovimento = useReducaoMovimento();
   const { traduzir } = useIdioma();
   const [valores, definirValores] = useState<ValoresFormularioTreino>(() =>
-    valoresIniciaisTreino(treino),
+    valoresIniciaisTreino(treino, new Date(), dataInicial),
   );
   const [erros, definirErros] = useState<ErrosFormularioTreino>({});
   const [erroAcao, definirErroAcao] = useState("");

@@ -22,6 +22,7 @@ type EstadoAutenticacao = "inicializando" | "autenticado" | "naoAutenticado";
 interface AuthState {
   estado: EstadoAutenticacao;
   usuario: User | null;
+  geracaoSessao: number;
   inicializar: () => Promise<void>;
   entrar: (entrada: LoginInput) => Promise<void>;
   cadastrar: (entrada: RegisterInput) => Promise<void>;
@@ -52,23 +53,36 @@ function limparDadosPrivados(): void {
 export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
   estado: "inicializando",
   usuario: null,
+  geracaoSessao: 0,
 
   inicializar: async () => {
     try {
       const refreshToken = await obterTokenRenovacao();
       if (!refreshToken) {
         limparDadosPrivados();
-        definir({ estado: "naoAutenticado", usuario: null });
+        definir((atual) => ({
+          estado: "naoAutenticado",
+          usuario: null,
+          geracaoSessao: atual.geracaoSessao + 1,
+        }));
         return;
       }
       await renovarTokenAcesso();
       const usuario = await apiUsuarios.atual();
       limparDadosPrivados();
-      definir({ estado: "autenticado", usuario });
+      definir((atual) => ({
+        estado: "autenticado",
+        usuario,
+        geracaoSessao: atual.geracaoSessao + 1,
+      }));
     } catch {
       await limparSessao();
       limparDadosPrivados();
-      definir({ estado: "naoAutenticado", usuario: null });
+      definir((atual) => ({
+        estado: "naoAutenticado",
+        usuario: null,
+        geracaoSessao: atual.geracaoSessao + 1,
+      }));
     }
   },
 
@@ -77,7 +91,11 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
       await apiAutenticacaoMobile.entrar(entrada),
     );
     limparDadosPrivados();
-    definir({ estado: "autenticado", usuario });
+    definir((atual) => ({
+      estado: "autenticado",
+      usuario,
+      geracaoSessao: atual.geracaoSessao + 1,
+    }));
   },
 
   cadastrar: async (entrada) => {
@@ -85,7 +103,11 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
       await apiAutenticacaoMobile.cadastrar(entrada),
     );
     limparDadosPrivados();
-    definir({ estado: "autenticado", usuario });
+    definir((atual) => ({
+      estado: "autenticado",
+      usuario,
+      geracaoSessao: atual.geracaoSessao + 1,
+    }));
   },
 
   sair: async () => {
@@ -95,7 +117,11 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
     } finally {
       await limparSessao();
       limparDadosPrivados();
-      definir({ estado: "naoAutenticado", usuario: null });
+      definir((atual) => ({
+        estado: "naoAutenticado",
+        usuario: null,
+        geracaoSessao: atual.geracaoSessao + 1,
+      }));
     }
   },
 
@@ -105,13 +131,21 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
       await limparSessao();
     } finally {
       limparDadosPrivados();
-      definir({ estado: "naoAutenticado", usuario: null });
+      definir((atual) => ({
+        estado: "naoAutenticado",
+        usuario: null,
+        geracaoSessao: atual.geracaoSessao + 1,
+      }));
     }
   },
 
   marcarNaoAutenticado: () => {
     limparDadosPrivados();
-    definir({ estado: "naoAutenticado", usuario: null });
+    definir((atual) => ({
+      estado: "naoAutenticado",
+      usuario: null,
+      geracaoSessao: atual.geracaoSessao + 1,
+    }));
   },
 }));
 

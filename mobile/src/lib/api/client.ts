@@ -132,6 +132,11 @@ export async function enviarApi<T>(url: string, dados?: unknown): Promise<T> {
   return extrairDados(resposta.data);
 }
 
+export async function enviarMultipartApi<T>(url: string, dados: FormData): Promise<T> {
+  const resposta = await clienteApi.post<ApiEnvelope<T>>(url, dados, { headers: { "Content-Type": "multipart/form-data" } });
+  return extrairDados(resposta.data);
+}
+
 export async function enviarSemConteudoApi(
   url: string,
   dados?: unknown,
