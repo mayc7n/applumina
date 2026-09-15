@@ -1,4 +1,5 @@
-import { Check } from "lucide-react-native";
+import { CalendarDays, Check, Clock3 } from "lucide-react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -85,6 +86,7 @@ export function TaskForm({ tarefa, salvando, userId, aoSalvar, aoExcluir, aoDupl
   const [erroAcao, definirErroAcao] = useState("");
   const [novoProjeto, definirNovoProjeto] = useState("");
   const [novaEtiqueta, definirNovaEtiqueta] = useState("");
+  const [seletor, definirSeletor] = useState<"date" | "time" | null>(null);
   const projetos = useProjetosTarefa(userId);
   const etiquetas = useEtiquetasTarefa(userId);
   const criarProjeto = useCriarProjetoTarefa(userId);
@@ -93,6 +95,17 @@ export function TaskForm({ tarefa, salvando, userId, aoSalvar, aoExcluir, aoDupl
   function atualizar<K extends keyof ValoresFormularioTarefa>(campo: K, valor: ValoresFormularioTarefa[K]): void {
     definirValores((atuais) => ({ ...atuais, [campo]: valor }));
     definirErros((atuais) => ({ ...atuais, [campo]: undefined, reminder: undefined }));
+  }
+
+  function dataInicial(valor: string): Date {
+    return /^\d{4}-\d{2}-\d{2}$/.test(valor) ? new Date(`${valor}T12:00:00`) : new Date();
+  }
+
+  function horaInicial(valor: string): Date {
+    const [h, m] = valor.split(":").map(Number);
+    const data = new Date();
+    data.setHours(Number.isFinite(h) ? h : 12, Number.isFinite(m) ? m : 0, 0, 0);
+    return data;
   }
 
   async function salvar(): Promise<void> {
@@ -191,36 +204,43 @@ export function TaskForm({ tarefa, salvando, userId, aoSalvar, aoExcluir, aoDupl
 
       <View style={styles.duasColunas}>
         <FormField
+          editable={false}
+          fim={<CalendarDays color={tema.cores.marca} size={20} />}
           autoCapitalize="none"
           erro={erros.dueDate}
           keyboardType="numbers-and-punctuation"
           maxLength={10}
-          onChangeText={(texto) => atualizar("dueDate", texto)}
+          onPressIn={() => definirSeletor("date")}
           placeholder={traduzir("tarefas.dataPlaceholder")}
           rotulo={traduzir("tarefas.dataLimite")}
           value={valores.dueDate}
         />
         <FormField
+          editable={false}
+          fim={<Clock3 color={tema.cores.marca} size={20} />}
           autoCapitalize="none"
           erro={erros.dueTime}
           keyboardType="numbers-and-punctuation"
           maxLength={5}
-          onChangeText={(texto) => atualizar("dueTime", texto)}
+          onPressIn={() => definirSeletor("time")}
           placeholder="19:00"
           rotulo={traduzir("tarefas.horario")}
           value={valores.dueTime}
         />
       </View>
       <FormField
+        editable={false}
+        fim={<CalendarDays color={tema.cores.marca} size={20} />}
         autoCapitalize="none"
         erro={erros.scheduledFor}
         keyboardType="numbers-and-punctuation"
         maxLength={10}
-        onChangeText={(texto) => atualizar("scheduledFor", texto)}
+        onPressIn={() => definirSeletor("date")}
         placeholder={traduzir("tarefas.dataPlaceholder")}
         rotulo={traduzir("tarefas.agendadaPara")}
         value={valores.scheduledFor}
       />
+      {seletor ? <DateTimePicker value={seletor === "date" ? dataInicial(valores.dueDate || valores.scheduledFor) : horaInicial(valores.dueTime)} mode={seletor} display="default" onChange={(_, data) => { definirSeletor(null); if (!data) return; if (seletor === "date") { const valor = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`; atualizar("dueDate", valor); atualizar("scheduledFor", valor); } else atualizar("dueTime", `${String(data.getHours()).padStart(2, "0")}:${String(data.getMinutes()).padStart(2, "0")}`); }} /> : null}
       <FormField
         erro={erros.estimatedMins}
         keyboardType="number-pad"

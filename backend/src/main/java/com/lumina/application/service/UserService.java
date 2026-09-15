@@ -60,6 +60,7 @@ public class UserService {
             user.setUsername(normalized);
         }
         if (request.bio() != null) user.setBio(trimToNull(request.bio()));
+        if (request.profilePublic() != null) user.setProfilePublic(request.profilePublic());
         if (request.timezone() != null) {
             try { user.setTimezone(ZoneId.of(request.timezone().trim()).getId()); }
             catch (DateTimeException exception) { throw validation("Fuso horário inválido"); }

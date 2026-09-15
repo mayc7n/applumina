@@ -55,6 +55,11 @@ export const apiAutenticacaoMobile = {
 export const apiUsuarios = {
   atual: () => obterApi<User>("/users/me"),
   atualizarPerfil: (entrada: UpdateProfileInput) => atualizarParcialApi<User>("/users/me", entrada),
+  enviarAvatar: (uri: string) => {
+    const dados = new FormData();
+    dados.append("file", { uri, name: `avatar-${Date.now()}.jpg`, type: "image/jpeg" } as unknown as Blob);
+    return enviarMultipartApi<User>("/users/me/avatar", dados);
+  },
   alterarSenha: (entrada: ChangePasswordInput) =>
     atualizarParcialApi<void>("/users/me/password", entrada),
   excluir: (entrada: DeleteAccountInput) =>
@@ -109,6 +114,7 @@ export const apiTreinos = {
 };
 
 export const apiAmigos = {
+  publicarTreino: (workoutId: string, privacy: "FRIENDS" | "PUBLIC", caption?: string) => enviarApi<string>(`/social/workouts/${workoutId}/posts`, { privacy, caption }),
   listar: () => obterApi<SocialUser[]>("/social/friends"),
   listarSolicitacoes: () =>
     obterApi<FriendRequest[]>("/social/friends/requests"),

@@ -19,6 +19,7 @@ public class User {
     @Column(name="password_hash",length=255) private String passwordHash;
     @Column(name="avatar_url",length=500) private String avatarUrl;
     @Column(name="bio",length=500) private String bio;
+    @Column(name="profile_public",nullable=false) @Builder.Default private boolean profilePublic=true;
     @Column(name="timezone",nullable=false,length=100) @Builder.Default private String timezone="America/Sao_Paulo";
     @Column(name="locale",nullable=false,length=10) @Builder.Default private String locale="pt-BR";
     @Enumerated(EnumType.STRING) @JdbcTypeCode(SqlTypes.NAMED_ENUM) @Column(name="status",nullable=false) @Builder.Default private UserStatus status=UserStatus.PENDING_VERIFICATION;

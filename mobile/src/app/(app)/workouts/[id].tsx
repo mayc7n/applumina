@@ -28,12 +28,12 @@ import {
 } from "@/features/workouts/hooks";
 import { useIdioma } from "@/i18n/idioma";
 import { obterMensagemErroApi } from "@/lib/api/errors";
-import { apiTreinos } from "@/lib/api/resources";
+import { apiAmigos, apiTreinos } from "@/lib/api/resources";
 import { useArmazenamentoAutenticacao } from "@/store/auth-store";
 import { useTemaApp } from "@/theme/theme";
 import type { CreateWorkoutInput, Workout, WorkoutType } from "@/types/api";
 
-function DetalheTreino({ treino, traduzir, onEditar, onExcluir, onMomento }: { treino: Workout; traduzir: ReturnType<typeof useIdioma>["traduzir"]; onEditar: () => void; onExcluir: () => void; onMomento: () => void }) {
+function DetalheTreino({ treino, traduzir, onEditar, onExcluir, onMomento, onCompartilhar }: { treino: Workout; traduzir: ReturnType<typeof useIdioma>["traduzir"]; onEditar: () => void; onExcluir: () => void; onMomento: () => void; onCompartilhar: () => void }) {
   const tema = useTemaApp();
   const rotulos: Partial<Record<WorkoutType, string>> = {
     WALKING: traduzir("treinos.caminhada"), RUNNING: traduzir("treinos.corrida"), STRENGTH: traduzir("treinos.forca"), CYCLING: traduzir("treinos.ciclismo"), SWIMMING: traduzir("treinos.natacao"), CUSTOM: traduzir("treinos.personalizada"),
@@ -43,6 +43,7 @@ function DetalheTreino({ treino, traduzir, onEditar, onExcluir, onMomento }: { t
     <Text style={[styles.detalheDuracao, { color: tema.cores.marca }]}>{treino.durationMins} {traduzir("treinos.minutos")}</Text>
     {treino.notes ? <Text style={[styles.detalheNotas, { color: tema.cores.textoSecundario }]}>{treino.notes}</Text> : null}
     <AppButton onPress={onMomento} rotulo={traduzir("treinos.adicionarMomento")} variante="secondary" />
+    <AppButton onPress={onCompartilhar} rotulo={traduzir("treinos.compartilhar")} variante="secondary" />
     <AppButton onPress={onEditar} rotulo={traduzir("treinos.editar")} />
     <AppButton onPress={onExcluir} rotulo={traduzir("treinos.excluir")} variante="danger" />
   </View>;
@@ -81,6 +82,14 @@ export default function TelaEditarTreino() {
     await editar.mutateAsync({ id: parametros.id, entrada });
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
+  }
+
+  function compartilhar(): void {
+    Alert.alert(traduzir("treinos.compartilhar"), traduzir("treinos.privacidade"), [
+      { text: traduzir("treinos.cancelar"), style: "cancel" },
+      { text: traduzir("treinos.compartilhar"), onPress: () => void apiAmigos.publicarTreino(parametros.id, "FRIENDS") },
+      { text: traduzir("treinos.publicar"), onPress: () => void apiAmigos.publicarTreino(parametros.id, "PUBLIC") },
+    ]);
   }
 
   function confirmarExclusao(): void {
@@ -183,7 +192,7 @@ export default function TelaEditarTreino() {
               {editando ? <>
                 <WorkoutForm aoSalvar={salvar} salvando={editar.isPending || excluir.isPending} treino={consulta.data} />
                 <AppButton disabled={editar.isPending || excluir.isPending} onPress={() => definirEditando(false)} rotulo={traduzir("treinos.cancelar")} variante="secondary" />
-              </> : <DetalheTreino onEditar={() => definirEditando(true)} onExcluir={confirmarExclusao} onMomento={() => void adicionarMomento()} treino={consulta.data} traduzir={traduzir} />}
+              </> : <DetalheTreino onEditar={() => definirEditando(true)} onExcluir={confirmarExclusao} onMomento={() => void adicionarMomento()} onCompartilhar={compartilhar} treino={consulta.data} traduzir={traduzir} />}
             </View>
           )}
         </ScrollView>

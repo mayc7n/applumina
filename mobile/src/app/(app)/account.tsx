@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import { router } from "expo-router";
 import {
   ArrowLeft,
@@ -24,6 +26,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   View,
   TextInput,
@@ -55,6 +58,7 @@ export default function TelaConta() {
     erro: boolean;
   } | null>(null);
   const [bio, definirBio] = useState("");
+  const [enviandoAvatar, definirEnviandoAvatar] = useState(false);
   const usuario = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.usuario,
   );
@@ -228,6 +232,20 @@ export default function TelaConta() {
   const alterandoSessoes =
     encerrarUmaSessao.isPending || encerrarOutrasSessoes.isPending;
 
+  async function escolherAvatar(): Promise<void> {
+    const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissao.granted) return;
+    const resultado = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.85, exif: false });
+    if (resultado.canceled) return;
+    definirEnviandoAvatar(true);
+    try {
+      const imagem = await ImageManipulator.manipulateAsync(resultado.assets[0].uri, [{ resize: { width: 512, height: 512 } }], { compress: 0.82, format: ImageManipulator.SaveFormat.JPEG });
+      await apiUsuarios.enviarAvatar(imagem.uri);
+      await inicializar();
+    } catch { Alert.alert(traduzir("perfil.erroAvatar")); }
+    finally { definirEnviandoAvatar(false); }
+  }
+
   return (
     <SafeAreaView
       style={[styles.tela, { backgroundColor: tema.cores.fundo }]}
@@ -267,20 +285,18 @@ export default function TelaConta() {
                 },
               ]}
             >
-              <View
-                style={[
+              <Pressable accessibilityRole="button" accessibilityLabel={traduzir("perfil.trocarFoto")} disabled={enviandoAvatar} onPress={() => void escolherAvatar()} style={({ pressed }) => [
                   styles.avatar,
                   {
                     backgroundColor: tema.cores.marcaSuave,
                     borderColor: tema.cores.marcaContorno,
                   },
-                ]}
-              >
+              ]}>
                 {usuario?.avatarUrl ? (
                   <Image
                     accessibilityLabel={usuario.displayName}
                     contentFit="cover"
-                    source={{ uri: usuario.avatarUrl }}
+                    source={{ uri: usuario.avatarUrl.startsWith("media:") ? `${process.env.EXPO_PUBLIC_API_URL ?? ""}/users/me/avatar` : usuario.avatarUrl }}
                     style={styles.avatarImagem}
                   />
                 ) : (
@@ -288,19 +304,21 @@ export default function TelaConta() {
                     {usuario?.displayName?.trim().charAt(0).toUpperCase() ?? "L"}
                   </Text>
                 )}
-              </View>
+              </Pressable>
             </View>
             <View style={styles.dadosPerfil}>
               <Text style={[styles.nomePerfil, { color: tema.cores.texto }]}>
                 {usuario?.displayName}
               </Text>
-              <Text
-                style={[styles.emailPerfil, { color: tema.cores.textoSecundario }]}
-              >
-                {usuario?.email}
-              </Text>
               <TextInput accessibilityLabel={traduzir("perfil.bio")} maxLength={500} multiline onChangeText={definirBio} placeholder={traduzir("perfil.bioPlaceholder")} placeholderTextColor={tema.cores.textoSutil} style={[styles.bioInput, { borderColor: tema.cores.borda, color: tema.cores.texto }]} value={bio || usuario?.bio || ""} />
               <AppButton onPress={() => void apiUsuarios.atualizarPerfil({ bio: bio || usuario?.bio || "" }).then(() => inicializar())} rotulo={traduzir("perfil.salvarBio")} variante="secondary" />
+              <View style={styles.privacidadePerfil}>
+                <View style={styles.textoCartao}>
+                  <Text style={[styles.tituloCartao, { color: tema.cores.texto }]}>{traduzir("perfil.publico")}</Text>
+                  <Text style={[styles.descricaoCartao, { color: tema.cores.textoSecundario }]}>{traduzir("perfil.publicoDescricao")}</Text>
+                </View>
+                <Switch accessibilityLabel={traduzir("perfil.publico")} value={usuario?.profilePublic ?? true} onValueChange={(valor) => void apiUsuarios.atualizarPerfil({ profilePublic: valor }).then(() => inicializar())} trackColor={{ false: tema.cores.borda, true: tema.cores.marcaContorno }} thumbColor={tema.cores.marca} />
+              </View>
             </View>
           </View>
         </AnimatedEntry>
@@ -328,6 +346,7 @@ export default function TelaConta() {
               { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
             ]}
           >
+            <Text style={[styles.emailConfiguracao, { color: tema.cores.textoSecundario }]}>{usuario?.email}</Text>
             <ConfiguracaoConta
               Icone={Languages}
               descricao={traduzir("conta.idiomaSistema")}
@@ -658,9 +677,10 @@ const styles = StyleSheet.create({
   avatarImagem: { borderRadius: 40, height: 80, width: 80 },
   inicial: { fontSize: 30, fontWeight: "900" },
   dadosPerfil: { alignItems: "center", gap: 5, padding: 20 },
+  privacidadePerfil: { alignItems: "center", flexDirection: "row", gap: 12, paddingTop: 8, width: "100%" },
   nome: { fontSize: 17, fontWeight: "700" },
   nomePerfil: { fontSize: 22, fontWeight: "900", lineHeight: 28, textAlign: "center" },
-  emailPerfil: { fontSize: 13, lineHeight: 18, opacity: 0.88 },
+  emailConfiguracao: { fontSize: 14, padding: 16 },
   bioInput: { borderRadius: 12, borderWidth: 1, fontSize: 14, minHeight: 64, padding: 10, textAlignVertical: "top", width: "100%" },
   tituloLinha: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
   contagemTreinos: { fontSize: 16, fontWeight: "800" },

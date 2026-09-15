@@ -39,7 +39,7 @@ export interface ChangePasswordInput {
   currentPassword: string;
   newPassword: string;
 }
-export interface UpdateProfileInput { bio?: string; displayName?: string; }
+export interface UpdateProfileInput { bio?: string; displayName?: string; profilePublic?: boolean; }
 
 export interface ForgotPasswordInput { email: string; }
 export interface ResetPasswordInput { token: string; newPassword: string; }
@@ -51,6 +51,7 @@ export interface User {
   displayName: string;
   avatarUrl?: string;
   bio?: string;
+  profilePublic?: boolean;
   timezone: string;
   locale: string;
   status: string;

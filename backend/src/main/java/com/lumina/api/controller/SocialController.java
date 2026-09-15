@@ -16,9 +16,22 @@ import java.util.*;
 @RestController
 @Validated
 @RequestMapping("/social")
-@RequiredArgsConstructor
 public class SocialController {
     private final SocialService socialService;
+    private final com.lumina.application.service.WorkoutPostService workoutPostService;
+
+    public SocialController(SocialService socialService) { this(socialService, null); }
+    @org.springframework.beans.factory.annotation.Autowired
+    public SocialController(SocialService socialService, com.lumina.application.service.WorkoutPostService workoutPostService) {
+        this.socialService = socialService;
+        this.workoutPostService = workoutPostService;
+    }
+
+    @PostMapping("/workouts/{workoutId}/posts")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<String> publishWorkout(@AuthenticationPrincipal UserPrincipal principal, @PathVariable UUID workoutId, @Valid @RequestBody CreateWorkoutPostRequest request) {
+        return ApiResponse.success(workoutPostService.publish(principal.getUserId(), workoutId, request.privacy(), request.caption()));
+    }
 
     @PostMapping("/blocks")
     @ResponseStatus(HttpStatus.NO_CONTENT)

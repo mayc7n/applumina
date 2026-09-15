@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 
 @RestController
@@ -14,6 +17,18 @@ import org.springframework.http.*;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final com.lumina.application.service.ProfileAvatarService profileAvatarService;
+
+    @PostMapping("/me/avatar")
+    public ApiResponse<UserResponse> uploadAvatar(@AuthenticationPrincipal UserPrincipal principal, @RequestPart("file") MultipartFile file) {
+        return ApiResponse.success(UserResponse.from(profileAvatarService.upload(principal.getUserId(), file)));
+    }
+
+    @GetMapping("/me/avatar")
+    public ResponseEntity<Resource> getAvatar(@AuthenticationPrincipal UserPrincipal principal) {
+        try { return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, "image/jpeg").body(new ByteArrayResource(profileAvatarService.read(principal.getUserId()))); }
+        catch (java.io.IOException e) { return ResponseEntity.notFound().build(); }
+    }
 
     @GetMapping("/me")
     public ApiResponse<UserResponse> getCurrentUser(

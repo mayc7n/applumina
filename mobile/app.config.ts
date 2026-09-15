@@ -7,7 +7,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: config.name ?? "Lumina",
     slug: config.slug ?? "lumina",
-    plugins: config.plugins?.map((plugin) => {
+    plugins: [...(config.plugins ?? []), "@react-native-community/datetimepicker"].map((plugin) => {
       if (!Array.isArray(plugin) || plugin[0] !== "expo-build-properties") {
         return plugin;
       }
