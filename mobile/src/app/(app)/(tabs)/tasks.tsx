@@ -1,16 +1,7 @@
 import { format } from "date-fns";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
-import {
-  CalendarClock,
-  CalendarDays,
-  CheckCircle2,
-  List,
-  Plus,
-  Search,
-  SlidersHorizontal,
-  TriangleAlert,
-} from "lucide-react-native";
+import { Check, Plus, Search } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -46,7 +37,6 @@ export default function TelaTarefas() {
   const { traduzir } = useIdioma();
   const [titulo, definirTitulo] = useState("");
   const [busca, definirBusca] = useState("");
-  const [buscaFocada, definirBuscaFocada] = useState(false);
   const [filtro, definirFiltro] = useState<FiltroTarefa>("TODAY");
   const [erroAcao, definirErroAcao] = useState("");
   const autenticado = useArmazenamentoAutenticacao((armazenamento) => armazenamento.estado === "autenticado");
@@ -141,6 +131,75 @@ export default function TelaTarefas() {
           <AnimatedEntry>
             <View
               style={[
+                styles.criacao,
+                {
+                  backgroundColor: tema.cores.marcaSuave,
+                  borderColor: tema.cores.marcaContorno,
+                },
+              ]}
+            >
+              <View style={styles.criacaoCabecalho}>
+                <View
+                  style={[
+                    styles.criacaoIcone,
+                    { backgroundColor: tema.cores.elevado },
+                  ]}
+                >
+                  <Plus color={tema.cores.marca} size={20} />
+                </View>
+                <View style={styles.criacaoTextos}>
+                  <Text
+                    style={[styles.criacaoTitulo, { color: tema.cores.texto }]}
+                  >
+                    {traduzir("tarefas.capturaTitulo")}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.criacaoAjuda,
+                      { color: tema.cores.textoSecundario },
+                    ]}
+                  >
+                    {traduzir("tarefas.capturaAjuda")}
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={[
+                  styles.criacaoEntrada,
+                  {
+                    backgroundColor: tema.cores.elevado,
+                    borderColor: tema.cores.borda,
+                  },
+                ]}
+              >
+                <TextInput
+                  accessibilityLabel={traduzir("tarefas.novaPlaceholder")}
+                  autoCorrect
+                  maxLength={500}
+                  onChangeText={definirTitulo}
+                  onSubmitEditing={() => void criarTarefa()}
+                  placeholder={traduzir("tarefas.novaPlaceholder")}
+                  placeholderTextColor={tema.cores.textoSutil}
+                  returnKeyType="done"
+                  selectionColor={tema.cores.marca}
+                  style={[styles.entrada, { color: tema.cores.texto }]}
+                  value={titulo}
+                />
+                {titulo.trim() ? (
+                  <AppButton
+                    carregando={criar.isPending}
+                    onPress={() => void criarTarefa()}
+                    rotulo={traduzir("tarefas.criar")}
+                    style={styles.botaoCriar}
+                  />
+                ) : null}
+              </View>
+            </View>
+          </AnimatedEntry>
+
+          <AnimatedEntry>
+            <View
+              style={[
                 styles.ferramentas,
                 {
                   backgroundColor: tema.cores.elevado,
@@ -148,35 +207,20 @@ export default function TelaTarefas() {
                 },
               ]}
             >
-              <View style={styles.ferramentasCabecalho}>
-                <View style={[styles.ferramentasIcone, { backgroundColor: tema.cores.marcaSuave }]}>
-                  <SlidersHorizontal color={tema.cores.marca} size={17} />
-                </View>
-                <Text style={[styles.ferramentasTitulo, { color: tema.cores.texto }]}>
-                  {traduzir("tarefas.filtros")}
-                </Text>
-                <View style={[styles.resultados, { backgroundColor: tema.cores.sobreposicao }]}>
-                  <Text style={[styles.resultadosTexto, { color: tema.cores.textoSecundario }]}>
-                    {tarefasVisiveis.length}
-                  </Text>
-                </View>
-              </View>
               <View
                 style={[
                   styles.busca,
                   {
-                    borderColor: buscaFocada ? tema.cores.marca : tema.cores.borda,
-                    backgroundColor: buscaFocada ? tema.cores.elevado : tema.cores.sobreposicao,
+                    borderColor: tema.cores.borda,
+                    backgroundColor: tema.cores.sobreposicao,
                   },
                 ]}
               >
-                <Search color={buscaFocada ? tema.cores.marca : tema.cores.textoSutil} size={19} />
+                <Search color={tema.cores.textoSutil} size={19} />
                 <TextInput
                   accessibilityLabel={traduzir("tarefas.buscar")}
                   autoCorrect
-                  onBlur={() => definirBuscaFocada(false)}
                   onChangeText={definirBusca}
-                  onFocus={() => definirBuscaFocada(true)}
                   placeholder={traduzir("tarefas.buscar")}
                   placeholderTextColor={tema.cores.textoSutil}
                   returnKeyType="search"
@@ -193,7 +237,7 @@ export default function TelaTarefas() {
                 contentContainerStyle={styles.filtros}
                 showsHorizontalScrollIndicator={false}
               >
-                {filtros.map(([valor, chave, IconeFiltro]) => {
+                {filtros.map(([valor, chave]) => {
                   const selecionado = filtro === valor;
                   return (
                     <Pressable
@@ -218,10 +262,6 @@ export default function TelaTarefas() {
                         },
                       ]}
                     >
-                      <IconeFiltro
-                        color={selecionado ? tema.cores.sobreMarca : tema.cores.textoSutil}
-                        size={15}
-                      />
                       <Text
                         style={[
                           styles.filtroTexto,
@@ -234,6 +274,9 @@ export default function TelaTarefas() {
                       >
                         {traduzir(chave)}
                       </Text>
+                      {selecionado ? (
+                        <Check color={tema.cores.sobreMarca} size={14} strokeWidth={3} />
+                      ) : null}
                     </Pressable>
                   );
                 })}
@@ -275,40 +318,6 @@ export default function TelaTarefas() {
             </View>
           )}
         </ScrollView>
-        <AnimatedEntry
-          style={[
-            styles.dockCaptura,
-            {
-              backgroundColor: tema.cores.elevado,
-              borderColor: tema.cores.marcaContorno,
-            },
-          ]}
-        >
-          <View style={[styles.criacaoIcone, { backgroundColor: tema.cores.marcaSuave }]}>
-            <Plus color={tema.cores.marca} size={20} />
-          </View>
-          <TextInput
-            accessibilityLabel={traduzir("tarefas.novaPlaceholder")}
-            autoCorrect
-            maxLength={500}
-            onChangeText={definirTitulo}
-            onSubmitEditing={() => void criarTarefa()}
-            placeholder={traduzir("tarefas.novaPlaceholder")}
-            placeholderTextColor={tema.cores.textoSutil}
-            returnKeyType="done"
-            selectionColor={tema.cores.marca}
-            style={[styles.entrada, { color: tema.cores.texto }]}
-            value={titulo}
-          />
-          {titulo.trim() ? (
-            <AppButton
-              carregando={criar.isPending}
-              onPress={() => void criarTarefa()}
-              rotulo={traduzir("tarefas.criar")}
-              style={styles.botaoCriar}
-            />
-          ) : null}
-        </AnimatedEntry>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

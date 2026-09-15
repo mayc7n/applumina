@@ -20,11 +20,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { LuminaMark } from "@/components/brand/lumina-mark";
+import { WeeklyArc } from "@/components/progress/weekly-arc";
 import { AnimatedEntry } from "@/components/ui/animated-entry";
 import { FeedbackState } from "@/components/ui/feedback-state";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { resumirSemana } from "@/features/dashboard/home-metrics";
-import { useListaAmigos, useSolicitacoesAmizade } from "@/features/friends/hooks";
 import { chavesTarefasUsuario } from "@/features/tasks/task-query-keys";
 import { useIdioma } from "@/i18n/idioma";
 import { apiPainel } from "@/lib/api/resources";
@@ -57,8 +57,6 @@ export default function TelaInicio() {
     queryFn: apiPainel.obter,
     enabled: Boolean(userId),
   });
-  const amigos = useListaAmigos(userId);
-  const solicitacoes = useSolicitacoesAmizade(userId);
   const primeiroNome = usuario?.displayName?.trim().split(" ")[0];
   const data = new Intl.DateTimeFormat(idioma, {
     weekday: "long",
@@ -81,11 +79,7 @@ export default function TelaInicio() {
         refreshControl={
           autenticado ? (
             <RefreshControl
-              onRefresh={() => {
-                void consulta.refetch();
-                void amigos.refetch();
-                void solicitacoes.refetch();
-              }}
+              onRefresh={() => void consulta.refetch()}
               refreshing={consulta.isRefetching}
               tintColor={tema.cores.marca}
             />
@@ -160,13 +154,20 @@ export default function TelaInicio() {
                 style={styles.carga}
               />
             ) : consulta.isError && autenticado ? (
-              <FeedbackState
-                aoAgir={() => void consulta.refetch()}
-                descricao={traduzir("inicio.erroDescricao")}
-                rotuloAcao={traduzir("comum.tentarNovamente")}
-                tipo="erro"
-                titulo={traduzir("inicio.erroTitulo")}
-              />
+              <View
+                style={[
+                  styles.estadoHero,
+                  { backgroundColor: tema.cores.elevado },
+                ]}
+              >
+                <FeedbackState
+                  aoAgir={() => void consulta.refetch()}
+                  descricao={traduzir("inicio.erroDescricao")}
+                  rotuloAcao={traduzir("comum.tentarNovamente")}
+                  tipo="erro"
+                  titulo={traduzir("inicio.erroTitulo")}
+                />
+              </View>
             ) : (
               <>
                 <Text
@@ -206,7 +207,7 @@ export default function TelaInicio() {
                     router.push(tarefaPendente ? "/tasks" : "/workouts")
                   }
                   style={({ pressed }) => [
-                    styles.acaoHoje,
+                    styles.acaoHero,
                     {
                       backgroundColor: tema.cores.marca,
                       opacity: pressed ? 0.86 : 1,
@@ -352,10 +353,7 @@ export default function TelaInicio() {
                       style={[
                         styles.anelResumo,
                         metricasAmpliadas && styles.anelResumoAmpliado,
-                        {
-                          backgroundColor: tema.cores.sucessoSuave,
-                          borderColor: tema.cores.sucesso,
-                        },
+                        { borderColor: tema.cores.sucesso },
                       ]}
                     >
                       <Text
@@ -389,10 +387,7 @@ export default function TelaInicio() {
                       style={[
                         styles.anelResumo,
                         metricasAmpliadas && styles.anelResumoAmpliado,
-                        {
-                          backgroundColor: tema.cores.informacaoSuave,
-                          borderColor: tema.cores.informacao,
-                        },
+                        { borderColor: tema.cores.informacao },
                       ]}
                     >
                       <Text
@@ -482,10 +477,10 @@ export default function TelaInicio() {
 const styles = StyleSheet.create({
   tela: { flex: 1 },
   conteudo: {
-    gap: 20,
-    paddingBottom: 24,
+    gap: 24,
+    paddingBottom: 36,
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 14,
   },
   avatarPressable: { borderRadius: 21 },
   avatar: { borderRadius: 21, height: 42, width: 42 },
@@ -512,10 +507,6 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     textTransform: "uppercase",
   },
-  heroTopo: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 20 },
-  hojePill: { alignItems: "center", backgroundColor: "#FFFFFF1F", borderRadius: 999, flexDirection: "row", gap: 8, minHeight: 34, paddingHorizontal: 12 },
-  hojePonto: { borderRadius: 4, height: 7, width: 7 },
-  heroSelo: { alignItems: "center", backgroundColor: "#FFFFFF1A", borderRadius: 18, height: 40, justifyContent: "center", width: 40 },
   tituloHero: {
     fontSize: 30,
     fontWeight: "900",
@@ -585,14 +576,9 @@ const styles = StyleSheet.create({
   anelResumo: {
     alignItems: "center",
     borderRadius: 42,
-    borderWidth: 4,
-    elevation: 2,
+    borderWidth: 7,
     height: 84,
     justifyContent: "center",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.09,
-    shadowRadius: 9,
     width: 84,
   },
   anelResumoAmpliado: { borderRadius: 56, height: 112, width: 112 },
@@ -618,7 +604,5 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 14,
   },
-  socialTexto: { flex: 1 },
-  cardTitulo: { fontSize: 15, fontWeight: "700" },
-  cardApoio: { fontSize: 13, lineHeight: 18, marginTop: 4 },
+  notaEticaTexto: { flex: 1, fontSize: 12, lineHeight: 18 },
 });

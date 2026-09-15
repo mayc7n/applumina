@@ -51,35 +51,10 @@ function IconeAba({ ativo, Icone, tamanho }: { ativo: boolean; Icone: LucideIcon
           },
         ]}
       />
-      <Animated.View
-        style={{
-          transform: [
-            {
-              translateY: progresso.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, -3],
-              }),
-            },
-          ],
-        }}
-      >
-        <Icone
-          color={ativo ? tema.cores.marca : tema.cores.textoSutil}
-          size={tamanho}
-          strokeWidth={ativo ? 2.7 : 2}
-        />
-      </Animated.View>
-      <Animated.View
-        accessibilityElementsHidden
-        importantForAccessibility="no"
-        style={[
-          styles.pontoAtivo,
-          {
-            backgroundColor: tema.cores.marca,
-            opacity: progresso,
-            transform: [{ scale: progresso }],
-          },
-        ]}
+      <Icone
+        color={ativo ? tema.cores.marca : tema.cores.textoSutil}
+        size={tamanho}
+        strokeWidth={ativo ? 2.5 : 2}
       />
     </View>
   );
