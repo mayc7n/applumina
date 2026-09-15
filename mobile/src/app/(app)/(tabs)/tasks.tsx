@@ -100,9 +100,7 @@ export default function TelaTarefas() {
 
   const filtros = [
     ["TODAY", "tarefas.filtroHoje"],
-    ["UPCOMING", "tarefas.filtroProximas"],
-    ["OVERDUE", "tarefas.filtroAtrasadas"],
-    ["DONE", "tarefas.filtroConcluidas"],
+    ["PENDING", "tarefas.filtroPendentes"],
     ["ALL", "tarefas.filtroTodas"],
   ] as const;
 

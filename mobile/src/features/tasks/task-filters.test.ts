@@ -19,11 +19,10 @@ const tarefas: Task[] = [
 ];
 
 describe("filtros de tarefas", () => {
-  test("separa hoje, próximas, atrasadas e concluídas", () => {
+  test("mantém três filtros que priorizam a lista diária", () => {
     expect(filtrarTarefas(tarefas, "TODAY", "", "2030-06-10").map(({ id }) => id)).toEqual(["1"]);
-    expect(filtrarTarefas(tarefas, "UPCOMING", "", "2030-06-10").map(({ id }) => id)).toEqual(["2"]);
-    expect(filtrarTarefas(tarefas, "OVERDUE", "", "2030-06-10").map(({ id }) => id)).toEqual(["3"]);
-    expect(filtrarTarefas(tarefas, "DONE", "", "2030-06-10").map(({ id }) => id)).toEqual(["4"]);
+    expect(filtrarTarefas(tarefas, "PENDING", "", "2030-06-10").map(({ id }) => id)).toEqual(["1", "2", "3"]);
+    expect(filtrarTarefas(tarefas, "ALL", "", "2030-06-10").map(({ id }) => id)).toEqual(["1", "2", "3", "4"]);
   });
 
   test("busca sem depender de acentos", () => {

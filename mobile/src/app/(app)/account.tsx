@@ -274,6 +274,51 @@ export default function TelaConta() {
           </View>
         </AnimatedEntry>
 
+        <View style={styles.grupoConta}>
+          <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
+            {traduzir("conta.preferenciasTitulo")}
+          </Text>
+          <View
+            style={[
+              styles.listaConfiguracoes,
+              { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
+            ]}
+          >
+            <ConfiguracaoConta
+              Icone={Languages}
+              descricao={traduzir("conta.idiomaSistema")}
+              titulo={traduzir("conta.idiomaTitulo")}
+            />
+          </View>
+        </View>
+
+        <View style={styles.grupoConta}>
+          <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
+            {traduzir("conta.privacidadeTitulo")}
+          </Text>
+          <View
+            style={[
+              styles.listaConfiguracoes,
+              { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
+            ]}
+          >
+            <ConfiguracaoConta
+              Icone={KeyRound}
+              aoPressionar={() => router.push("/change-password")}
+              descricao={traduzir("conta.alterarSenhaDescricao")}
+              titulo={traduzir("conta.alterarSenha")}
+            />
+            <View style={[styles.separador, { backgroundColor: tema.cores.borda }]} />
+            <ConfiguracaoConta
+              Icone={Trash2}
+              aoPressionar={() => router.push("/delete-account")}
+              descricao={traduzir("conta.excluirContaDescricao")}
+              perigosa
+              titulo={traduzir("conta.excluirConta")}
+            />
+          </View>
+        </View>
+
         <View
           style={[
             styles.secaoSessoes,
@@ -367,51 +412,6 @@ export default function TelaConta() {
               onPress={confirmarEncerramentoDasOutras}
             />
           ) : null}
-        </View>
-
-        <View style={styles.grupoConta}>
-          <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
-            {traduzir("conta.preferenciasTitulo")}
-          </Text>
-          <View
-            style={[
-              styles.listaConfiguracoes,
-              { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
-            ]}
-          >
-            <ConfiguracaoConta
-              Icone={Languages}
-              descricao={traduzir("conta.idiomaSistema")}
-              titulo={traduzir("conta.idiomaTitulo")}
-            />
-          </View>
-        </View>
-
-        <View style={styles.grupoConta}>
-          <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
-            {traduzir("conta.privacidadeTitulo")}
-          </Text>
-          <View
-            style={[
-              styles.listaConfiguracoes,
-              { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
-            ]}
-          >
-            <ConfiguracaoConta
-              Icone={KeyRound}
-              aoPressionar={() => router.push("/change-password")}
-              descricao={traduzir("conta.alterarSenhaDescricao")}
-              titulo={traduzir("conta.alterarSenha")}
-            />
-            <View style={[styles.separador, { backgroundColor: tema.cores.borda }]} />
-            <ConfiguracaoConta
-              Icone={Trash2}
-              aoPressionar={() => router.push("/delete-account")}
-              descricao={traduzir("conta.excluirContaDescricao")}
-              perigosa
-              titulo={traduzir("conta.excluirConta")}
-            />
-          </View>
         </View>
 
         <Pressable

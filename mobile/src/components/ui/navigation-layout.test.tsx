@@ -1,16 +1,19 @@
 import { beforeEach, describe, expect, jest, test } from "@jest/globals";
-import type { ReactElement } from "react";
+import { Children, type ReactElement, type ReactNode } from "react";
 
 const mockUseReducaoMovimento = jest.fn<() => boolean | null>();
 const mockTabs = Object.assign(() => null, { Screen: () => null });
 
 jest.mock("expo-router", () => ({ Tabs: mockTabs }));
 
+jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ bottom: 0, left: 0, right: 0, top: 0 }),
+}));
+
 jest.mock("lucide-react-native", () => ({
   CheckSquare2: () => null,
   Dumbbell: () => null,
   Home: () => null,
-  UserRound: () => null,
   UsersRound: () => null,
 }));
 
@@ -43,7 +46,12 @@ const LayoutAbas = jest.requireActual<
 >("../../app/(app)/(tabs)/_layout").default;
 
 interface TabsPropsTest {
-  screenOptions: { animation: string };
+  children: ReactNode;
+  screenOptions: {
+    animation: string;
+    tabBarHideOnKeyboard: boolean;
+    tabBarStyle: Record<string, unknown>;
+  };
 }
 
 describe("movimento da navegação inferior", () => {
@@ -69,4 +77,28 @@ describe("movimento da navegação inferior", () => {
       expect(abas.props.screenOptions.animation).toBe("none");
     },
   );
+
+  test("mantém quatro destinos diários e uma barra compacta", () => {
+    mockUseReducaoMovimento.mockReturnValue(false);
+
+    const abas = LayoutAbas() as ReactElement<TabsPropsTest>;
+    const telas = Children.toArray(abas.props.children) as ReactElement<{
+      name: string;
+    }>[];
+
+    expect(telas.map((tela) => tela.props.name)).toEqual([
+      "home",
+      "tasks",
+      "workouts",
+      "friends",
+    ]);
+    expect(abas.props.screenOptions).toMatchObject({
+      tabBarHideOnKeyboard: true,
+      tabBarStyle: {
+        height: 62,
+        marginBottom: 6,
+        shadowOpacity: 0.06,
+      },
+    });
+  });
 });

@@ -4,11 +4,8 @@ import { router } from "expo-router";
 import {
   Activity,
   ArrowUpRight,
-  Bell,
   CheckCircle2,
-  ChevronRight,
   Flame,
-  UsersRound,
 } from "lucide-react-native";
 import {
   ActivityIndicator,
@@ -26,6 +23,7 @@ import { LuminaMark } from "@/components/brand/lumina-mark";
 import { WeeklyArc } from "@/components/progress/weekly-arc";
 import { AnimatedEntry } from "@/components/ui/animated-entry";
 import { FeedbackState } from "@/components/ui/feedback-state";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import { resumirSemana } from "@/features/dashboard/home-metrics";
 import { chavesTarefasUsuario } from "@/features/tasks/task-query-keys";
 import { useIdioma } from "@/i18n/idioma";
@@ -89,96 +87,56 @@ export default function TelaInicio() {
         }
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.cabecalho}>
-          <View style={styles.identidade}>
-            {usuario?.avatarUrl ? (
-              <Image
-                accessibilityLabel={usuario.displayName}
-                contentFit="cover"
-                source={{ uri: usuario.avatarUrl }}
-                style={styles.avatar}
-              />
-            ) : (
-              <View
-                style={[
-                  styles.avatarFallback,
-                  { backgroundColor: tema.cores.marcaSuave },
-                ]}
-              >
-                {autenticado ? (
-                  <Text style={[styles.inicial, { color: tema.cores.marca }]}>
-                    {primeiroNome?.charAt(0).toUpperCase() ?? "L"}
-                  </Text>
-                ) : (
-                  <LuminaMark decorativo tamanho={42} />
-                )}
-              </View>
-            )}
-            <View style={styles.cabecalhoTexto}>
-              <Text
-                accessibilityRole="header"
-                style={[styles.saudacao, { color: tema.cores.texto }]}
-              >
-                {autenticado
-                  ? `${obterSaudacao(traduzir)}${
-                      primeiroNome ? `, ${primeiroNome}` : ""
-                    }`
-                  : traduzir("inicio.visitanteSaudacao")}
-              </Text>
-              <Text style={[styles.data, { color: tema.cores.textoSecundario }]}>
-                {data}
-              </Text>
-            </View>
-          </View>
-          <Pressable
-            accessibilityLabel={traduzir("comum.notificacoes")}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: true }}
-            disabled
-            style={[
-              styles.botaoIcone,
-              {
-                backgroundColor: tema.cores.elevado,
-                borderColor: tema.cores.borda,
-              },
-            ]}
-          >
-            <Bell color={tema.cores.textoSutil} size={20} />
-          </Pressable>
-        </View>
+        <ScreenHeader
+          inicio={
+            <Pressable
+              accessibilityLabel={traduzir("conta.titulo")}
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => router.push("/account")}
+              style={({ pressed }) => [
+                styles.avatarPressable,
+                { opacity: pressed ? 0.76 : 1 },
+              ]}
+            >
+              {usuario?.avatarUrl ? (
+                <Image
+                  accessible={false}
+                  contentFit="cover"
+                  source={{ uri: usuario.avatarUrl }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <View
+                  accessible={false}
+                  style={[
+                    styles.avatarFallback,
+                    { backgroundColor: tema.cores.marcaSuave },
+                  ]}
+                >
+                  {autenticado ? (
+                    <Text style={[styles.inicial, { color: tema.cores.marca }]}>
+                      {primeiroNome?.charAt(0).toUpperCase() ?? "L"}
+                    </Text>
+                  ) : (
+                    <LuminaMark decorativo tamanho={34} />
+                  )}
+                </View>
+              )}
+            </Pressable>
+          }
+          subtitulo={data}
+          titulo={
+            autenticado
+              ? `${obterSaudacao(traduzir)}${
+                  primeiroNome ? `, ${primeiroNome}` : ""
+                }`
+              : traduzir("inicio.visitanteSaudacao")
+          }
+        />
 
         <AnimatedEntry>
           <View style={[styles.hero, { backgroundColor: tema.cores.marca }]}>
-            <View
-              pointerEvents="none"
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              style={[
-                styles.orbeMaior,
-                { backgroundColor: tema.cores.sobreMarca },
-              ]}
-            />
-            <View
-              pointerEvents="none"
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              style={[
-                styles.orbeMenor,
-                { backgroundColor: tema.cores.sobreMarca },
-              ]}
-            />
-            <View
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              pointerEvents="none"
-              style={[
-                styles.planoHero,
-                {
-                  backgroundColor: tema.cores.sobreMarca,
-                  borderColor: tema.cores.sobreMarca,
-                },
-              ]}
-            />
             <Text style={[styles.sobretitulo, { color: tema.cores.sobreMarca }]}>
               {traduzir("inicio.hoje")}
             </Text>
@@ -478,49 +436,6 @@ export default function TelaInicio() {
           </AnimatedEntry>
         ) : null}
 
-        <AnimatedEntry>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push("/friends")}
-            style={({ pressed }) => [
-              styles.social,
-              {
-                backgroundColor: pressed
-                  ? tema.cores.marcaSuave
-                  : tema.cores.elevado,
-                borderColor: tema.cores.borda,
-              },
-            ]}
-          >
-            <View
-              style={[
-                styles.socialIcone,
-                { backgroundColor: tema.cores.marcaSuave },
-              ]}
-            >
-              <UsersRound color={tema.cores.marca} size={24} />
-            </View>
-            <View style={styles.socialTexto}>
-              <Text style={[styles.cardTitulo, { color: tema.cores.texto }]}>
-                {traduzir("inicio.amigosTitulo")}
-              </Text>
-              <Text
-                numberOfLines={2}
-                style={[
-                  styles.cardApoio,
-                  { color: tema.cores.textoSecundario },
-                ]}
-              >
-                {traduzir("inicio.amigosVazio")}
-              </Text>
-              <Text style={[styles.socialLink, { color: tema.cores.marca }]}>
-                {traduzir("inicio.verAmigos")}
-              </Text>
-            </View>
-            <ChevronRight color={tema.cores.textoSutil} size={20} />
-          </Pressable>
-        </AnimatedEntry>
-
         {autenticado && consulta.data ? (
           <View
             style={[
@@ -552,77 +467,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 14,
   },
-  cabecalho: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  identidade: { alignItems: "center", flex: 1, flexDirection: "row", gap: 12 },
-  cabecalhoTexto: { flex: 1, gap: 2 },
-  avatar: { borderRadius: 23, height: 46, width: 46 },
+  avatarPressable: { borderRadius: 21 },
+  avatar: { borderRadius: 21, height: 42, width: 42 },
   avatarFallback: {
     alignItems: "center",
-    borderRadius: 23,
-    height: 46,
+    borderRadius: 21,
+    height: 42,
     justifyContent: "center",
-    width: 46,
+    width: 42,
   },
   inicial: { fontSize: 19, fontWeight: "800" },
-  saudacao: { fontSize: 20, fontWeight: "800", letterSpacing: -0.4 },
-  data: { fontSize: 13, textTransform: "capitalize" },
-  botaoIcone: {
-    alignItems: "center",
-    borderRadius: 22,
-    borderWidth: 1,
-    height: 44,
-    justifyContent: "center",
-    width: 44,
-  },
   hero: {
-    borderRadius: 28,
-    minHeight: 284,
+    borderRadius: 22,
+    minHeight: 200,
     overflow: "hidden",
-    padding: 24,
-    elevation: 7,
-    shadowColor: "#2B1712",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 22,
-  },
-  orbeMaior: {
-    borderRadius: 90,
-    height: 180,
-    opacity: 0.08,
-    position: "absolute",
-    right: -64,
-    top: -72,
-    width: 180,
-  },
-  orbeMenor: {
-    borderRadius: 50,
-    bottom: -44,
-    height: 100,
-    left: -30,
-    opacity: 0.06,
-    position: "absolute",
-    width: 100,
-  },
-  planoHero: {
-    borderRadius: 34,
-    borderWidth: 1,
-    bottom: -116,
-    height: 230,
-    opacity: 0.08,
-    position: "absolute",
-    right: -52,
-    transform: [{ rotate: "-15deg" }],
-    width: 260,
+    padding: 20,
   },
   sobretitulo: {
     fontSize: 12,
     fontWeight: "800",
     letterSpacing: 1.4,
-    marginBottom: 16,
+    marginBottom: 12,
     opacity: 0.8,
     textTransform: "uppercase",
   },
@@ -640,7 +505,7 @@ const styles = StyleSheet.create({
     maxWidth: 310,
     opacity: 0.82,
   },
-  carga: { marginVertical: 70 },
+  carga: { marginVertical: 52 },
   estadoHero: { borderRadius: 18, padding: 16 },
   acaoHero: {
     alignItems: "center",
@@ -649,8 +514,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     justifyContent: "center",
-    marginTop: 22,
-    minHeight: 50,
+    marginTop: 18,
+    minHeight: 46,
     overflow: "hidden",
     paddingHorizontal: 18,
   },
@@ -660,14 +525,9 @@ const styles = StyleSheet.create({
   blocoSemana: { gap: 14 },
   tituloSecao: { fontSize: 21, fontWeight: "800", letterSpacing: -0.45 },
   cardAtividade: {
-    borderRadius: 24,
+    borderRadius: 18,
     borderWidth: 1,
-    padding: 20,
-    elevation: 2,
-    shadowColor: "#2B1712",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    padding: 16,
   },
   cabecalhoAtividade: {
     alignItems: "center",
@@ -686,7 +546,7 @@ const styles = StyleSheet.create({
   metricasAtividade: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginVertical: 24,
+    marginVertical: 18,
   },
   metricasAtividadeAmpliadas: { alignItems: "center", flexDirection: "column", gap: 20 },
   metricaAtividade: { alignItems: "center", flex: 1, gap: 7 },
@@ -721,36 +581,6 @@ const styles = StyleSheet.create({
   textoMeta: { flex: 1 },
   tituloMeta: { fontSize: 14, fontWeight: "800" },
   descricaoMeta: { fontSize: 12, lineHeight: 17, marginTop: 3 },
-  cardTitulo: {
-    fontSize: 17,
-    fontWeight: "800",
-    letterSpacing: -0.3,
-    lineHeight: 21,
-  },
-  cardApoio: { fontSize: 13, lineHeight: 19, marginTop: 6 },
-  social: {
-    alignItems: "center",
-    borderRadius: 24,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 14,
-    minHeight: 132,
-    padding: 18,
-    elevation: 2,
-    shadowColor: "#2B1712",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-  },
-  socialIcone: {
-    alignItems: "center",
-    borderRadius: 22,
-    height: 52,
-    justifyContent: "center",
-    width: 52,
-  },
-  socialTexto: { flex: 1 },
-  socialLink: { fontSize: 13, fontWeight: "800", marginTop: 8 },
   notaEtica: {
     alignItems: "center",
     borderRadius: 18,
