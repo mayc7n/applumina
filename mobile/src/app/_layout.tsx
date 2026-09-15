@@ -1,4 +1,4 @@
-import { Slot } from "expo-router";
+import { DarkTheme, DefaultTheme, Slot, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -15,6 +15,14 @@ void SplashScreen.preventAutoHideAsync();
 
 export default function LayoutRaiz() {
   const tema = useTemaApp();
+  const temaBaseNavegacao = tema.escuro ? DarkTheme : DefaultTheme;
+  const temaNavegacao = {
+    ...temaBaseNavegacao,
+    colors: {
+      ...temaBaseNavegacao.colors,
+      background: tema.cores.fundo,
+    },
+  };
   const estado = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado,
   );
@@ -34,11 +42,18 @@ export default function LayoutRaiz() {
     <GestureHandlerRootView style={styles.flexivel}>
       <SafeAreaProvider>
         <ProvedorConsultas>
-          <StatusBar style={tema.escuro ? "light" : "dark"} />
-          <View style={styles.flexivel}>
-            <OfflineBanner />
-            <Slot />
-          </View>
+          <ThemeProvider value={temaNavegacao}>
+            <StatusBar style={tema.escuro ? "light" : "dark"} />
+            <View
+              style={[
+                styles.flexivel,
+                { backgroundColor: tema.cores.fundo },
+              ]}
+            >
+              <OfflineBanner />
+              <Slot />
+            </View>
+          </ThemeProvider>
         </ProvedorConsultas>
       </SafeAreaProvider>
     </GestureHandlerRootView>
