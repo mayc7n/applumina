@@ -2,13 +2,20 @@ import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 import { Children, type ReactElement, type ReactNode } from "react";
 
 const mockUseReducaoMovimento = jest.fn<() => boolean | null>();
+const mockUseWindowDimensions = jest.fn(() => ({ fontScale: 1 }));
+let mockInsetsBottom = 0;
 const mockTabs = Object.assign(() => null, { Screen: () => null });
 
 jest.mock("expo-router", () => ({ Tabs: mockTabs }));
 
 jest.mock("react-native-safe-area-context", () => ({
-  useSafeAreaInsets: () => ({ bottom: 0, left: 0, right: 0, top: 0 }),
+  useSafeAreaInsets: () => ({ bottom: mockInsetsBottom, left: 0, right: 0, top: 0 }),
 }));
+
+jest.mock(
+  "react-native/Libraries/Utilities/useWindowDimensions",
+  () => ({ __esModule: true, default: mockUseWindowDimensions }),
+);
 
 jest.mock("lucide-react-native", () => ({
   CheckSquare2: () => null,
@@ -48,14 +55,15 @@ const LayoutAbas = jest.requireActual<
 interface TabsPropsTest {
   children: ReactNode;
   screenOptions: {
-    animation: string;
+    animation: "none" | "shift";
     tabBarAllowFontScaling: boolean;
     tabBarHideOnKeyboard: boolean;
     tabBarItemStyle: Record<string, unknown>;
+    tabBarLabelStyle: Record<string, unknown>;
     tabBarStyle: Record<string, unknown>;
     tabBarVisibilityAnimationConfig?: {
-      hide: { animation: string; config: { duration: number } };
-      show: { animation: string; config: { duration: number } };
+      hide: { animation: "timing"; config: { duration: number } };
+      show: { animation: "timing"; config: { duration: number } };
     };
   };
 }
@@ -63,6 +71,8 @@ interface TabsPropsTest {
 describe("movimento da navegação inferior", () => {
   beforeEach(() => {
     mockUseReducaoMovimento.mockReset();
+    mockUseWindowDimensions.mockReturnValue({ fontScale: 1 });
+    mockInsetsBottom = 0;
   });
 
   test("mantém shift quando redução de movimento está desativada", () => {
@@ -114,5 +124,33 @@ describe("movimento da navegação inferior", () => {
         shadowOpacity: 0.06,
       },
     });
+  });
+
+  test.each([1.3, 1.6, 2])(
+    "acomoda fontScale %s sem manter a altura mínima fixa",
+    (fontScale) => {
+      mockUseReducaoMovimento.mockReturnValue(false);
+      mockUseWindowDimensions.mockReturnValue({ fontScale });
+
+      const abas = LayoutAbas() as ReactElement<TabsPropsTest>;
+      const estilo = abas.props.screenOptions.tabBarStyle;
+
+      expect(estilo.height).toBe(62 + Math.ceil((fontScale - 1) * 16));
+      expect(estilo.paddingBottom).toBe(4);
+      expect(abas.props.screenOptions.tabBarLabelStyle).toEqual(
+        expect.objectContaining({ overflow: "visible" }),
+      );
+    },
+  );
+
+  test("soma o inset inferior sem cortar a área útil da barra", () => {
+    mockUseReducaoMovimento.mockReturnValue(false);
+    mockInsetsBottom = 34;
+
+    const abas = LayoutAbas() as ReactElement<TabsPropsTest>;
+    const estilo = abas.props.screenOptions.tabBarStyle;
+
+    expect(estilo.height).toBe(96);
+    expect(estilo.paddingBottom).toBe(38);
   });
 });

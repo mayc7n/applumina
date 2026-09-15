@@ -194,6 +194,13 @@ export default function TelaInicio() {
                       : traduzir("inicio.semRegistroDescricao")}
                 </Text>
                 <Pressable
+                  accessibilityLabel={
+                    !autenticado
+                      ? traduzir("inicio.acaoExplorar")
+                      : tarefaPendente
+                        ? traduzir("inicio.acaoTarefa")
+                        : traduzir("inicio.acaoTreino")
+                  }
                   accessibilityRole="button"
                   android_ripple={{ color: "#0000001F" }}
                   onPress={() =>

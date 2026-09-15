@@ -27,7 +27,6 @@ jest.mock("expo-image", () => ({ Image: () => null }));
 jest.mock("lucide-react-native", () => ({
   Activity: () => null,
   ArrowUpRight: () => null,
-  Bell: () => null,
   CheckCircle2: () => null,
   ChevronRight: () => null,
   Flame: () => null,
@@ -227,5 +226,6 @@ describe("cartão de atividade semanal", () => {
     expect(StyleSheet.flatten(estiloAcao)).toMatchObject({
       backgroundColor: "marca",
     });
+    expect(acao?.props.accessibilityLabel).toBe("inicio.acaoTreino");
   });
 });

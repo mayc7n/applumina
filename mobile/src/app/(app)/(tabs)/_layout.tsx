@@ -7,7 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Animated, StyleSheet, View } from "react-native";
+import { Animated, StyleSheet, useWindowDimensions, View } from "react-native";
 
 import { useIdioma } from "@/i18n/idioma";
 import { useTemaApp } from "@/theme/theme";
@@ -84,6 +84,8 @@ export default function LayoutAbas() {
   const { traduzir } = useIdioma();
   const reduzirMovimento = useReducaoMovimento();
   const insets = useSafeAreaInsets();
+  const { fontScale } = useWindowDimensions();
+  const alturaBarra = 62 + Math.max(0, Math.ceil((fontScale - 1) * 16));
 
   return (
     <Tabs
@@ -107,7 +109,7 @@ export default function LayoutAbas() {
           borderRadius: 20,
           borderTopWidth: 0,
           elevation: 1,
-          height: 62 + insets.bottom,
+          height: alturaBarra + insets.bottom,
           marginBottom: 6,
           marginHorizontal: 12,
           paddingBottom: 4 + insets.bottom,
@@ -123,7 +125,11 @@ export default function LayoutAbas() {
           marginVertical: 2,
           overflow: "visible",
         },
-        tabBarLabelStyle: { fontSize: 10, fontWeight: "700" },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: "700",
+          overflow: "visible",
+        },
       }}
     >
       <Tabs.Screen

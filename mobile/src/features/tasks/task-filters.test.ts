@@ -42,5 +42,27 @@ describe("filtros de tarefas", () => {
     expect(filtrarTarefas([comDatasDistintas], "TODAY", "", "2030-06-10")).toEqual([
       comDatasDistintas,
     ]);
+
+    const comAgendamentoHoje: Task = {
+      ...base,
+      id: "6",
+      title: "Treino agendado",
+      status: "TODO",
+      dueDate: "2030-06-12",
+      scheduledFor: "2030-06-10",
+    };
+
+    expect(filtrarTarefas([comAgendamentoHoje], "TODAY", "", "2030-06-10")).toEqual([
+      comAgendamentoHoje,
+    ]);
+
+    const semDatas: Task = {
+      ...base,
+      id: "7",
+      title: "Sem prazo",
+      status: "TODO",
+    };
+
+    expect(filtrarTarefas([semDatas], "TODAY", "", "2030-06-10")).toEqual([]);
   });
 });

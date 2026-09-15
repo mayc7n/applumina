@@ -105,7 +105,10 @@ export default function TelaSegurancaAmigo() {
   }
 
   return (
-    <SafeAreaView style={[styles.tela, { backgroundColor: tema.cores.fundo }]}>
+    <SafeAreaView
+      edges={["top", "left", "right", "bottom"]}
+      style={[styles.tela, { backgroundColor: tema.cores.fundo }]}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.tela}
