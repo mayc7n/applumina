@@ -139,18 +139,6 @@ export default function TelaTreinos() {
                   },
                 ]}
               >
-                <View
-                  accessibilityElementsHidden
-                  importantForAccessibility="no-hide-descendants"
-                  pointerEvents="none"
-                  style={[styles.planoAcao, { borderColor: tema.cores.sobreMarca }]}
-                />
-                <View
-                  accessibilityElementsHidden
-                  importantForAccessibility="no-hide-descendants"
-                  pointerEvents="none"
-                  style={[styles.aroAcao, { borderColor: tema.cores.sobreMarca }]}
-                />
                 <View style={styles.acaoTexto}>
                   <Text style={[styles.acaoTitulo, { color: tema.cores.sobreMarca }]}>
                     {traduzir("treinos.registrar")}
@@ -263,54 +251,28 @@ const styles = StyleSheet.create({
   modalidadeTexto: { fontSize: 14, fontWeight: "600", lineHeight: 20 },
   acaoPrincipal: {
     alignItems: "center",
-    borderRadius: 24,
-    elevation: 7,
+    borderRadius: 18,
+    elevation: 1,
     flexDirection: "row",
-    gap: 16,
-    minHeight: 124,
+    gap: 14,
+    minHeight: 104,
     overflow: "hidden",
-    padding: 20,
+    padding: 16,
     shadowColor: "#2B1712",
-    shadowOffset: { width: 0, height: 9 },
-    shadowOpacity: 0.16,
-    shadowRadius: 20,
-  },
-  planoAcao: {
-    borderRadius: 34,
-    borderWidth: 1,
-    height: 154,
-    opacity: 0.16,
-    position: "absolute",
-    right: -31,
-    top: -64,
-    transform: [{ rotate: "-22deg" }],
-    width: 190,
-  },
-  aroAcao: {
-    borderRadius: 80,
-    borderWidth: 18,
-    bottom: -76,
-    height: 160,
-    opacity: 0.08,
-    position: "absolute",
-    right: 18,
-    width: 160,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
   },
   acaoTexto: { flex: 1, gap: 5, zIndex: 1 },
   acaoTitulo: { fontSize: 21, fontWeight: "800", lineHeight: 27 },
   acaoDescricao: { fontSize: 14, lineHeight: 20, opacity: 0.9 },
   acaoIcone: {
     alignItems: "center",
-    borderRadius: 24,
-    elevation: 3,
-    height: 52,
+    borderRadius: 22,
+    elevation: 1,
+    height: 48,
     justifyContent: "center",
-    shadowColor: "#2B1712",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.16,
-    shadowRadius: 8,
-    width: 52,
-    zIndex: 1,
+    width: 48,
   },
   carregando: { marginTop: 42 },
   historico: { gap: 14 },
