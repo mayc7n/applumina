@@ -18,12 +18,19 @@ export function ScreenHeader({ titulo, subtitulo, inicio, acao }: ScreenHeaderPr
       <View style={styles.container}>
         {inicio}
         <View style={styles.textos}>
-          <Text
-            accessibilityRole="header"
-            style={[styles.titulo, { color: tema.cores.texto }]}
-          >
-            {titulo}
-          </Text>
+          <View style={styles.linhaTitulo}>
+            <View
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+              style={[styles.marca, { backgroundColor: tema.cores.marca }]}
+            />
+            <Text
+              accessibilityRole="header"
+              style={[styles.titulo, { color: tema.cores.texto }]}
+            >
+              {titulo}
+            </Text>
+          </View>
           {subtitulo ? (
             <Text
               style={[styles.subtitulo, { color: tema.cores.textoSecundario }]}
@@ -46,6 +53,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   textos: { flex: 1, gap: 4 },
-  titulo: { fontSize: 22, fontWeight: "700", letterSpacing: -0.4 },
-  subtitulo: { fontSize: 14, fontWeight: "400", lineHeight: 20 },
+  linhaTitulo: { alignItems: "center", flexDirection: "row", gap: 10 },
+  marca: { borderRadius: 3, height: 24, width: 5 },
+  titulo: { flexShrink: 1, fontSize: 26, fontWeight: "800", letterSpacing: -0.6 },
+  subtitulo: { fontSize: 14, lineHeight: 20 },
 });

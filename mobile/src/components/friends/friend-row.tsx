@@ -1,4 +1,4 @@
-import { ShieldCheck, UserRound } from "lucide-react-native";
+import { ShieldCheck } from "lucide-react-native";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTemaApp } from "@/theme/theme";
 import type { SocialUser } from "@/types/api";
@@ -35,6 +35,13 @@ export function FriendRow({
   acaoPrincipal = false,
 }: FriendRowProps) {
   const tema = useTemaApp();
+  const iniciais = usuario.displayName
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((parte) => parte.charAt(0))
+    .join("")
+    .toLocaleUpperCase();
 
   return (
     <View
@@ -45,26 +52,38 @@ export function FriendRow({
     >
       <View style={styles.cabecalho}>
         <View
-          style={[styles.avatar, { backgroundColor: tema.cores.marcaSuave }]}
+          style={[
+            styles.avatar,
+            {
+              backgroundColor: tema.cores.marcaSuave,
+              borderColor: tema.cores.marcaContorno,
+            },
+          ]}
         >
-          <UserRound color={tema.cores.marca} size={22} />
+          <Text style={[styles.avatarTexto, { color: tema.cores.marca }]}>
+            {iniciais}
+          </Text>
+          {usuario.isOnline ? (
+            <View
+              accessibilityLabel={rotuloOnline}
+              accessibilityRole="text"
+              style={[
+                styles.online,
+                {
+                  backgroundColor: tema.cores.sucesso,
+                  borderColor: tema.cores.elevado,
+                },
+              ]}
+            />
+          ) : null}
         </View>
         <View style={styles.identidade}>
-          <View style={styles.nomeOnline}>
-            <Text
-              numberOfLines={1}
-              style={[styles.nome, { color: tema.cores.texto }]}
-            >
-              {usuario.displayName}
-            </Text>
-            {usuario.isOnline ? (
-              <View
-                accessibilityLabel={rotuloOnline}
-                accessibilityRole="text"
-                style={[styles.online, { backgroundColor: tema.cores.sucesso }]}
-              />
-            ) : null}
-          </View>
+          <Text
+            numberOfLines={1}
+            style={[styles.nome, { color: tema.cores.texto }]}
+          >
+            {usuario.displayName}
+          </Text>
           <Text
             numberOfLines={1}
             style={[styles.usuario, { color: tema.cores.textoSecundario }]}
@@ -174,16 +193,18 @@ const styles = StyleSheet.create({
   cabecalho: { alignItems: "center", flexDirection: "row", gap: 11 },
   avatar: {
     alignItems: "center",
+    borderWidth: 1,
     borderRadius: 22,
     height: 44,
     justifyContent: "center",
+    position: "relative",
     width: 44,
   },
+  avatarTexto: { fontSize: 14, fontWeight: "900", letterSpacing: 0.4 },
   identidade: { flex: 1, gap: 3 },
-  nomeOnline: { alignItems: "center", flexDirection: "row", gap: 7 },
   nome: { flexShrink: 1, fontSize: 15, fontWeight: "700" },
   usuario: { fontSize: 13 },
-  online: { borderRadius: 4, height: 8, width: 8 },
+  online: { borderRadius: 6, borderWidth: 2, bottom: -1, height: 12, position: "absolute", right: -1, width: 12 },
   acoes: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   acao: { alignItems: "center", borderRadius: 12, borderWidth: 1, flexGrow: 1, justifyContent: "center", minHeight: 44, paddingHorizontal: 14 },
   acaoTexto: { fontSize: 14, fontWeight: "700" },

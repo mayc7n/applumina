@@ -128,6 +128,7 @@ export default function TelaTreinos() {
               <Pressable
                 accessibilityLabel={traduzir("treinos.registrar")}
                 accessibilityRole="button"
+                android_ripple={{ color: "#FFFFFF29" }}
                 onPress={() => router.push("/workouts/new")}
                 style={({ pressed }) => [
                   styles.acaoPrincipal,
@@ -138,6 +139,18 @@ export default function TelaTreinos() {
                   },
                 ]}
               >
+                <View
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                  pointerEvents="none"
+                  style={[styles.planoAcao, { borderColor: tema.cores.sobreMarca }]}
+                />
+                <View
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                  pointerEvents="none"
+                  style={[styles.aroAcao, { borderColor: tema.cores.sobreMarca }]}
+                />
                 <View style={styles.acaoTexto}>
                   <Text style={[styles.acaoTitulo, { color: tema.cores.sobreMarca }]}>
                     {traduzir("treinos.registrar")}
@@ -169,35 +182,39 @@ export default function TelaTreinos() {
             ) : consulta.data?.length ? (
           <View style={styles.historico}>
             <View style={styles.cabecalhoHistorico}>
-              <Text style={[styles.historicoTitulo, { color: tema.cores.texto }]}>
-                {traduzir("treinos.historicoTitulo")}
-              </Text>
-              <View style={[styles.contagem, { backgroundColor: tema.cores.sobreposicao }]}>
-                <Text style={[styles.contagemTexto, { color: tema.cores.textoSecundario }]}>
+              <View style={styles.historicoTituloLinha}>
+                <View style={[styles.historicoMarca, { backgroundColor: tema.cores.marca }]} />
+                <Text style={[styles.historicoTitulo, { color: tema.cores.texto }]}>
+                  {traduzir("treinos.historicoTitulo")}
+                </Text>
+              </View>
+              <View style={[styles.contagem, { backgroundColor: tema.cores.marcaSuave }]}>
+                <Text style={[styles.contagemTexto, { color: tema.cores.marca }]}>
                   {traduzir("treinos.totalRegistros", { quantidade: consulta.data.length })}
                 </Text>
               </View>
             </View>
             <View style={styles.lista}>
-            {consulta.data.map((treino) => (
-              <WorkoutRow
-                aoEditar={() =>
-                  router.push({
-                    pathname: "/workouts/[id]",
-                    params: { id: treino.id },
-                  })
-                }
-                idioma={idioma}
-                key={treino.id}
-                rotuloEditar={traduzir("treinos.editarAcessibilidade", {
-                  treino: treino.customActivity || rotulos[treino.type],
-                })}
-                rotuloMinutos={traduzir("treinos.minutos", {
-                  quantidade: treino.durationMins,
-                })}
-                rotuloTipo={rotulos[treino.type]}
-                treino={treino}
-              />
+            {consulta.data.map((treino, indice) => (
+              <AnimatedEntry atraso={Math.min(indice, 6) * 35} key={treino.id}>
+                <WorkoutRow
+                  aoEditar={() =>
+                    router.push({
+                      pathname: "/workouts/[id]",
+                      params: { id: treino.id },
+                    })
+                  }
+                  idioma={idioma}
+                  rotuloEditar={traduzir("treinos.editarAcessibilidade", {
+                    treino: treino.customActivity || rotulos[treino.type],
+                  })}
+                  rotuloMinutos={traduzir("treinos.minutos", {
+                    quantidade: treino.durationMins,
+                  })}
+                  rotuloTipo={rotulos[treino.type]}
+                  treino={treino}
+                />
+              </AnimatedEntry>
             ))}
             </View>
           </View>
@@ -247,15 +264,63 @@ const styles = StyleSheet.create({
   },
   iconeModalidade: { alignItems: "center", borderRadius: 20, height: 40, justifyContent: "center", width: 40 },
   modalidadeTexto: { fontSize: 14, fontWeight: "600", lineHeight: 20 },
-  acaoPrincipal: { alignItems: "center", borderRadius: 24, flexDirection: "row", gap: 16, minHeight: 112, padding: 20 },
-  acaoTexto: { flex: 1, gap: 5 },
+  acaoPrincipal: {
+    alignItems: "center",
+    borderRadius: 24,
+    elevation: 7,
+    flexDirection: "row",
+    gap: 16,
+    minHeight: 124,
+    overflow: "hidden",
+    padding: 20,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 9 },
+    shadowOpacity: 0.16,
+    shadowRadius: 20,
+  },
+  planoAcao: {
+    borderRadius: 34,
+    borderWidth: 1,
+    height: 154,
+    opacity: 0.16,
+    position: "absolute",
+    right: -31,
+    top: -64,
+    transform: [{ rotate: "-22deg" }],
+    width: 190,
+  },
+  aroAcao: {
+    borderRadius: 80,
+    borderWidth: 18,
+    bottom: -76,
+    height: 160,
+    opacity: 0.08,
+    position: "absolute",
+    right: 18,
+    width: 160,
+  },
+  acaoTexto: { flex: 1, gap: 5, zIndex: 1 },
   acaoTitulo: { fontSize: 21, fontWeight: "800", lineHeight: 27 },
   acaoDescricao: { fontSize: 14, lineHeight: 20, opacity: 0.9 },
-  acaoIcone: { alignItems: "center", borderRadius: 24, height: 48, justifyContent: "center", width: 48 },
+  acaoIcone: {
+    alignItems: "center",
+    borderRadius: 24,
+    elevation: 3,
+    height: 52,
+    justifyContent: "center",
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.16,
+    shadowRadius: 8,
+    width: 52,
+    zIndex: 1,
+  },
   carregando: { marginTop: 42 },
   historico: { gap: 14 },
   cabecalhoHistorico: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
-  historicoTitulo: { fontSize: 20, fontWeight: "800", lineHeight: 26 },
+  historicoTituloLinha: { alignItems: "center", flexDirection: "row", flexShrink: 1, gap: 9 },
+  historicoMarca: { borderRadius: 3, height: 22, width: 5 },
+  historicoTitulo: { flexShrink: 1, fontSize: 20, fontWeight: "800", lineHeight: 26 },
   contagem: { borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6 },
   contagemTexto: { fontSize: 12, fontWeight: "700", lineHeight: 16 },
   lista: { gap: 10 },

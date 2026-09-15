@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import {
   CircleAlert,
@@ -213,24 +214,68 @@ export default function TelaConta() {
       <ScrollView contentContainerStyle={styles.conteudo}>
         <ScreenHeader titulo={traduzir("conta.titulo")} />
         <AnimatedEntry>
-          <View style={[styles.perfil, { backgroundColor: tema.cores.marca }]}>
-            <View style={[styles.avatar, { backgroundColor: tema.cores.sobreMarca }]}>
-              <Text style={[styles.inicial, { color: tema.cores.marca }]}>
-                {usuario?.displayName?.trim().charAt(0).toUpperCase() ?? "L"}
-              </Text>
-            </View>
-            <View style={styles.dadosPerfil}>
-              <Text style={[styles.nomePerfil, { color: tema.cores.sobreMarca }]}>
-                {usuario?.displayName}
-              </Text>
-              <Text style={[styles.emailPerfil, { color: tema.cores.sobreMarca }]}>
-                {usuario?.email}
-              </Text>
-              <View style={[styles.planoPill, { backgroundColor: tema.cores.sobreMarca }]}>
+          <View
+            style={[
+              styles.perfil,
+              { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
+            ]}
+          >
+            <View
+              style={[
+                styles.perfilVisual,
+                {
+                  backgroundColor: tema.cores.sobreposicao,
+                  borderBottomColor: tema.cores.borda,
+                },
+              ]}
+            >
+              <View
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                pointerEvents="none"
+                style={[styles.trilhoPerfil, { backgroundColor: tema.cores.marca }]}
+              />
+              <View
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+                pointerEvents="none"
+                style={[styles.orbePerfil, { backgroundColor: tema.cores.marcaSuave }]}
+              />
+              <View style={[styles.planoPill, { backgroundColor: tema.cores.marcaSuave }]}>
                 <Text style={[styles.plano, { color: tema.cores.marca }]}>
                   {traduzir("conta.plano", { plano: usuario?.plan ?? "FREE" })}
                 </Text>
               </View>
+              <View
+                style={[
+                  styles.avatar,
+                  {
+                    backgroundColor: tema.cores.marcaSuave,
+                    borderColor: tema.cores.marcaContorno,
+                  },
+                ]}
+              >
+                {usuario?.avatarUrl ? (
+                  <Image
+                    accessibilityLabel={usuario.displayName}
+                    contentFit="cover"
+                    source={{ uri: usuario.avatarUrl }}
+                    style={styles.avatarImagem}
+                  />
+                ) : (
+                  <Text style={[styles.inicial, { color: tema.cores.marca }]}>
+                    {usuario?.displayName?.trim().charAt(0).toUpperCase() ?? "L"}
+                  </Text>
+                )}
+              </View>
+            </View>
+            <View style={styles.dadosPerfil}>
+              <Text style={[styles.nomePerfil, { color: tema.cores.texto }]}>
+                {usuario?.displayName}
+              </Text>
+              <Text style={[styles.emailPerfil, { color: tema.cores.textoSecundario }]}>
+                {usuario?.email}
+              </Text>
             </View>
           </View>
         </AnimatedEntry>
@@ -527,13 +572,36 @@ const styles = StyleSheet.create({
     paddingTop: 18,
   },
   perfil: {
-    alignItems: "center",
     borderRadius: 26,
-    flexDirection: "row",
-    gap: 16,
-    minHeight: 140,
-    padding: 22,
+    borderWidth: 1,
+    minHeight: 260,
+    overflow: "hidden",
+    elevation: 7,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.16,
+    shadowRadius: 22,
   },
+  perfilVisual: {
+    alignItems: "center",
+    borderBottomWidth: 1,
+    justifyContent: "center",
+    minHeight: 152,
+    overflow: "hidden",
+  },
+  trilhoPerfil: {
+    bottom: 0,
+    elevation: 8,
+    position: "absolute",
+    right: 0,
+    shadowColor: "#C63C24",
+    shadowOffset: { width: -5, height: 0 },
+    shadowOpacity: 0.55,
+    shadowRadius: 12,
+    top: 0,
+    width: 6,
+  },
+  orbePerfil: { borderRadius: 90, height: 180, opacity: 0.7, position: "absolute", right: -72, top: -84, width: 180 },
   visitante: {
     borderRadius: 20,
     borderWidth: 1,
@@ -543,17 +611,25 @@ const styles = StyleSheet.create({
   visitanteIcone: { alignItems: "center", borderRadius: 25, height: 50, justifyContent: "center", width: 50 },
   avatar: {
     alignItems: "center",
-    borderRadius: 32,
-    height: 64,
+    borderRadius: 44,
+    borderWidth: 2,
+    height: 88,
     justifyContent: "center",
-    width: 64,
+    elevation: 3,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 9,
+    width: 88,
+    zIndex: 1,
   },
-  inicial: { fontSize: 26, fontWeight: "800" },
-  dadosPerfil: { alignItems: "flex-start", flex: 1, gap: 5 },
+  avatarImagem: { borderRadius: 40, height: 80, width: 80 },
+  inicial: { fontSize: 30, fontWeight: "900" },
+  dadosPerfil: { alignItems: "center", gap: 5, padding: 20 },
   nome: { fontSize: 17, fontWeight: "700" },
-  nomePerfil: { fontSize: 21, fontWeight: "800", lineHeight: 27 },
+  nomePerfil: { fontSize: 22, fontWeight: "900", lineHeight: 28, textAlign: "center" },
   emailPerfil: { fontSize: 13, lineHeight: 18, opacity: 0.88 },
-  planoPill: { borderRadius: 12, marginTop: 5, paddingHorizontal: 10, paddingVertical: 5 },
+  planoPill: { borderRadius: 999, paddingHorizontal: 11, paddingVertical: 6, position: "absolute", right: 16, top: 16, zIndex: 2 },
   plano: { fontSize: 11, fontWeight: "800" },
   icone: {
     alignItems: "center",
@@ -565,7 +641,17 @@ const styles = StyleSheet.create({
   textoCartao: { flex: 1, gap: 4 },
   tituloCartao: { fontSize: 15, fontWeight: "700" },
   descricaoCartao: { fontSize: 13, lineHeight: 19 },
-  secaoSessoes: { borderRadius: 22, borderWidth: 1, gap: 15, padding: 18 },
+  secaoSessoes: {
+    borderRadius: 22,
+    borderWidth: 1,
+    elevation: 2,
+    gap: 15,
+    padding: 18,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+  },
   cabecalhoSecao: { alignItems: "flex-start", flexDirection: "row", gap: 13 },
   tituloSecao: { fontSize: 18, fontWeight: "700" },
   carregandoSessoes: { alignItems: "center", minHeight: 72, justifyContent: "center" },

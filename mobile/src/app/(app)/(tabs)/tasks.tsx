@@ -1,7 +1,16 @@
 import { format } from "date-fns";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Plus, Search } from "lucide-react-native";
+import {
+  CalendarClock,
+  CalendarDays,
+  CheckCircle2,
+  List,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  TriangleAlert,
+} from "lucide-react-native";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -28,13 +37,16 @@ import { useIdioma } from "@/i18n/idioma";
 import { obterMensagemErroApi } from "@/lib/api/errors";
 import { useArmazenamentoAutenticacao } from "@/store/auth-store";
 import { useTemaApp } from "@/theme/theme";
+import { useReducaoMovimento } from "@/theme/use-reduced-motion";
 import type { Task } from "@/types/api";
 
 export default function TelaTarefas() {
   const tema = useTemaApp();
+  const reduzirMovimento = useReducaoMovimento();
   const { traduzir } = useIdioma();
   const [titulo, definirTitulo] = useState("");
   const [busca, definirBusca] = useState("");
+  const [buscaFocada, definirBuscaFocada] = useState(false);
   const [filtro, definirFiltro] = useState<FiltroTarefa>("TODAY");
   const [erroAcao, definirErroAcao] = useState("");
   const autenticado = useArmazenamentoAutenticacao((armazenamento) => armazenamento.estado === "autenticado");
@@ -97,9 +109,11 @@ export default function TelaTarefas() {
   }
 
   const filtros = [
-    ["TODAY", "tarefas.filtroHoje"],
-    ["DONE", "tarefas.filtroConcluidas"],
-    ["ALL", "tarefas.filtroTodas"],
+    ["TODAY", "tarefas.filtroHoje", CalendarDays],
+    ["UPCOMING", "tarefas.filtroProximas", CalendarClock],
+    ["OVERDUE", "tarefas.filtroAtrasadas", TriangleAlert],
+    ["DONE", "tarefas.filtroConcluidas", CheckCircle2],
+    ["ALL", "tarefas.filtroTodas", List],
   ] as const;
 
   return (
@@ -129,75 +143,6 @@ export default function TelaTarefas() {
           <AnimatedEntry>
             <View
               style={[
-                styles.criacao,
-                {
-                  backgroundColor: tema.cores.marcaSuave,
-                  borderColor: tema.cores.marcaContorno,
-                },
-              ]}
-            >
-              <View style={styles.criacaoCabecalho}>
-                <View
-                  style={[
-                    styles.criacaoIcone,
-                    { backgroundColor: tema.cores.elevado },
-                  ]}
-                >
-                  <Plus color={tema.cores.marca} size={20} />
-                </View>
-                <View style={styles.criacaoTextos}>
-                  <Text
-                    style={[styles.criacaoTitulo, { color: tema.cores.texto }]}
-                  >
-                    {traduzir("tarefas.capturaTitulo")}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.criacaoAjuda,
-                      { color: tema.cores.textoSecundario },
-                    ]}
-                  >
-                    {traduzir("tarefas.capturaAjuda")}
-                  </Text>
-                </View>
-              </View>
-              <View
-                style={[
-                  styles.criacaoEntrada,
-                  {
-                    backgroundColor: tema.cores.elevado,
-                    borderColor: tema.cores.borda,
-                  },
-                ]}
-              >
-                <TextInput
-                  accessibilityLabel={traduzir("tarefas.novaPlaceholder")}
-                  autoCorrect
-                  maxLength={500}
-                  onChangeText={definirTitulo}
-                  onSubmitEditing={() => void criarTarefa()}
-                  placeholder={traduzir("tarefas.novaPlaceholder")}
-                  placeholderTextColor={tema.cores.textoSutil}
-                  returnKeyType="done"
-                  selectionColor={tema.cores.marca}
-                  style={[styles.entrada, { color: tema.cores.texto }]}
-                  value={titulo}
-                />
-                {titulo.trim() ? (
-                  <AppButton
-                    carregando={criar.isPending}
-                    onPress={() => void criarTarefa()}
-                    rotulo={traduzir("tarefas.criar")}
-                    style={styles.botaoCriar}
-                  />
-                ) : null}
-              </View>
-            </View>
-          </AnimatedEntry>
-
-          <AnimatedEntry>
-            <View
-              style={[
                 styles.ferramentas,
                 {
                   backgroundColor: tema.cores.elevado,
@@ -205,20 +150,35 @@ export default function TelaTarefas() {
                 },
               ]}
             >
+              <View style={styles.ferramentasCabecalho}>
+                <View style={[styles.ferramentasIcone, { backgroundColor: tema.cores.marcaSuave }]}>
+                  <SlidersHorizontal color={tema.cores.marca} size={17} />
+                </View>
+                <Text style={[styles.ferramentasTitulo, { color: tema.cores.texto }]}>
+                  {traduzir("tarefas.filtros")}
+                </Text>
+                <View style={[styles.resultados, { backgroundColor: tema.cores.sobreposicao }]}>
+                  <Text style={[styles.resultadosTexto, { color: tema.cores.textoSecundario }]}>
+                    {tarefasVisiveis.length}
+                  </Text>
+                </View>
+              </View>
               <View
                 style={[
                   styles.busca,
                   {
-                    borderColor: tema.cores.borda,
-                    backgroundColor: tema.cores.sobreposicao,
+                    borderColor: buscaFocada ? tema.cores.marca : tema.cores.borda,
+                    backgroundColor: buscaFocada ? tema.cores.elevado : tema.cores.sobreposicao,
                   },
                 ]}
               >
-                <Search color={tema.cores.textoSutil} size={19} />
+                <Search color={buscaFocada ? tema.cores.marca : tema.cores.textoSutil} size={19} />
                 <TextInput
                   accessibilityLabel={traduzir("tarefas.buscar")}
                   autoCorrect
+                  onBlur={() => definirBuscaFocada(false)}
                   onChangeText={definirBusca}
+                  onFocus={() => definirBuscaFocada(true)}
                   placeholder={traduzir("tarefas.buscar")}
                   placeholderTextColor={tema.cores.textoSutil}
                   returnKeyType="search"
@@ -229,16 +189,23 @@ export default function TelaTarefas() {
               </View>
 
               <ScrollView
+                accessibilityLabel={traduzir("tarefas.filtros")}
+                accessibilityRole="radiogroup"
                 horizontal
                 contentContainerStyle={styles.filtros}
                 showsHorizontalScrollIndicator={false}
               >
-                {filtros.map(([valor, chave]) => {
+                {filtros.map(([valor, chave, IconeFiltro]) => {
                   const selecionado = filtro === valor;
                   return (
                     <Pressable
-                      accessibilityRole="button"
+                      accessibilityRole="radio"
                       accessibilityState={{ selected: selecionado }}
+                      android_ripple={{
+                        color: selecionado
+                          ? "#FFFFFF33"
+                          : tema.cores.marcaContorno,
+                      }}
                       key={valor}
                       onPress={() => definirFiltro(valor)}
                       style={({ pressed }) => [
@@ -247,13 +214,19 @@ export default function TelaTarefas() {
                           backgroundColor: selecionado
                             ? tema.cores.marca
                             : tema.cores.sobreposicao,
-                          borderColor: selecionado
-                            ? tema.cores.marca
-                            : tema.cores.borda,
-                          opacity: pressed ? 0.7 : 1,
+                          elevation: selecionado ? 3 : 0,
+                          shadowColor: tema.cores.marca,
+                          shadowOffset: { width: 0, height: 3 },
+                          shadowOpacity: selecionado ? 0.22 : 0,
+                          shadowRadius: 7,
+                          transform: [{ scale: pressed && reduzirMovimento === false ? 0.96 : 1 }],
                         },
                       ]}
                     >
+                      <IconeFiltro
+                        color={selecionado ? tema.cores.sobreMarca : tema.cores.textoSutil}
+                        size={15}
+                      />
                       <Text
                         style={[
                           styles.filtroTexto,
@@ -285,14 +258,15 @@ export default function TelaTarefas() {
             <FeedbackState descricao={traduzir("tarefas.semResultadoDescricao")} titulo={traduzir("tarefas.semResultadoTitulo")} />
           ) : (
             <View style={styles.lista}>
-              {tarefasVisiveis.map((tarefa) => (
-                <TaskRow
-                  aoAlternar={() => void alternarTarefa(tarefa)}
-                  aoEditar={() => router.push({ pathname: "/tasks/[id]", params: { id: tarefa.id } })}
-                  desabilitada={alternar.isPending && alternar.variables === tarefa.id}
-                  key={tarefa.id}
-                  tarefa={tarefa}
-                />
+              {tarefasVisiveis.map((tarefa, indice) => (
+                <AnimatedEntry atraso={Math.min(indice, 6) * 35} key={tarefa.id}>
+                  <TaskRow
+                    aoAlternar={() => void alternarTarefa(tarefa)}
+                    aoEditar={() => router.push({ pathname: "/tasks/[id]", params: { id: tarefa.id } })}
+                    desabilitada={alternar.isPending && alternar.variables === tarefa.id}
+                    tarefa={tarefa}
+                  />
+                </AnimatedEntry>
               ))}
               {consulta.hasNextPage ? (
                 <AppButton
@@ -306,6 +280,40 @@ export default function TelaTarefas() {
             </View>
           )}
         </ScrollView>
+        <AnimatedEntry
+          style={[
+            styles.dockCaptura,
+            {
+              backgroundColor: tema.cores.elevado,
+              borderColor: tema.cores.marcaContorno,
+            },
+          ]}
+        >
+          <View style={[styles.criacaoIcone, { backgroundColor: tema.cores.marcaSuave }]}>
+            <Plus color={tema.cores.marca} size={20} />
+          </View>
+          <TextInput
+            accessibilityLabel={traduzir("tarefas.novaPlaceholder")}
+            autoCorrect
+            maxLength={500}
+            onChangeText={definirTitulo}
+            onSubmitEditing={() => void criarTarefa()}
+            placeholder={traduzir("tarefas.novaPlaceholder")}
+            placeholderTextColor={tema.cores.textoSutil}
+            returnKeyType="done"
+            selectionColor={tema.cores.marca}
+            style={[styles.entrada, { color: tema.cores.texto }]}
+            value={titulo}
+          />
+          {titulo.trim() ? (
+            <AppButton
+              carregando={criar.isPending}
+              onPress={() => void criarTarefa()}
+              rotulo={traduzir("tarefas.criar")}
+              style={styles.botaoCriar}
+            />
+          ) : null}
+        </AnimatedEntry>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -313,22 +321,22 @@ export default function TelaTarefas() {
 
 const styles = StyleSheet.create({
   tela: { flex: 1 },
-  conteudo: { gap: 18, paddingBottom: 40, paddingHorizontal: 20, paddingTop: 18 },
+  conteudo: { gap: 18, paddingBottom: 18, paddingHorizontal: 20, paddingTop: 18 },
   conteudoVisitante: { flex: 1, gap: 22, paddingBottom: 32, paddingHorizontal: 20, paddingTop: 18 },
   acaoCabecalho: { alignItems: "center", borderRadius: 22, height: 44, justifyContent: "center", width: 44 },
-  criacao: { borderRadius: 24, borderWidth: 1, gap: 14, padding: 18 },
-  criacaoCabecalho: { alignItems: "center", flexDirection: "row", gap: 12 },
   criacaoIcone: { alignItems: "center", borderRadius: 17, height: 42, justifyContent: "center", width: 42 },
-  criacaoTextos: { flex: 1, gap: 2 },
-  criacaoTitulo: { fontSize: 17, fontWeight: "800", letterSpacing: -0.25 },
-  criacaoAjuda: { fontSize: 12, lineHeight: 17 },
-  criacaoEntrada: { alignItems: "center", borderRadius: 16, borderWidth: 1, flexDirection: "row", gap: 8, minHeight: 56, paddingHorizontal: 14, paddingVertical: 5 },
+  dockCaptura: { alignItems: "center", borderRadius: 22, borderWidth: 1, flexDirection: "row", gap: 8, marginHorizontal: 16, marginTop: 8, minHeight: 66, paddingHorizontal: 10, paddingVertical: 8, shadowColor: "#000000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.14, shadowRadius: 18 },
   ferramentas: { borderRadius: 22, borderWidth: 1, gap: 12, padding: 12 },
-  busca: { alignItems: "center", borderRadius: 14, borderWidth: 1, flexDirection: "row", gap: 9, minHeight: 50, paddingHorizontal: 14 },
+  ferramentasCabecalho: { alignItems: "center", flexDirection: "row", gap: 9, paddingHorizontal: 2 },
+  ferramentasIcone: { alignItems: "center", borderRadius: 10, height: 32, justifyContent: "center", width: 32 },
+  ferramentasTitulo: { flex: 1, fontSize: 14, fontWeight: "800" },
+  resultados: { alignItems: "center", borderRadius: 999, justifyContent: "center", minHeight: 28, minWidth: 34, paddingHorizontal: 8 },
+  resultadosTexto: { fontSize: 12, fontWeight: "800" },
+  busca: { alignItems: "center", borderRadius: 16, borderWidth: 1, flexDirection: "row", gap: 9, minHeight: 50, paddingHorizontal: 14 },
   entrada: { flex: 1, fontSize: 16, paddingVertical: 9 },
   botaoCriar: { minHeight: 44, paddingHorizontal: 14 },
   filtros: { gap: 8, paddingRight: 4 },
-  filtro: { borderRadius: 999, borderWidth: 1, justifyContent: "center", minHeight: 42, paddingHorizontal: 15 },
+  filtro: { alignItems: "center", borderRadius: 999, flexDirection: "row", gap: 6, justifyContent: "center", minHeight: 42, overflow: "hidden", paddingHorizontal: 15 },
   filtroTexto: { fontSize: 13, fontWeight: "700" },
   erro: { fontSize: 13, lineHeight: 19 },
   carregando: { marginTop: 42 },

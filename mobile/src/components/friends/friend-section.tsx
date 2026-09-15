@@ -13,7 +13,10 @@ export function FriendSection({ titulo, children }: FriendSectionProps) {
 
   return (
     <View style={styles.secao}>
-      <Text style={[styles.titulo, { color: tema.cores.texto }]}>{titulo}</Text>
+      <View style={styles.cabecalho}>
+        <View style={[styles.marca, { backgroundColor: tema.cores.marca }]} />
+        <Text style={[styles.titulo, { color: tema.cores.texto }]}>{titulo}</Text>
+      </View>
       <View style={styles.lista}>{children}</View>
     </View>
   );
@@ -21,6 +24,8 @@ export function FriendSection({ titulo, children }: FriendSectionProps) {
 
 const styles = StyleSheet.create({
   secao: { gap: 10 },
-  titulo: { fontSize: 18, fontWeight: "800", lineHeight: 24 },
+  cabecalho: { alignItems: "center", flexDirection: "row", gap: 9 },
+  marca: { borderRadius: 2, height: 18, width: 4 },
+  titulo: { flex: 1, fontSize: 18, fontWeight: "800", lineHeight: 24 },
   lista: { gap: 10 },
 });

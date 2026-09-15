@@ -1,4 +1,4 @@
-import { forwardRef, type ReactNode } from "react";
+import { forwardRef, type ReactNode, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -21,13 +21,14 @@ interface FormFieldProps extends TextInputProps {
 
 export const FormField = forwardRef<TextInput, FormFieldProps>(
   function FormField(
-    { rotulo, erro, inicio, fim, containerStyle, style, ...props },
+    { rotulo, erro, inicio, fim, containerStyle, onBlur, onFocus, style, ...props },
     referencia,
   ) {
     const tema = useTemaApp();
+    const [focado, definirFocado] = useState(false);
     return (
       <View style={[styles.wrapper, containerStyle]}>
-        <Text style={[styles.label, { color: tema.cores.texto }]}>
+        <Text style={[styles.label, { color: focado ? tema.cores.marca : tema.cores.texto }]}>
           {rotulo}
         </Text>
         <View
@@ -35,7 +36,12 @@ export const FormField = forwardRef<TextInput, FormFieldProps>(
             styles.field,
             {
               backgroundColor: tema.cores.fundo,
-              borderColor: erro ? tema.cores.perigo : tema.cores.borda,
+              borderColor: erro
+                ? tema.cores.perigo
+                : focado
+                  ? tema.cores.marca
+                  : tema.cores.borda,
+              borderWidth: focado || erro ? 2 : 1,
             },
           ]}
         >
@@ -44,6 +50,14 @@ export const FormField = forwardRef<TextInput, FormFieldProps>(
             ref={referencia}
             accessibilityLabel={rotulo}
             accessibilityHint={erro}
+            onBlur={(evento) => {
+              definirFocado(false);
+              onBlur?.(evento);
+            }}
+            onFocus={(evento) => {
+              definirFocado(true);
+              onFocus?.(evento);
+            }}
             placeholderTextColor={tema.cores.textoSutil}
             selectionColor={tema.cores.marca}
             style={[styles.input, { color: tema.cores.texto }, style]}
@@ -70,7 +84,6 @@ const styles = StyleSheet.create({
   field: {
     alignItems: "center",
     borderRadius: 12,
-    borderWidth: 1,
     flexDirection: "row",
     minHeight: 50,
     paddingHorizontal: 14,

@@ -4,43 +4,157 @@ import {
   Dumbbell,
   Home,
   UsersRound,
+  type LucideIcon,
 } from "lucide-react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useEffect, useState } from "react";
+import { Animated, StyleSheet, View } from "react-native";
 
 import { useIdioma } from "@/i18n/idioma";
 import { useTemaApp } from "@/theme/theme";
+import { criarMovimento } from "@/theme/motion";
+import { useReducaoMovimento } from "@/theme/use-reduced-motion";
+
+function IconeAba({ ativo, Icone, tamanho }: { ativo: boolean; Icone: LucideIcon; tamanho: number }) {
+  const tema = useTemaApp();
+  const reduzirMovimento = useReducaoMovimento();
+  const movimento = criarMovimento(reduzirMovimento !== false).selecao;
+  const [progresso] = useState(() => new Animated.Value(ativo ? 1 : 0));
+
+  useEffect(() => {
+    const transicao = Animated.timing(progresso, {
+      duration: movimento.duracao,
+      toValue: ativo ? 1 : 0,
+      useNativeDriver: true,
+    });
+    transicao.start();
+    return () => transicao.stop();
+  }, [ativo, movimento.duracao, progresso]);
+
+  return (
+    <View style={styles.iconeAba}>
+      <Animated.View
+        style={[
+          styles.indicadorAba,
+          {
+            backgroundColor: tema.cores.marcaSuave,
+            borderColor: tema.cores.marcaContorno,
+            opacity: progresso,
+            transform: [
+              {
+                scale: progresso.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [movimento.escalaInativa, 1],
+                }),
+              },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={{
+          transform: [
+            {
+              translateY: progresso.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, -3],
+              }),
+            },
+          ],
+        }}
+      >
+        <Icone
+          color={ativo ? tema.cores.marca : tema.cores.textoSutil}
+          size={tamanho}
+          strokeWidth={ativo ? 2.7 : 2}
+        />
+      </Animated.View>
+      <Animated.View
+        accessibilityElementsHidden
+        importantForAccessibility="no"
+        style={[
+          styles.pontoAtivo,
+          {
+            backgroundColor: tema.cores.marca,
+            opacity: progresso,
+            transform: [{ scale: progresso }],
+          },
+        ]}
+      />
+    </View>
+  );
+}
+
+function FundoBarra3D() {
+  const tema = useTemaApp();
+
+  return (
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      pointerEvents="none"
+      style={[
+        styles.barra3D,
+        {
+          backgroundColor: tema.cores.elevado,
+          borderColor: tema.cores.borda,
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.luzBarra,
+          { backgroundColor: tema.escuro ? tema.cores.texto : tema.cores.sobreMarca },
+        ]}
+      />
+      <View style={[styles.baseBarra, { backgroundColor: tema.cores.borda }]} />
+    </View>
+  );
+}
 
 export default function LayoutAbas() {
   const tema = useTemaApp();
   const { traduzir } = useIdioma();
-  const insets = useSafeAreaInsets();
+  const reduzirMovimento = useReducaoMovimento();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
+        animation: reduzirMovimento === false ? "shift" : "none",
         tabBarActiveTintColor: tema.cores.marca,
         tabBarInactiveTintColor: tema.cores.textoSutil,
         tabBarHideOnKeyboard: true,
+        tabBarBackground: () => <FundoBarra3D />,
         tabBarStyle: {
-          backgroundColor: tema.cores.elevado,
-          borderTopColor: tema.cores.borda,
-          borderTopWidth: 1,
-          elevation: 0,
-          height: 52 + insets.bottom,
-          paddingBottom: insets.bottom,
-          paddingTop: 6,
-          shadowOpacity: 0,
+          backgroundColor: "transparent",
+          borderRadius: 30,
+          borderTopWidth: 0,
+          elevation: 16,
+          height: 78,
+          marginBottom: 10,
+          marginHorizontal: 12,
+          paddingBottom: 7,
+          paddingTop: 7,
+          shadowColor: "#000000",
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: tema.escuro ? 0.42 : 0.2,
+          shadowRadius: 22,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+        tabBarItemStyle: {
+          borderRadius: 22,
+          marginHorizontal: 2,
+          marginVertical: 4,
+          overflow: "hidden",
+        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "800", letterSpacing: -0.15 },
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
           title: traduzir("navegacao.inicio"),
-          tabBarIcon: ({ color: cor, size: tamanho }) => (
-            <Home color={cor} size={tamanho} />
+          tabBarIcon: ({ focused: ativo, size: tamanho }) => (
+            <IconeAba ativo={ativo} Icone={Home} tamanho={tamanho} />
           ),
         }}
       />
@@ -48,8 +162,8 @@ export default function LayoutAbas() {
         name="tasks"
         options={{
           title: traduzir("navegacao.tarefas"),
-          tabBarIcon: ({ color: cor, size: tamanho }) => (
-            <CheckSquare2 color={cor} size={tamanho} />
+          tabBarIcon: ({ focused: ativo, size: tamanho }) => (
+            <IconeAba ativo={ativo} Icone={CheckSquare2} tamanho={tamanho} />
           ),
         }}
       />
@@ -57,8 +171,8 @@ export default function LayoutAbas() {
         name="workouts"
         options={{
           title: traduzir("navegacao.treinos"),
-          tabBarIcon: ({ color: cor, size: tamanho }) => (
-            <Dumbbell color={cor} size={tamanho} />
+          tabBarIcon: ({ focused: ativo, size: tamanho }) => (
+            <IconeAba ativo={ativo} Icone={Dumbbell} tamanho={tamanho} />
           ),
         }}
       />
@@ -66,11 +180,71 @@ export default function LayoutAbas() {
         name="friends"
         options={{
           title: traduzir("navegacao.amigos"),
-          tabBarIcon: ({ color: cor, size: tamanho }) => (
-            <UsersRound color={cor} size={tamanho} />
+          tabBarIcon: ({ focused: ativo, size: tamanho }) => (
+            <IconeAba ativo={ativo} Icone={UsersRound} tamanho={tamanho} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: traduzir("navegacao.conta"),
+          tabBarIcon: ({ focused: ativo, size: tamanho }) => (
+            <IconeAba ativo={ativo} Icone={UserRound} tamanho={tamanho} />
           ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  iconeAba: { alignItems: "center", height: 34, justifyContent: "center", width: 50 },
+  indicadorAba: {
+    borderRadius: 18,
+    borderWidth: 1,
+    bottom: -2,
+    elevation: 3,
+    left: 0,
+    position: "absolute",
+    right: 0,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.16,
+    shadowRadius: 6,
+    top: -2,
+  },
+  pontoAtivo: {
+    borderRadius: 3,
+    bottom: 0,
+    height: 4,
+    position: "absolute",
+    width: 4,
+  },
+  barra3D: {
+    borderRadius: 30,
+    borderWidth: 1,
+    bottom: 0,
+    left: 0,
+    overflow: "hidden",
+    position: "absolute",
+    right: 0,
+    top: 0,
+  },
+  luzBarra: {
+    height: 2,
+    left: 22,
+    opacity: 0.72,
+    position: "absolute",
+    right: 22,
+    top: 1,
+  },
+  baseBarra: {
+    bottom: 0,
+    height: 9,
+    left: 18,
+    opacity: 0.28,
+    position: "absolute",
+    right: 18,
+  },
+});

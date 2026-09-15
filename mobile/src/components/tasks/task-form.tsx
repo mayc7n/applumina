@@ -1,8 +1,10 @@
+import { Check } from "lucide-react-native";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppButton } from "@/components/ui/app-button";
 import { FormField } from "@/components/ui/form-field";
+import { GrupoSelecao } from "@/components/ui/selection-group";
 import {
   useCriarEtiquetaTarefa,
   useCriarProjetoTarefa,
@@ -19,6 +21,7 @@ import {
 import { useIdioma } from "@/i18n/idioma";
 import { obterMensagemErroApi } from "@/lib/api/errors";
 import { useTemaApp } from "@/theme/theme";
+import { useReducaoMovimento } from "@/theme/use-reduced-motion";
 import type { CreateTaskInput, Task } from "@/types/api";
 
 interface TaskFormProps {
@@ -34,27 +37,42 @@ interface OpcaoProps {
   selecionada: boolean;
   rotulo: string;
   aoPressionar: () => void;
+  corIndicador?: string;
+  multipla?: boolean;
 }
 
-function Opcao({ selecionada, rotulo, aoPressionar }: OpcaoProps) {
+function Opcao({ selecionada, rotulo, aoPressionar, corIndicador, multipla = false }: OpcaoProps) {
   const tema = useTemaApp();
+  const reduzirMovimento = useReducaoMovimento();
   return (
     <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected: selecionada }}
+      accessibilityRole={multipla ? "checkbox" : "radio"}
+      accessibilityState={multipla ? { checked: selecionada } : { selected: selecionada }}
+      android_ripple={{ color: selecionada ? "#FFFFFF33" : tema.cores.marcaContorno }}
       onPress={aoPressionar}
       style={({ pressed }) => [
         styles.opcao,
         {
-          backgroundColor: selecionada ? tema.cores.marcaSuave : tema.cores.elevado,
-          borderColor: selecionada ? tema.cores.marcaContorno : tema.cores.borda,
-          opacity: pressed ? 0.72 : 1,
+          backgroundColor: selecionada ? tema.cores.marca : tema.cores.sobreposicao,
+          transform: [{ scale: pressed && reduzirMovimento === false ? 0.97 : 1 }],
         },
       ]}
     >
-      <Text style={[styles.opcaoTexto, { color: selecionada ? tema.cores.marca : tema.cores.textoSecundario }]}>
+      {corIndicador ? (
+        <View
+          style={[
+            styles.indicadorPrioridade,
+            {
+              backgroundColor: corIndicador,
+              borderColor: selecionada ? tema.cores.sobreMarca : "transparent",
+            },
+          ]}
+        />
+      ) : null}
+      <Text style={[styles.opcaoTexto, { color: selecionada ? tema.cores.sobreMarca : tema.cores.textoSecundario }]}>
         {rotulo}
       </Text>
+      {selecionada ? <Check color={tema.cores.sobreMarca} size={15} strokeWidth={3} /> : null}
     </Pressable>
   );
 }
@@ -123,11 +141,11 @@ export function TaskForm({ tarefa, salvando, userId, aoSalvar, aoExcluir, aoDupl
   }
 
   const prioridades = [
-    ["NONE", "tarefas.prioridadeNenhuma"],
-    ["LOW", "tarefas.prioridadeBaixa"],
-    ["MEDIUM", "tarefas.prioridadeMedia"],
-    ["HIGH", "tarefas.prioridadeAlta"],
-    ["URGENT", "tarefas.prioridadeUrgente"],
+    ["NONE", "tarefas.prioridadeNenhuma", undefined],
+    ["LOW", "tarefas.prioridadeBaixa", tema.cores.prioridadeBaixa],
+    ["MEDIUM", "tarefas.prioridadeMedia", tema.cores.prioridadeMedia],
+    ["HIGH", "tarefas.prioridadeAlta", tema.cores.prioridadeAlta],
+    ["URGENT", "tarefas.prioridadeUrgente", tema.cores.prioridadeUrgente],
   ] as const;
   const recorrencias = [
     ["NONE", "tarefas.recorrenciaNenhuma"],
@@ -164,11 +182,11 @@ export function TaskForm({ tarefa, salvando, userId, aoSalvar, aoExcluir, aoDupl
 
       <View style={styles.grupo}>
         <Text style={[styles.rotulo, { color: tema.cores.texto }]}>{traduzir("tarefas.prioridade")}</Text>
-        <View style={styles.opcoes}>
-          {prioridades.map(([valor, chave]) => (
-            <Opcao key={valor} selecionada={valores.priority === valor} rotulo={traduzir(chave)} aoPressionar={() => atualizar("priority", valor)} />
+        <GrupoSelecao rotulo={traduzir("tarefas.prioridade")} style={styles.opcoes}>
+          {prioridades.map(([valor, chave, corIndicador]) => (
+            <Opcao corIndicador={corIndicador} key={valor} selecionada={valores.priority === valor} rotulo={traduzir(chave)} aoPressionar={() => atualizar("priority", valor)} />
           ))}
-        </View>
+        </GrupoSelecao>
       </View>
 
       <View style={styles.duasColunas}>
@@ -215,11 +233,11 @@ export function TaskForm({ tarefa, salvando, userId, aoSalvar, aoExcluir, aoDupl
 
       <View style={styles.grupo}>
         <Text style={[styles.rotulo, { color: tema.cores.texto }]}>{traduzir("tarefas.recorrencia")}</Text>
-        <View style={styles.opcoes}>
+        <GrupoSelecao rotulo={traduzir("tarefas.recorrencia")} style={styles.opcoes}>
           {recorrencias.map(([valor, chave]) => (
             <Opcao key={valor} selecionada={valores.recurrenceType === valor} rotulo={traduzir(chave)} aoPressionar={() => atualizar("recurrenceType", valor)} />
           ))}
-        </View>
+        </GrupoSelecao>
       </View>
 
       <View style={styles.grupo}>
@@ -231,12 +249,12 @@ export function TaskForm({ tarefa, salvando, userId, aoSalvar, aoExcluir, aoDupl
             <AppButton onPress={() => void projetos.refetch()} rotulo={traduzir("comum.tentarNovamente")} variante="secondary" />
           </View>
         ) : null}
-        <View style={styles.opcoes}>
+        <GrupoSelecao rotulo={traduzir("tarefas.projeto")} style={styles.opcoes}>
           <Opcao selecionada={!valores.projectId} rotulo={traduzir("tarefas.caixaEntrada")} aoPressionar={() => atualizar("projectId", "")} />
           {(projetos.data ?? []).map((projeto) => (
             <Opcao key={projeto.id} selecionada={valores.projectId === projeto.id} rotulo={projeto.name} aoPressionar={() => atualizar("projectId", projeto.id)} />
           ))}
-        </View>
+        </GrupoSelecao>
         <View style={styles.adicionarLinha}>
           <FormField
             accessibilityLabel={traduzir("tarefas.novoProjeto")}
@@ -274,6 +292,7 @@ export function TaskForm({ tarefa, salvando, userId, aoSalvar, aoExcluir, aoDupl
           {(etiquetas.data ?? []).map((etiqueta) => (
             <Opcao
               key={etiqueta.id}
+              multipla
               selecionada={valores.labelIds.includes(etiqueta.id)}
               rotulo={etiqueta.name}
               aoPressionar={() => atualizar(
@@ -338,8 +357,9 @@ const styles = StyleSheet.create({
   grupo: { gap: 10 },
   rotulo: { fontSize: 14, fontWeight: "700" },
   opcoes: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  opcao: { borderRadius: 999, borderWidth: 1, justifyContent: "center", minHeight: 44, paddingHorizontal: 14 },
+  opcao: { alignItems: "center", borderRadius: 999, flexDirection: "row", gap: 7, justifyContent: "center", minHeight: 44, overflow: "hidden", paddingHorizontal: 14 },
   opcaoTexto: { fontSize: 14, fontWeight: "600" },
+  indicadorPrioridade: { borderRadius: 5, borderWidth: 2, height: 10, width: 10 },
   textarea: { minHeight: 96, paddingTop: 12 },
   duasColunas: { gap: 14 },
   adicionarLinha: { alignItems: "flex-end", flexDirection: "row", gap: 8 },

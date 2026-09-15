@@ -7,9 +7,10 @@ import { useReducaoMovimento } from "@/theme/use-reduced-motion";
 interface AnimatedEntryProps {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
+  atraso?: number;
 }
 
-export function AnimatedEntry({ children, style }: AnimatedEntryProps) {
+export function AnimatedEntry({ children, style, atraso = 0 }: AnimatedEntryProps) {
   const reduzirMovimento = useReducaoMovimento();
   const [animarNaMontagem] = useState(() => reduzirMovimento === false);
   const movimentoInicial = criarMovimento(false).entrada;
@@ -38,11 +39,13 @@ export function AnimatedEntry({ children, style }: AnimatedEntryProps) {
 
     const entrada = Animated.parallel([
       Animated.timing(opacidade, {
+        delay: atraso,
         duration: movimento.duracao,
         toValue: 1,
         useNativeDriver: true,
       }),
       Animated.timing(deslocamentoY, {
+        delay: atraso,
         duration: movimento.duracao,
         toValue: 0,
         useNativeDriver: true,
@@ -51,7 +54,7 @@ export function AnimatedEntry({ children, style }: AnimatedEntryProps) {
 
     entrada.start();
     return () => entrada.stop();
-  }, [animarNaMontagem, deslocamentoY, opacidade, reduzirMovimento]);
+  }, [animarNaMontagem, atraso, deslocamentoY, opacidade, reduzirMovimento]);
 
   return (
     <Animated.View

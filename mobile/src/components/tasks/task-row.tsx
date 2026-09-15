@@ -46,6 +46,18 @@ export function TaskRow({
         },
       ]}
     >
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no"
+        style={[
+          styles.trilhoPrioridade,
+          {
+            backgroundColor: concluida
+              ? tema.cores.sucesso
+              : prioridade?.cor ?? tema.cores.borda,
+          },
+        ]}
+      />
       <Pressable
         accessibilityLabel={traduzir(concluida ? "tarefas.reabrir" : "tarefas.concluir", { titulo: tarefa.title })}
         accessibilityRole="checkbox"
@@ -109,6 +121,7 @@ const styles = StyleSheet.create({
     minHeight: 74,
     overflow: "hidden",
   },
+  trilhoPrioridade: { width: 4 },
   checkbox: { alignItems: "center", justifyContent: "center", width: 54 },
   conteudoPressionavel: { alignItems: "center", flex: 1, flexDirection: "row", gap: 8, minHeight: 68, paddingHorizontal: 10, paddingVertical: 12 },
   conteudo: { flex: 1, gap: 6 },

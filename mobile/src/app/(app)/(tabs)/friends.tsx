@@ -205,8 +205,9 @@ export default function TelaAmigos() {
                   ]}
                 >
                   <FriendSection titulo={traduzir("amigos.solicitacoes")}>
-                    {solicitacoes.data.map((solicitacao) => (
-                      <FriendRow
+                    {solicitacoes.data.map((solicitacao, indice) => (
+                      <AnimatedEntry atraso={Math.min(indice, 6) * 35} key={solicitacao.id}>
+                        <FriendRow
                         acaoPrincipal
                         acoesDesabilitadas={
                           (aceitar.isPending &&
@@ -226,12 +227,12 @@ export default function TelaAmigos() {
                         aoAgirSecundariamente={() =>
                           confirmarDesfazer("REJEITAR", solicitacao.id)
                         }
-                        key={solicitacao.id}
                         rotuloAcao={traduzir("amigos.aceitar")}
                         rotuloAcaoSecundaria={traduzir("amigos.rejeitar")}
                         rotuloOnline={traduzir("amigos.online")}
                         usuario={solicitacao.user}
-                      />
+                        />
+                      </AnimatedEntry>
                     ))}
                   </FriendSection>
                 </View>
@@ -240,13 +241,13 @@ export default function TelaAmigos() {
 
             <FriendSection titulo={traduzir("amigos.seusAmigos")}>
               {amigos.data?.length ? (
-                amigos.data.map((amigo) => (
-                  <FriendRow
+                amigos.data.map((amigo, indice) => (
+                  <AnimatedEntry atraso={Math.min(indice, 6) * 35} key={amigo.id}>
+                    <FriendRow
                     acoesDesabilitadas={
                       remover.isPending && remover.variables === amigo.id
                     }
                     agindo={remover.isPending && remover.variables === amigo.id}
-                    key={amigo.id}
                     aoAbrirSeguranca={() =>
                       router.push({
                         pathname: "/friends/safety/[id]",
@@ -262,7 +263,8 @@ export default function TelaAmigos() {
                     rotuloOnline={traduzir("amigos.online")}
                     rotuloSeguranca={traduzir("amigos.seguranca")}
                     usuario={amigo}
-                  />
+                    />
+                  </AnimatedEntry>
                 ))
               ) : (
                 <FeedbackState

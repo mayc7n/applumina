@@ -30,8 +30,18 @@ export function OfflineBanner() {
       edges={["top"]}
       style={{ backgroundColor: tema.cores.offlineSuave }}
     >
-      <View style={styles.conteudo}>
-        <WifiOff color={tema.cores.offline} size={16} />
+      <View
+        style={[
+          styles.conteudo,
+          {
+            backgroundColor: tema.cores.offlineSuave,
+            borderColor: tema.cores.offline,
+          },
+        ]}
+      >
+        <View style={[styles.icone, { backgroundColor: tema.cores.elevado }]}>
+          <WifiOff color={tema.cores.offline} size={16} />
+        </View>
         <Text style={[styles.texto, { color: tema.cores.texto }]}>
           {traduzir("comum.offline")}
         </Text>
@@ -43,11 +53,13 @@ export function OfflineBanner() {
 const styles = StyleSheet.create({
   conteudo: {
     alignItems: "center",
+    borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: 8,
-    minHeight: 36,
+    minHeight: 44,
     paddingHorizontal: 16,
     paddingVertical: 7,
   },
+  icone: { alignItems: "center", borderRadius: 15, height: 30, justifyContent: "center", width: 30 },
   texto: { flex: 1, fontSize: 12, lineHeight: 17 },
 });

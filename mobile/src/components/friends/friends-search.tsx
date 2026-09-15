@@ -115,7 +115,7 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
     }
   }
 
-  function resultadoBusca(usuario: SocialUser) {
+  function resultadoBusca(usuario: SocialUser, indice: number) {
     const acao = acaoDisponivelAmigo(usuario.friendshipStatus);
     const rotulos = {
       ADICIONAR: traduzir("amigos.adicionar"),
@@ -124,7 +124,8 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
       REMOVER: traduzir("amigos.remover"),
     };
     return (
-      <FriendRow
+      <AnimatedEntry atraso={Math.min(indice, 6) * 35} key={usuario.id}>
+        <FriendRow
         acoesDesabilitadas={
           (solicitar.isPending && solicitar.variables === usuario.id) ||
           (cancelar.isPending && cancelar.variables === usuario.id) ||
@@ -144,7 +145,6 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
               ? () => confirmarDesfazer(acao, usuario.id)
             : undefined
         }
-        key={usuario.id}
         aoAbrirSeguranca={() =>
           router.push({
             pathname: "/friends/safety/[id]",
@@ -159,7 +159,8 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
         rotuloOnline={traduzir("amigos.online")}
         rotuloSeguranca={traduzir("amigos.seguranca")}
         usuario={usuario}
-      />
+        />
+      </AnimatedEntry>
     );
   }
 
@@ -172,6 +173,12 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
             { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
           ]}
         >
+          <View
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+            pointerEvents="none"
+            style={[styles.buscaOrbe, { backgroundColor: tema.cores.marcaSuave }]}
+          />
           <View style={styles.buscaCabecalho}>
             <View style={[styles.buscaIcone, { backgroundColor: tema.cores.marcaSuave }]}>
               <Search color={tema.cores.marca} size={20} />
@@ -237,8 +244,9 @@ export function FriendsSearch({ userId }: FriendsSearchProps) {
 
 const styles = StyleSheet.create({
   conteudo: { gap: 24 },
-  busca: { borderRadius: 22, borderWidth: 1, gap: 16, padding: 18 },
-  buscaCabecalho: { alignItems: "center", flexDirection: "row", gap: 12 },
+  busca: { borderRadius: 24, borderWidth: 1, gap: 16, overflow: "hidden", padding: 18 },
+  buscaOrbe: { borderRadius: 70, height: 140, opacity: 0.8, position: "absolute", right: -58, top: -72, width: 140 },
+  buscaCabecalho: { alignItems: "center", flexDirection: "row", gap: 12, zIndex: 1 },
   buscaIcone: { alignItems: "center", borderRadius: 20, height: 40, justifyContent: "center", width: 40 },
   buscaTextos: { flex: 1, gap: 2 },
   buscaTitulo: { fontSize: 18, fontWeight: "800", lineHeight: 24 },

@@ -1,7 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { ArrowUpRight, CheckCircle2, ChevronRight, Clock3 } from "lucide-react-native";
+import {
+  Activity,
+  ArrowUpRight,
+  Bell,
+  CheckCircle2,
+  ChevronRight,
+  Flame,
+  UsersRound,
+} from "lucide-react-native";
 import {
   ActivityIndicator,
   Pressable,
@@ -9,6 +17,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -37,6 +46,7 @@ function obterSaudacao(
 export default function TelaInicio() {
   const tema = useTemaApp();
   const { idioma, traduzir } = useIdioma();
+  const { fontScale } = useWindowDimensions();
   const estadoAutenticacao = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado,
   );
@@ -61,10 +71,8 @@ export default function TelaInicio() {
   const tarefasHoje = consulta.data?.todayTasks ?? [];
   const tarefaPendente = tarefasHoje.find((tarefa) => tarefa.status !== "DONE");
   const resumo = resumirSemana(consulta.data?.weeklyData ?? []);
-  const totalAmigos = amigos.data?.length ?? 0;
-  const totalPedidos = solicitacoes.data?.length ?? 0;
-  const mostrarAmigos =
-    autenticado && (totalAmigos > 0 || totalPedidos > 0);
+  const metricasAmpliadas = fontScale >= 1.3;
+  const tamanhoAnel = metricasAmpliadas ? 112 : 84;
 
   return (
     <SafeAreaView
@@ -144,9 +152,53 @@ export default function TelaInicio() {
               },
             ]}
           >
-            <Text style={[styles.sobretitulo, { color: tema.cores.marca }]}>
-              {traduzir("inicio.hoje")}
-            </Text>
+            <Bell color={tema.cores.textoSutil} size={20} />
+          </Pressable>
+        </View>
+
+        <AnimatedEntry>
+          <View style={[styles.hero, { backgroundColor: tema.cores.marca }]}>
+            <View
+              pointerEvents="none"
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              style={[
+                styles.orbeMaior,
+                { backgroundColor: tema.cores.sobreMarca },
+              ]}
+            />
+            <View
+              pointerEvents="none"
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              style={[
+                styles.orbeMenor,
+                { backgroundColor: tema.cores.sobreMarca },
+              ]}
+            />
+            <View
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              pointerEvents="none"
+              style={[
+                styles.planoHero,
+                {
+                  backgroundColor: tema.cores.sobreMarca,
+                  borderColor: tema.cores.sobreMarca,
+                },
+              ]}
+            />
+            <View style={styles.heroTopo}>
+              <View style={styles.hojePill}>
+                <View style={[styles.hojePonto, { backgroundColor: tema.cores.sobreMarca }]} />
+                <Text style={[styles.sobretitulo, { color: tema.cores.sobreMarca }]}>
+                  {traduzir("inicio.hoje")}
+                </Text>
+              </View>
+              <View style={styles.heroSelo}>
+                <CheckCircle2 color={tema.cores.sobreMarca} size={24} />
+              </View>
+            </View>
             {consulta.isLoading && autenticado ? (
               <ActivityIndicator
                 color={tema.cores.marca}
@@ -185,6 +237,7 @@ export default function TelaInicio() {
                 </Text>
                 <Pressable
                   accessibilityRole="button"
+                  android_ripple={{ color: "#0000001F" }}
                   onPress={() =>
                     router.push(tarefaPendente ? "/tasks" : "/workouts")
                   }
@@ -234,71 +287,209 @@ export default function TelaInicio() {
 
         {autenticado && consulta.data ? (
           <AnimatedEntry>
-            <View style={styles.metricas}>
+            <View style={styles.blocoSemana}>
               <View
                 style={[
-                  styles.cardMetrica,
+                  styles.cardAtividade,
                   {
                     backgroundColor: tema.cores.elevado,
                     borderColor: tema.cores.borda,
                   },
                 ]}
               >
-                <Text style={[styles.numeroMetrica, { color: tema.cores.texto }]}>
-                  {resumo.diasAtivos}
-                </Text>
-                <Text
+                <View style={styles.cabecalhoAtividade}>
+                  <View
+                    style={[
+                      styles.iconeAtividade,
+                      { backgroundColor: tema.cores.marcaSuave },
+                    ]}
+                  >
+                    <Activity color={tema.cores.marca} size={21} />
+                  </View>
+                  <View style={styles.textoAtividade}>
+                    <Text
+                      style={[styles.tituloSecao, { color: tema.cores.texto }]}
+                    >
+                      {traduzir("inicio.progressoTitulo")}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.subtituloAtividade,
+                        { color: tema.cores.textoSecundario },
+                      ]}
+                    >
+                      {traduzir("inicio.atividadeSemanal")}
+                    </Text>
+                  </View>
+                </View>
+
+                <View
                   style={[
-                    styles.rotuloMetrica,
-                    { color: tema.cores.textoSecundario },
+                    styles.metricasAtividade,
+                    metricasAmpliadas && styles.metricasAtividadeAmpliadas,
                   ]}
                 >
-                  {traduzir("inicio.diasAtivosRotulo")}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.cardMetrica,
-                  {
-                    backgroundColor: tema.cores.elevado,
-                    borderColor: tema.cores.borda,
-                  },
-                ]}
-              >
-                <CheckCircle2 color={tema.cores.sucesso} size={16} />
-                <Text style={[styles.numeroMetrica, { color: tema.cores.texto }]}>
-                  {resumo.tarefasConcluidas}
-                </Text>
-                <Text
+                  <View
+                    style={[
+                      styles.metricaAtividade,
+                      metricasAmpliadas && styles.metricaAtividadeAmpliada,
+                    ]}
+                  >
+                    <View style={styles.anelMetrica}>
+                      <WeeklyArc
+                        progresso={resumo.diasAtivos / 7}
+                        rotulo={traduzir("inicio.diasAtivos", {
+                          quantidade: resumo.diasAtivos,
+                        })}
+                        tamanho={tamanhoAnel}
+                      />
+                      <View
+                        accessibilityElementsHidden
+                        importantForAccessibility="no-hide-descendants"
+                        style={styles.valorAnel}
+                      >
+                        <Text
+                          adjustsFontSizeToFit
+                          minimumFontScale={0.6}
+                          numberOfLines={1}
+                          style={[
+                            styles.numeroAnel,
+                            { color: tema.cores.texto },
+                          ]}
+                        >
+                          {resumo.diasAtivos}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.unidadeAnel,
+                            { color: tema.cores.textoSutil },
+                          ]}
+                        >
+                          /7
+                        </Text>
+                      </View>
+                    </View>
+                    <Text
+                      style={[
+                        styles.rotuloAnel,
+                        { color: tema.cores.textoSecundario },
+                      ]}
+                    >
+                      {traduzir("inicio.diasAtivosRotulo")}
+                    </Text>
+                  </View>
+
+                  <View
+                    style={[
+                      styles.metricaAtividade,
+                      metricasAmpliadas && styles.metricaAtividadeAmpliada,
+                    ]}
+                  >
+                    <View
+                      accessible
+                      accessibilityLabel={`${traduzir("inicio.tarefasRotulo")}: ${resumo.tarefasConcluidas}`}
+                      style={[
+                        styles.anelResumo,
+                        metricasAmpliadas && styles.anelResumoAmpliado,
+                        {
+                          backgroundColor: tema.cores.sucessoSuave,
+                          borderColor: tema.cores.sucesso,
+                        },
+                      ]}
+                    >
+                      <Text
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.5}
+                        numberOfLines={1}
+                        style={[styles.numeroAnel, { color: tema.cores.texto }]}
+                      >
+                        {resumo.tarefasConcluidas}
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.rotuloAnel,
+                        { color: tema.cores.textoSecundario },
+                      ]}
+                    >
+                      {traduzir("inicio.tarefasRotulo")}
+                    </Text>
+                  </View>
+
+                  <View
+                    style={[
+                      styles.metricaAtividade,
+                      metricasAmpliadas && styles.metricaAtividadeAmpliada,
+                    ]}
+                  >
+                    <View
+                      accessible
+                      accessibilityLabel={`${traduzir("inicio.focoRotulo")}: ${traduzir("inicio.minutos", { quantidade: resumo.minutosFoco })}`}
+                      style={[
+                        styles.anelResumo,
+                        metricasAmpliadas && styles.anelResumoAmpliado,
+                        {
+                          backgroundColor: tema.cores.informacaoSuave,
+                          borderColor: tema.cores.informacao,
+                        },
+                      ]}
+                    >
+                      <Text
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.5}
+                        numberOfLines={1}
+                        style={[styles.numeroAnel, { color: tema.cores.texto }]}
+                      >
+                        {resumo.minutosFoco}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.unidadeAnel,
+                          { color: tema.cores.textoSutil },
+                        ]}
+                      >
+                        min
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.rotuloAnel,
+                        { color: tema.cores.textoSecundario },
+                      ]}
+                    >
+                      {traduzir("inicio.focoRotulo")}
+                    </Text>
+                  </View>
+                </View>
+
+                <View
                   style={[
-                    styles.rotuloMetrica,
-                    { color: tema.cores.textoSecundario },
+                    styles.metaAtividade,
+                    {
+                      backgroundColor: tema.cores.sobreposicao,
+                      borderColor: tema.cores.borda,
+                    },
                   ]}
                 >
-                  {traduzir("inicio.tarefasConcluidasSemana")}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.cardMetrica,
-                  {
-                    backgroundColor: tema.cores.elevado,
-                    borderColor: tema.cores.borda,
-                  },
-                ]}
-              >
-                <Clock3 color={tema.cores.informacao} size={16} />
-                <Text style={[styles.numeroMetrica, { color: tema.cores.texto }]}>
-                  {resumo.minutosFoco}
-                </Text>
-                <Text
-                  style={[
-                    styles.rotuloMetrica,
-                    { color: tema.cores.textoSecundario },
-                  ]}
-                >
-                  {traduzir("inicio.focoSemana")}
-                </Text>
+                  <CheckCircle2 color={tema.cores.sucesso} size={20} />
+                  <View style={styles.textoMeta}>
+                    <Text
+                      style={[styles.tituloMeta, { color: tema.cores.texto }]}
+                    >
+                      {traduzir("inicio.constanciaTitulo")}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.descricaoMeta,
+                        { color: tema.cores.textoSecundario },
+                      ]}
+                    >
+                      {resumo.diasAtivos
+                        ? traduzir("inicio.retomada")
+                        : traduzir("inicio.primeiroPasso")}
+                    </Text>
+                  </View>
+                </View>
               </View>
             </View>
           </AnimatedEntry>
@@ -369,55 +560,195 @@ const styles = StyleSheet.create({
   hoje: {
     borderRadius: 16,
     borderWidth: 1,
-    gap: 8,
-    padding: 16,
+    height: 44,
+    justifyContent: "center",
+    width: 44,
+  },
+  hero: {
+    borderRadius: 28,
+    minHeight: 284,
+    overflow: "hidden",
+    padding: 24,
+    elevation: 7,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.18,
+    shadowRadius: 22,
+  },
+  orbeMaior: {
+    borderRadius: 90,
+    height: 180,
+    opacity: 0.08,
+    position: "absolute",
+    right: -64,
+    top: -72,
+    width: 180,
+  },
+  orbeMenor: {
+    borderRadius: 50,
+    bottom: -44,
+    height: 100,
+    left: -30,
+    opacity: 0.06,
+    position: "absolute",
+    width: 100,
+  },
+  planoHero: {
+    borderRadius: 34,
+    borderWidth: 1,
+    bottom: -116,
+    height: 230,
+    opacity: 0.08,
+    position: "absolute",
+    right: -52,
+    transform: [{ rotate: "-15deg" }],
+    width: 260,
   },
   sobretitulo: {
     fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.6,
+    fontWeight: "800",
+    letterSpacing: 1.4,
     textTransform: "uppercase",
   },
-  tituloHoje: {
-    fontSize: 20,
-    fontWeight: "700",
+  heroTopo: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 20 },
+  hojePill: { alignItems: "center", backgroundColor: "#FFFFFF1F", borderRadius: 999, flexDirection: "row", gap: 8, minHeight: 34, paddingHorizontal: 12 },
+  hojePonto: { borderRadius: 4, height: 7, width: 7 },
+  heroSelo: { alignItems: "center", backgroundColor: "#FFFFFF1A", borderRadius: 18, height: 40, justifyContent: "center", width: 40 },
+  tituloHero: {
+    fontSize: 30,
+    fontWeight: "900",
+    letterSpacing: -1,
+    lineHeight: 36,
+    maxWidth: 300,
+  },
+  descricaoHero: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: 10,
+    maxWidth: 310,
+    opacity: 0.82,
+  },
+  carga: { marginVertical: 70 },
+  estadoHero: { borderRadius: 18, padding: 16 },
+  acaoHero: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    borderRadius: 16,
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "center",
+    marginTop: 22,
+    minHeight: 50,
+    overflow: "hidden",
+    paddingHorizontal: 18,
+  },
+  acaoHeroTexto: { fontSize: 15, fontWeight: "800" },
+  linkEntrar: { alignSelf: "flex-start", minHeight: 44, paddingVertical: 12 },
+  linkEntrarTexto: { fontSize: 14, fontWeight: "700", opacity: 0.9 },
+  blocoSemana: { gap: 14 },
+  tituloSecao: { fontSize: 21, fontWeight: "800", letterSpacing: -0.45 },
+  cardAtividade: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 20,
+    elevation: 2,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+  },
+  cabecalhoAtividade: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 12,
+  },
+  iconeAtividade: {
+    alignItems: "center",
+    borderRadius: 22,
+    height: 44,
+    justifyContent: "center",
+    width: 44,
+  },
+  textoAtividade: { flex: 1, gap: 2 },
+  subtituloAtividade: { fontSize: 13 },
+  metricasAtividade: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 24,
+  },
+  metricasAtividadeAmpliadas: { alignItems: "center", flexDirection: "column", gap: 20 },
+  metricaAtividade: { alignItems: "center", flex: 1, gap: 7 },
+  metricaAtividadeAmpliada: { flex: 0, width: "100%" },
+  anelMetrica: { alignItems: "center", justifyContent: "center" },
+  valorAnel: {
+    alignItems: "baseline",
+    flexDirection: "row",
+    position: "absolute",
+  },
+  anelResumo: {
+    alignItems: "center",
+    borderRadius: 42,
+    borderWidth: 4,
+    elevation: 2,
+    height: 84,
+    justifyContent: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.09,
+    shadowRadius: 9,
+    width: 84,
+  },
+  anelResumoAmpliado: { borderRadius: 56, height: 112, width: 112 },
+  numeroAnel: { fontSize: 22, fontWeight: "900", letterSpacing: -0.7 },
+  unidadeAnel: { fontSize: 10, fontWeight: "700" },
+  rotuloAnel: { fontSize: 11, fontWeight: "700", textAlign: "center" },
+  metaAtividade: {
+    alignItems: "center",
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 12,
+    minHeight: 72,
+    padding: 14,
+  },
+  textoMeta: { flex: 1 },
+  tituloMeta: { fontSize: 14, fontWeight: "800" },
+  descricaoMeta: { fontSize: 12, lineHeight: 17, marginTop: 3 },
+  cardTitulo: {
+    fontSize: 17,
+    fontWeight: "800",
     letterSpacing: -0.3,
     lineHeight: 26,
   },
-  descricaoHoje: { fontSize: 14, lineHeight: 20 },
-  carga: { marginVertical: 24 },
-  acaoHoje: {
-    alignItems: "center",
-    alignSelf: "flex-start",
-    borderRadius: 12,
-    flexDirection: "row",
-    gap: 6,
-    marginTop: 8,
-    minHeight: 44,
-    paddingHorizontal: 14,
-  },
-  acaoHojeTexto: { fontSize: 14, fontWeight: "700" },
-  linkEntrar: { alignSelf: "flex-start", minHeight: 44, paddingVertical: 8 },
-  linkEntrarTexto: { fontSize: 14, fontWeight: "700" },
-  metricas: { flexDirection: "row", gap: 8 },
-  cardMetrica: {
-    alignItems: "flex-start",
-    borderRadius: 14,
-    borderWidth: 1,
-    flex: 1,
-    gap: 4,
-    minHeight: 88,
-    padding: 12,
-  },
-  numeroMetrica: { fontSize: 22, fontWeight: "700", letterSpacing: -0.4 },
-  rotuloMetrica: { fontSize: 11, fontWeight: "500", lineHeight: 14 },
+  cardApoio: { fontSize: 13, lineHeight: 19, marginTop: 6 },
   social: {
     alignItems: "center",
     borderRadius: 14,
     borderWidth: 1,
     flexDirection: "row",
-    gap: 12,
-    minHeight: 64,
+    gap: 14,
+    minHeight: 132,
+    padding: 18,
+    elevation: 2,
+    shadowColor: "#2B1712",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+  },
+  socialIcone: {
+    alignItems: "center",
+    borderRadius: 22,
+    height: 52,
+    justifyContent: "center",
+    width: 52,
+  },
+  socialTexto: { flex: 1 },
+  socialLink: { fontSize: 13, fontWeight: "800", marginTop: 8 },
+  notaEtica: {
+    alignItems: "center",
+    borderRadius: 18,
+    flexDirection: "row",
+    gap: 10,
     padding: 14,
   },
   socialTexto: { flex: 1 },

@@ -26,6 +26,7 @@ export function AppButton({
   carregando = false,
   variante = "primary",
   disabled,
+  android_ripple,
   onPressIn,
   onPressOut,
   style,
@@ -77,6 +78,9 @@ export function AppButton({
   return (
     <Animated.View style={{ transform: [{ scale: escala }] }}>
       <Pressable
+        android_ripple={android_ripple ?? {
+          color: variante === "secondary" ? tema.cores.marcaContorno : "#FFFFFF33",
+        }}
         accessibilityRole="button"
         accessibilityState={{
           disabled: Boolean(disabled || carregando),
@@ -96,7 +100,12 @@ export function AppButton({
                   : corFundo,
             borderColor:
               variante === "secondary" ? tema.cores.bordaForte : corFundo,
+            elevation: variante === "primary" ? 2 : 0,
             opacity: disabled ? 0.45 : 1,
+            shadowColor: corFundo,
+            shadowOffset: { width: 0, height: 5 },
+            shadowOpacity: variante === "primary" ? 0.2 : 0,
+            shadowRadius: 9,
           },
           typeof style === "function" ? style(estadoPressao) : style,
         ]}
@@ -115,10 +124,11 @@ export function AppButton({
 const styles = StyleSheet.create({
   button: {
     alignItems: "center",
-    borderRadius: formaInterface.raioBotao,
+    borderRadius: Math.max(formaInterface.raioBotao, 18),
     borderWidth: 1,
     justifyContent: "center",
-    minHeight: 48,
+    minHeight: 50,
+    overflow: "hidden",
     paddingHorizontal: 18,
   },
   label: {

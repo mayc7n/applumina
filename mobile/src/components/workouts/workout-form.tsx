@@ -1,8 +1,10 @@
+import { Check } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppButton } from "@/components/ui/app-button";
 import { FormField } from "@/components/ui/form-field";
+import { GrupoSelecao } from "@/components/ui/selection-group";
 import {
   montarEntradaTreino,
   validarFormularioTreino,
@@ -13,6 +15,7 @@ import {
 import { useIdioma } from "@/i18n/idioma";
 import { obterMensagemErroApi } from "@/lib/api/errors";
 import { useTemaApp } from "@/theme/theme";
+import { useReducaoMovimento } from "@/theme/use-reduced-motion";
 import type { CreateWorkoutInput, Workout, WorkoutType } from "@/types/api";
 
 interface WorkoutFormProps {
@@ -23,6 +26,7 @@ interface WorkoutFormProps {
 
 export function WorkoutForm({ salvando, aoSalvar, treino }: WorkoutFormProps) {
   const tema = useTemaApp();
+  const reduzirMovimento = useReducaoMovimento();
   const { traduzir } = useIdioma();
   const [valores, definirValores] = useState<ValoresFormularioTreino>(() =>
     valoresIniciaisTreino(treino),
@@ -76,25 +80,23 @@ export function WorkoutForm({ salvando, aoSalvar, treino }: WorkoutFormProps) {
         <Text style={[styles.rotulo, { color: tema.cores.texto }]}>
           {traduzir("treinos.modalidade")}
         </Text>
-        <View style={styles.opcoes}>
+        <GrupoSelecao rotulo={traduzir("treinos.modalidade")} style={styles.opcoes}>
           {modalidades.map(({ tipo, rotulo }) => {
             const selecionada = valores.type === tipo;
             return (
               <Pressable
-                accessibilityRole="button"
+                accessibilityRole="radio"
                 accessibilityState={{ selected: selecionada }}
+                android_ripple={{ color: selecionada ? "#FFFFFF33" : tema.cores.marcaContorno }}
                 key={tipo}
                 onPress={() => atualizar("type", tipo)}
                 style={({ pressed }) => [
                   styles.opcao,
                   {
                     backgroundColor: selecionada
-                      ? tema.cores.marcaSuave
-                      : tema.cores.elevado,
-                    borderColor: selecionada
-                      ? tema.cores.marcaContorno
-                      : tema.cores.borda,
-                    opacity: pressed ? 0.72 : 1,
+                      ? tema.cores.marca
+                      : tema.cores.sobreposicao,
+                    transform: [{ scale: pressed && reduzirMovimento === false ? 0.97 : 1 }],
                   },
                 ]}
               >
@@ -103,17 +105,20 @@ export function WorkoutForm({ salvando, aoSalvar, treino }: WorkoutFormProps) {
                     styles.opcaoTexto,
                     {
                       color: selecionada
-                        ? tema.cores.marca
+                        ? tema.cores.sobreMarca
                         : tema.cores.textoSecundario,
                     },
                   ]}
                 >
                   {rotulo}
                 </Text>
+                {selecionada ? (
+                  <Check color={tema.cores.sobreMarca} size={15} strokeWidth={3} />
+                ) : null}
               </Pressable>
             );
           })}
-        </View>
+        </GrupoSelecao>
       </View>
 
       {valores.type === "CUSTOM" ? (
@@ -200,10 +205,13 @@ const styles = StyleSheet.create({
   rotulo: { fontSize: 14, fontWeight: "700" },
   opcoes: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   opcao: {
+    alignItems: "center",
     borderRadius: 999,
-    borderWidth: 1,
+    flexDirection: "row",
+    gap: 7,
     justifyContent: "center",
     minHeight: 44,
+    overflow: "hidden",
     paddingHorizontal: 14,
   },
   opcaoTexto: { fontSize: 14, fontWeight: "600" },
