@@ -256,11 +256,7 @@ export default function TelaTarefas() {
                           backgroundColor: selecionado
                             ? tema.cores.marca
                             : tema.cores.sobreposicao,
-                          elevation: selecionado ? 3 : 0,
-                          shadowColor: tema.cores.marca,
-                          shadowOffset: { width: 0, height: 3 },
-                          shadowOpacity: selecionado ? 0.22 : 0,
-                          shadowRadius: 7,
+                          elevation: 0,
                           transform: [{ scale: pressed && reduzirMovimento === false ? 0.96 : 1 }],
                         },
                       ]}
@@ -328,18 +324,18 @@ export default function TelaTarefas() {
 
 const styles = StyleSheet.create({
   tela: { flex: 1 },
-  conteudo: { gap: 18, paddingBottom: 40, paddingHorizontal: 20, paddingTop: 18 },
+  conteudo: { gap: 14, paddingBottom: 40, paddingHorizontal: 20, paddingTop: 18 },
   conteudoVisitante: { flex: 1, gap: 22, paddingBottom: 32, paddingHorizontal: 20, paddingTop: 18 },
   acaoCabecalho: { alignItems: "center", borderRadius: 22, height: 44, justifyContent: "center", width: 44 },
-  criacao: { borderRadius: 24, borderWidth: 1, gap: 14, padding: 18 },
+  criacao: { borderRadius: 18, borderWidth: 1, gap: 10, padding: 12 },
   criacaoCabecalho: { alignItems: "center", flexDirection: "row", gap: 12 },
-  criacaoIcone: { alignItems: "center", borderRadius: 17, height: 42, justifyContent: "center", width: 42 },
+  criacaoIcone: { alignItems: "center", borderRadius: 15, height: 36, justifyContent: "center", width: 36 },
   criacaoTextos: { flex: 1, gap: 2 },
-  criacaoTitulo: { fontSize: 17, fontWeight: "800", letterSpacing: -0.25 },
+  criacaoTitulo: { fontSize: 16, fontWeight: "800", letterSpacing: -0.25 },
   criacaoAjuda: { fontSize: 12, lineHeight: 17 },
-  criacaoEntrada: { alignItems: "center", borderRadius: 16, borderWidth: 1, flexDirection: "row", gap: 8, minHeight: 56, paddingHorizontal: 14, paddingVertical: 5 },
-  ferramentas: { borderRadius: 22, borderWidth: 1, gap: 12, padding: 12 },
-  busca: { alignItems: "center", borderRadius: 14, borderWidth: 1, flexDirection: "row", gap: 9, minHeight: 50, paddingHorizontal: 14 },
+  criacaoEntrada: { alignItems: "center", borderRadius: 14, borderWidth: 1, flexDirection: "row", gap: 8, minHeight: 50, paddingHorizontal: 12, paddingVertical: 4 },
+  ferramentas: { gap: 10 },
+  busca: { alignItems: "center", borderRadius: 13, borderWidth: 1, flexDirection: "row", gap: 9, minHeight: 46, paddingHorizontal: 13 },
   entrada: { flex: 1, fontSize: 16, paddingVertical: 9 },
   botaoCriar: { minHeight: 44, paddingHorizontal: 14 },
   filtros: { gap: 8, paddingRight: 4 },
