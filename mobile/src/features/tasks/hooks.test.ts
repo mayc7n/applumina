@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, jest, test } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, jest, test } from "@jest/globals";
 import * as ReactQuery from "@tanstack/react-query";
-import type { InfiniteData } from "@tanstack/react-query";
+import { QueryClient, type InfiniteData } from "@tanstack/react-query";
 
-import { clienteConsultas } from "@/providers/query-provider";
+import { clienteConsultas as clienteConsultasOriginal } from "@/providers/query-provider";
 import { useArmazenamentoAutenticacao } from "@/store/auth-store";
 import type { DashboardData, PagedResponse, Task, User } from "@/types/api";
 
@@ -98,6 +98,8 @@ const painelA: DashboardData = {
   moodCheckedIn: false,
 };
 
+let clienteConsultas = clienteConsultasOriginal;
+
 function autenticar(usuario: User): void {
   useArmazenamentoAutenticacao.setState({
     estado: "autenticado",
@@ -109,6 +111,11 @@ interface CallbacksAlternanciaTeste {
   onMutate: (
     tarefa: Task,
   ) => Promise<ContextoAlternanciaOtimistaTarefa>;
+  onError: (
+    erro: unknown,
+    variaveis: Task,
+    contexto: ContextoAlternanciaOtimistaTarefa,
+  ) => void;
   onSuccess: (
     tarefa: Task,
     variaveis: Task,
@@ -127,6 +134,10 @@ function CapturarCallbacksAlternanciaTeste(): CallbacksAlternanciaTeste {
 }
 
 describe("callbacks privados de tarefas", () => {
+  beforeEach(() => {
+    clienteConsultas = new QueryClient();
+  });
+
   afterEach(() => {
     jest.restoreAllMocks();
     clienteConsultas.clear();
@@ -329,7 +340,7 @@ describe("callbacks privados de tarefas", () => {
       ...tarefaA,
       status: "DONE" as const,
     };
-    await prepararAlternanciaOtimistaTarefa(
+    const contextoNovo = await prepararAlternanciaOtimistaTarefa(
       clienteConsultas,
       usuarioA.id,
       tarefaDepoisDaPrimeiraAlternancia,
@@ -369,6 +380,7 @@ describe("callbacks privados de tarefas", () => {
     expect(clienteConsultas.getQueryData(chaves.detalhe(tarefaA.id))).toEqual(
       tarefaAutoritativa,
     );
+    restaurarAlternanciaOtimistaTarefa(clienteConsultas, contextoNovo);
   });
 
   test("sucesso antigo não sobrescreve alternância mais nova ainda pendente", async () => {
@@ -383,7 +395,9 @@ describe("callbacks privados de tarefas", () => {
     const tarefaDepoisDaPrimeiraAlternancia = clienteConsultas.getQueryData<Task>(
       chaves.detalhe(tarefaA.id),
     ) as Task;
-    await callbacks.onMutate(tarefaDepoisDaPrimeiraAlternancia);
+    const contextoNovo = await callbacks.onMutate(
+      tarefaDepoisDaPrimeiraAlternancia,
+    );
     const estadoOtimistaNovo = clienteConsultas.getQueryData<Task>(
       chaves.detalhe(tarefaA.id),
     );
@@ -403,6 +417,7 @@ describe("callbacks privados de tarefas", () => {
     expect(clienteConsultas.getQueryState(chaves.painel)?.isInvalidated).toBe(
       false,
     );
+    restaurarAlternanciaOtimistaTarefa(clienteConsultas, contextoNovo);
   });
 
   test("sucesso da versão vigente atualiza detalhe e invalida lista e painel", async () => {
@@ -430,6 +445,42 @@ describe("callbacks privados de tarefas", () => {
     expect(clienteConsultas.getQueryState(chaves.painel)?.isInvalidated).toBe(
       true,
     );
+  });
+
+  test("falhas fora de ordem não preservam alternância otimista de uma tarefa", async () => {
+    const chaves = chavesTarefasUsuario(usuarioA.id);
+    autenticar(usuarioA);
+    clienteConsultas.setQueryData(chaves.lista, listaA);
+    clienteConsultas.setQueryData(chaves.painel, painelA);
+    clienteConsultas.setQueryData(chaves.detalhe(tarefaA.id), tarefaA);
+    const callbacks = CapturarCallbacksAlternanciaTeste();
+
+    const contextoAntigo = await callbacks.onMutate(tarefaA);
+    const tarefaDepoisDaPrimeiraAlternancia = clienteConsultas.getQueryData<Task>(
+      chaves.detalhe(tarefaA.id),
+    ) as Task;
+    const contextoVigente = await callbacks.onMutate(
+      tarefaDepoisDaPrimeiraAlternancia,
+    );
+
+    callbacks.onError(new Error("falha antiga"), tarefaA, contextoAntigo);
+    callbacks.onError(
+      new Error("falha vigente"),
+      tarefaDepoisDaPrimeiraAlternancia,
+      contextoVigente,
+    );
+
+    expect(clienteConsultas.getQueryData<Task>(chaves.detalhe(tarefaA.id))).toEqual(
+      tarefaA,
+    );
+    expect(
+      clienteConsultas.getQueryData<DashboardData>(chaves.painel)?.todayTasks[0],
+    ).toEqual(tarefaA);
+    expect(
+      clienteConsultas.getQueryData<InfiniteData<PagedResponse<Task>, number>>(
+        chaves.lista,
+      )?.pages[0]?.content[0],
+    ).toEqual(tarefaA);
   });
 
   test("não restaura snapshots de A depois que a sessão muda para B", async () => {
