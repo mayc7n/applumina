@@ -136,13 +136,21 @@ export default function TelaInicio() {
         />
 
         <AnimatedEntry>
-          <View style={[styles.hero, { backgroundColor: tema.cores.marca }]}>
-            <Text style={[styles.sobretitulo, { color: tema.cores.sobreMarca }]}>
+          <View
+            style={[
+              styles.hero,
+              {
+                backgroundColor: tema.cores.elevado,
+                borderColor: tema.cores.marcaContorno,
+              },
+            ]}
+          >
+            <Text style={[styles.sobretitulo, { color: tema.cores.marca }]}>
               {traduzir("inicio.hoje")}
             </Text>
             {consulta.isLoading && autenticado ? (
               <ActivityIndicator
-                color={tema.cores.sobreMarca}
+                color={tema.cores.marca}
                 style={styles.carga}
               />
             ) : consulta.isError && autenticado ? (
@@ -163,7 +171,7 @@ export default function TelaInicio() {
             ) : (
               <>
                 <Text
-                  style={[styles.tituloHero, { color: tema.cores.sobreMarca }]}
+                  style={[styles.tituloHero, { color: tema.cores.texto }]}
                 >
                   {!autenticado
                     ? traduzir("inicio.visitanteTitulo")
@@ -174,7 +182,7 @@ export default function TelaInicio() {
                 <Text
                   style={[
                     styles.descricaoHero,
-                    { color: tema.cores.sobreMarca },
+                    { color: tema.cores.textoSecundario },
                   ]}
                 >
                   {!autenticado
@@ -194,13 +202,13 @@ export default function TelaInicio() {
                   style={({ pressed }) => [
                     styles.acaoHero,
                     {
-                      backgroundColor: tema.cores.sobreMarca,
+                      backgroundColor: tema.cores.marca,
                       opacity: pressed ? 0.86 : 1,
                     },
                   ]}
                 >
                   <Text
-                    style={[styles.acaoHeroTexto, { color: tema.cores.marca }]}
+                    style={[styles.acaoHeroTexto, { color: tema.cores.sobreMarca }]}
                   >
                     {!autenticado
                       ? traduzir("inicio.acaoExplorar")
@@ -208,7 +216,7 @@ export default function TelaInicio() {
                         ? traduzir("inicio.acaoTarefa")
                         : traduzir("inicio.acaoTreino")}
                   </Text>
-                  <ArrowUpRight color={tema.cores.marca} size={18} />
+                  <ArrowUpRight color={tema.cores.sobreMarca} size={18} />
                 </Pressable>
                 {!autenticado ? (
                   <Pressable
@@ -220,7 +228,7 @@ export default function TelaInicio() {
                     <Text
                       style={[
                         styles.linkEntrarTexto,
-                        { color: tema.cores.sobreMarca },
+                        { color: tema.cores.marca },
                       ]}
                     >
                       {traduzir("comum.entrar")}
@@ -478,6 +486,7 @@ const styles = StyleSheet.create({
   },
   inicial: { fontSize: 19, fontWeight: "800" },
   hero: {
+    borderWidth: 1,
     borderRadius: 22,
     minHeight: 200,
     overflow: "hidden",

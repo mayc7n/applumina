@@ -189,4 +189,43 @@ describe("cartão de atividade semanal", () => {
     expect(mockRouterPush).toHaveBeenCalledWith("/account");
     expect(blocoHoje).toBeDefined();
   });
+
+  test("mantém o bloco hoje leve e reserva a marca para a ação", () => {
+    mockUseWindowDimensions.mockReturnValue({
+      fontScale: 1,
+      height: 800,
+      scale: 2,
+      width: 360,
+    });
+
+    const tela = TelaInicio();
+    const blocoHoje = encontrarElemento(
+      tela,
+      (elemento) => {
+        const estilo = StyleSheet.flatten(elemento.props.style as object) as {
+          minHeight?: number;
+        } | undefined;
+        return estilo?.minHeight === 200;
+      },
+    );
+    const acao = encontrarElemento(
+      blocoHoje,
+      (elemento) =>
+        elemento.props.accessibilityRole === "button" &&
+        typeof elemento.props.onPress === "function",
+    );
+
+    expect(StyleSheet.flatten(blocoHoje?.props.style)).toMatchObject({
+      backgroundColor: "elevado",
+      borderColor: "marcaContorno",
+      borderWidth: 1,
+    });
+    const estiloAcao =
+      typeof acao?.props.style === "function"
+        ? acao.props.style({ pressed: false })
+        : acao?.props.style;
+    expect(StyleSheet.flatten(estiloAcao)).toMatchObject({
+      backgroundColor: "marca",
+    });
+  });
 });
