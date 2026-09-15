@@ -34,7 +34,10 @@ export default function TelaUsuariosBloqueados() {
   }
 
   return (
-    <SafeAreaView style={[styles.tela, { backgroundColor: tema.cores.fundo }]}>
+    <SafeAreaView
+      edges={["top", "left", "right", "bottom"]}
+      style={[styles.tela, { backgroundColor: tema.cores.fundo }]}
+    >
       <ScrollView contentContainerStyle={styles.conteudo}>
         <ScreenHeader
           inicio={

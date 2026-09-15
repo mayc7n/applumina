@@ -19,14 +19,50 @@ const tarefas: Task[] = [
 ];
 
 describe("filtros de tarefas", () => {
-  test("separa hoje, próximas, atrasadas e concluídas", () => {
+  test("mantém três filtros que priorizam a lista diária", () => {
     expect(filtrarTarefas(tarefas, "TODAY", "", "2030-06-10").map(({ id }) => id)).toEqual(["1"]);
-    expect(filtrarTarefas(tarefas, "UPCOMING", "", "2030-06-10").map(({ id }) => id)).toEqual(["2"]);
-    expect(filtrarTarefas(tarefas, "OVERDUE", "", "2030-06-10").map(({ id }) => id)).toEqual(["3"]);
-    expect(filtrarTarefas(tarefas, "DONE", "", "2030-06-10").map(({ id }) => id)).toEqual(["4"]);
+    expect(filtrarTarefas(tarefas, "PENDING", "", "2030-06-10").map(({ id }) => id)).toEqual(["1", "2", "3"]);
+    expect(filtrarTarefas(tarefas, "ALL", "", "2030-06-10").map(({ id }) => id)).toEqual(["1", "2", "3", "4"]);
   });
 
   test("busca sem depender de acentos", () => {
     expect(filtrarTarefas(tarefas, "ALL", "materia calculo", "2030-06-10").map(({ id }) => id)).toEqual(["3"]);
+  });
+
+  test("considera hoje quando a data de vencimento ou a data agendada coincide", () => {
+    const comDatasDistintas: Task = {
+      ...base,
+      id: "5",
+      title: "Revisar hoje",
+      status: "TODO",
+      dueDate: "2030-06-10",
+      scheduledFor: "2030-06-12",
+    };
+
+    expect(filtrarTarefas([comDatasDistintas], "TODAY", "", "2030-06-10")).toEqual([
+      comDatasDistintas,
+    ]);
+
+    const comAgendamentoHoje: Task = {
+      ...base,
+      id: "6",
+      title: "Treino agendado",
+      status: "TODO",
+      dueDate: "2030-06-12",
+      scheduledFor: "2030-06-10",
+    };
+
+    expect(filtrarTarefas([comAgendamentoHoje], "TODAY", "", "2030-06-10")).toEqual([
+      comAgendamentoHoje,
+    ]);
+
+    const semDatas: Task = {
+      ...base,
+      id: "7",
+      title: "Sem prazo",
+      status: "TODO",
+    };
+
+    expect(filtrarTarefas([semDatas], "TODAY", "", "2030-06-10")).toEqual([]);
   });
 });

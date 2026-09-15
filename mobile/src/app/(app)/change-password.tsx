@@ -67,7 +67,7 @@ export default function TelaAlterarSenha() {
       Alert.alert(
         traduzir("senha.sucessoTitulo"),
         traduzir("senha.sucessoDescricao"),
-        [{ text: "OK", onPress: () => router.back() }],
+        [{ text: traduzir("comum.ok"), onPress: () => router.back() }],
       );
     } catch (erro) {
       const mensagens = {

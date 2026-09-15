@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import {
+  ArrowLeft,
   CircleAlert,
   CircleCheck,
   ChevronRight,
@@ -110,11 +111,27 @@ export default function TelaConta() {
   if (!autenticado) {
     return (
       <SafeAreaView
-        edges={["top", "left", "right"]}
+        edges={["top", "left", "right", "bottom"]}
         style={[styles.tela, { backgroundColor: tema.cores.fundo }]}
       >
         <ScrollView contentContainerStyle={styles.conteudo}>
-          <ScreenHeader titulo={traduzir("conta.titulo")} />
+          <ScreenHeader
+            inicio={
+              <Pressable
+                accessibilityLabel={traduzir("autenticacao.voltar")}
+                accessibilityRole="button"
+                hitSlop={4}
+                onPress={() => router.back()}
+                style={({ pressed }) => [
+                  styles.voltar,
+                  { backgroundColor: pressed ? tema.cores.sobreposicao : "transparent" },
+                ]}
+              >
+                <ArrowLeft color={tema.cores.texto} size={24} />
+              </Pressable>
+            }
+            titulo={traduzir("conta.titulo")}
+          />
           <View
             style={[
               styles.visitante,
@@ -209,10 +226,26 @@ export default function TelaConta() {
   return (
     <SafeAreaView
       style={[styles.tela, { backgroundColor: tema.cores.fundo }]}
-      edges={["top", "left", "right"]}
+      edges={["top", "left", "right", "bottom"]}
     >
       <ScrollView contentContainerStyle={styles.conteudo}>
-        <ScreenHeader titulo={traduzir("conta.titulo")} />
+        <ScreenHeader
+          inicio={
+            <Pressable
+              accessibilityLabel={traduzir("autenticacao.voltar")}
+              accessibilityRole="button"
+              hitSlop={4}
+              onPress={() => router.back()}
+              style={({ pressed }) => [
+                styles.voltar,
+                { backgroundColor: pressed ? tema.cores.sobreposicao : "transparent" },
+              ]}
+            >
+              <ArrowLeft color={tema.cores.texto} size={24} />
+            </Pressable>
+          }
+          titulo={traduzir("conta.titulo")}
+        />
         <AnimatedEntry>
           <View
             style={[
@@ -229,23 +262,6 @@ export default function TelaConta() {
                 },
               ]}
             >
-              <View
-                accessibilityElementsHidden
-                importantForAccessibility="no-hide-descendants"
-                pointerEvents="none"
-                style={[styles.trilhoPerfil, { backgroundColor: tema.cores.marca }]}
-              />
-              <View
-                accessibilityElementsHidden
-                importantForAccessibility="no"
-                pointerEvents="none"
-                style={[styles.orbePerfil, { backgroundColor: tema.cores.marcaSuave }]}
-              />
-              <View style={[styles.planoPill, { backgroundColor: tema.cores.marcaSuave }]}>
-                <Text style={[styles.plano, { color: tema.cores.marca }]}>
-                  {traduzir("conta.plano", { plano: usuario?.plan ?? "FREE" })}
-                </Text>
-              </View>
               <View
                 style={[
                   styles.avatar,
@@ -279,6 +295,51 @@ export default function TelaConta() {
             </View>
           </View>
         </AnimatedEntry>
+
+        <View style={styles.grupoConta}>
+          <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
+            {traduzir("conta.preferenciasTitulo")}
+          </Text>
+          <View
+            style={[
+              styles.listaConfiguracoes,
+              { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
+            ]}
+          >
+            <ConfiguracaoConta
+              Icone={Languages}
+              descricao={traduzir("conta.idiomaSistema")}
+              titulo={traduzir("conta.idiomaTitulo")}
+            />
+          </View>
+        </View>
+
+        <View style={styles.grupoConta}>
+          <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
+            {traduzir("conta.privacidadeTitulo")}
+          </Text>
+          <View
+            style={[
+              styles.listaConfiguracoes,
+              { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
+            ]}
+          >
+            <ConfiguracaoConta
+              Icone={KeyRound}
+              aoPressionar={() => router.push("/change-password")}
+              descricao={traduzir("conta.alterarSenhaDescricao")}
+              titulo={traduzir("conta.alterarSenha")}
+            />
+            <View style={[styles.separador, { backgroundColor: tema.cores.borda }]} />
+            <ConfiguracaoConta
+              Icone={Trash2}
+              aoPressionar={() => router.push("/delete-account")}
+              descricao={traduzir("conta.excluirContaDescricao")}
+              perigosa
+              titulo={traduzir("conta.excluirConta")}
+            />
+          </View>
+        </View>
 
         <View
           style={[
@@ -373,51 +434,6 @@ export default function TelaConta() {
               onPress={confirmarEncerramentoDasOutras}
             />
           ) : null}
-        </View>
-
-        <View style={styles.grupoConta}>
-          <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
-            {traduzir("conta.preferenciasTitulo")}
-          </Text>
-          <View
-            style={[
-              styles.listaConfiguracoes,
-              { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
-            ]}
-          >
-            <ConfiguracaoConta
-              Icone={Languages}
-              descricao={traduzir("conta.idiomaSistema")}
-              titulo={traduzir("conta.idiomaTitulo")}
-            />
-          </View>
-        </View>
-
-        <View style={styles.grupoConta}>
-          <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
-            {traduzir("conta.privacidadeTitulo")}
-          </Text>
-          <View
-            style={[
-              styles.listaConfiguracoes,
-              { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda },
-            ]}
-          >
-            <ConfiguracaoConta
-              Icone={KeyRound}
-              aoPressionar={() => router.push("/change-password")}
-              descricao={traduzir("conta.alterarSenhaDescricao")}
-              titulo={traduzir("conta.alterarSenha")}
-            />
-            <View style={[styles.separador, { backgroundColor: tema.cores.borda }]} />
-            <ConfiguracaoConta
-              Icone={Trash2}
-              aoPressionar={() => router.push("/delete-account")}
-              descricao={traduzir("conta.excluirContaDescricao")}
-              perigosa
-              titulo={traduzir("conta.excluirConta")}
-            />
-          </View>
         </View>
 
         <Pressable
@@ -571,37 +587,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 18,
   },
+  voltar: {
+    alignItems: "center",
+    borderRadius: 22,
+    height: 44,
+    justifyContent: "center",
+    width: 44,
+  },
   perfil: {
-    borderRadius: 26,
+    borderRadius: 22,
     borderWidth: 1,
-    minHeight: 260,
+    minHeight: 220,
     overflow: "hidden",
-    elevation: 7,
-    shadowColor: "#2B1712",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.16,
-    shadowRadius: 22,
+    elevation: 1,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
   },
   perfilVisual: {
     alignItems: "center",
     borderBottomWidth: 1,
     justifyContent: "center",
-    minHeight: 152,
+    minHeight: 126,
     overflow: "hidden",
   },
-  trilhoPerfil: {
-    bottom: 0,
-    elevation: 8,
-    position: "absolute",
-    right: 0,
-    shadowColor: "#C63C24",
-    shadowOffset: { width: -5, height: 0 },
-    shadowOpacity: 0.55,
-    shadowRadius: 12,
-    top: 0,
-    width: 6,
-  },
-  orbePerfil: { borderRadius: 90, height: 180, opacity: 0.7, position: "absolute", right: -72, top: -84, width: 180 },
   visitante: {
     borderRadius: 20,
     borderWidth: 1,
@@ -615,11 +625,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     height: 88,
     justifyContent: "center",
-    elevation: 3,
-    shadowColor: "#2B1712",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 9,
+    elevation: 1,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
     width: 88,
     zIndex: 1,
   },
@@ -644,13 +654,13 @@ const styles = StyleSheet.create({
   secaoSessoes: {
     borderRadius: 22,
     borderWidth: 1,
-    elevation: 2,
+    elevation: 1,
     gap: 15,
     padding: 18,
     shadowColor: "#2B1712",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
   },
   cabecalhoSecao: { alignItems: "flex-start", flexDirection: "row", gap: 13 },
   tituloSecao: { fontSize: 18, fontWeight: "700" },

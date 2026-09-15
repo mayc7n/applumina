@@ -4,11 +4,8 @@ import { router } from "expo-router";
 import {
   Activity,
   ArrowUpRight,
-  Bell,
   CheckCircle2,
-  ChevronRight,
   Flame,
-  UsersRound,
 } from "lucide-react-native";
 import {
   ActivityIndicator,
@@ -99,23 +96,25 @@ export default function TelaInicio() {
         <ScreenHeader
           inicio={
             <Pressable
-              accessibilityLabel={traduzir("inicio.abrirConta")}
+              accessibilityLabel={traduzir("conta.titulo")}
               accessibilityRole="button"
+              hitSlop={8}
               onPress={() => router.push("/account")}
               style={({ pressed }) => [
-                styles.avatarAcao,
-                { opacity: pressed ? 0.8 : 1 },
+                styles.avatarPressable,
+                { opacity: pressed ? 0.76 : 1 },
               ]}
             >
               {usuario?.avatarUrl ? (
                 <Image
-                  accessibilityLabel={usuario.displayName}
+                  accessible={false}
                   contentFit="cover"
                   source={{ uri: usuario.avatarUrl }}
                   style={styles.avatar}
                 />
               ) : (
                 <View
+                  accessible={false}
                   style={[
                     styles.avatarFallback,
                     { backgroundColor: tema.cores.marcaSuave },
@@ -126,7 +125,7 @@ export default function TelaInicio() {
                       {primeiroNome?.charAt(0).toUpperCase() ?? "L"}
                     </Text>
                   ) : (
-                    <LuminaMark decorativo tamanho={36} />
+                    <LuminaMark decorativo tamanho={34} />
                   )}
                 </View>
               )}
@@ -145,60 +144,16 @@ export default function TelaInicio() {
         <AnimatedEntry>
           <View
             style={[
-              styles.hoje,
+              styles.hero,
               {
                 backgroundColor: tema.cores.elevado,
-                borderColor: tema.cores.borda,
+                borderColor: tema.cores.marcaContorno,
               },
             ]}
           >
-            <Bell color={tema.cores.textoSutil} size={20} />
-          </Pressable>
-        </View>
-
-        <AnimatedEntry>
-          <View style={[styles.hero, { backgroundColor: tema.cores.marca }]}>
-            <View
-              pointerEvents="none"
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              style={[
-                styles.orbeMaior,
-                { backgroundColor: tema.cores.sobreMarca },
-              ]}
-            />
-            <View
-              pointerEvents="none"
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              style={[
-                styles.orbeMenor,
-                { backgroundColor: tema.cores.sobreMarca },
-              ]}
-            />
-            <View
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              pointerEvents="none"
-              style={[
-                styles.planoHero,
-                {
-                  backgroundColor: tema.cores.sobreMarca,
-                  borderColor: tema.cores.sobreMarca,
-                },
-              ]}
-            />
-            <View style={styles.heroTopo}>
-              <View style={styles.hojePill}>
-                <View style={[styles.hojePonto, { backgroundColor: tema.cores.sobreMarca }]} />
-                <Text style={[styles.sobretitulo, { color: tema.cores.sobreMarca }]}>
-                  {traduzir("inicio.hoje")}
-                </Text>
-              </View>
-              <View style={styles.heroSelo}>
-                <CheckCircle2 color={tema.cores.sobreMarca} size={24} />
-              </View>
-            </View>
+            <Text style={[styles.sobretitulo, { color: tema.cores.marca }]}>
+              {traduzir("inicio.hoje")}
+            </Text>
             {consulta.isLoading && autenticado ? (
               <ActivityIndicator
                 color={tema.cores.marca}
@@ -214,7 +169,9 @@ export default function TelaInicio() {
               />
             ) : (
               <>
-                <Text style={[styles.tituloHoje, { color: tema.cores.texto }]}>
+                <Text
+                  style={[styles.tituloHero, { color: tema.cores.texto }]}
+                >
                   {!autenticado
                     ? traduzir("inicio.visitanteTitulo")
                     : tarefaPendente
@@ -223,7 +180,7 @@ export default function TelaInicio() {
                 </Text>
                 <Text
                   style={[
-                    styles.descricaoHoje,
+                    styles.descricaoHero,
                     { color: tema.cores.textoSecundario },
                   ]}
                 >
@@ -236,6 +193,13 @@ export default function TelaInicio() {
                       : traduzir("inicio.semRegistroDescricao")}
                 </Text>
                 <Pressable
+                  accessibilityLabel={
+                    !autenticado
+                      ? traduzir("inicio.acaoExplorar")
+                      : tarefaPendente
+                        ? traduzir("inicio.acaoTarefa")
+                        : traduzir("inicio.acaoTreino")
+                  }
                   accessibilityRole="button"
                   android_ripple={{ color: "#0000001F" }}
                   onPress={() =>
@@ -250,10 +214,7 @@ export default function TelaInicio() {
                   ]}
                 >
                   <Text
-                    style={[
-                      styles.acaoHojeTexto,
-                      { color: tema.cores.sobreMarca },
-                    ]}
+                    style={[styles.acaoHeroTexto, { color: tema.cores.sobreMarca }]}
                   >
                     {!autenticado
                       ? traduzir("inicio.acaoExplorar")
@@ -261,7 +222,7 @@ export default function TelaInicio() {
                         ? traduzir("inicio.acaoTarefa")
                         : traduzir("inicio.acaoTreino")}
                   </Text>
-                  <ArrowUpRight color={tema.cores.sobreMarca} size={16} />
+                  <ArrowUpRight color={tema.cores.sobreMarca} size={18} />
                 </Pressable>
                 {!autenticado ? (
                   <Pressable
@@ -495,44 +456,23 @@ export default function TelaInicio() {
           </AnimatedEntry>
         ) : null}
 
-        {mostrarAmigos ? (
-          <AnimatedEntry>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => router.push("/friends")}
-              style={({ pressed }) => [
-                styles.social,
-                {
-                  backgroundColor: pressed
-                    ? tema.cores.sobreposicao
-                    : tema.cores.elevado,
-                  borderColor: tema.cores.borda,
-                },
+        {autenticado && consulta.data ? (
+          <View
+            style={[
+              styles.notaEtica,
+              { backgroundColor: tema.cores.alertaSuave },
+            ]}
+          >
+            <Flame color={tema.cores.alerta} size={18} />
+            <Text
+              style={[
+                styles.notaEticaTexto,
+                { color: tema.cores.textoSecundario },
               ]}
             >
-              <View style={styles.socialTexto}>
-                <Text style={[styles.cardTitulo, { color: tema.cores.texto }]}>
-                  {traduzir("inicio.amigosTitulo")}
-                </Text>
-                <Text
-                  numberOfLines={2}
-                  style={[
-                    styles.cardApoio,
-                    { color: tema.cores.textoSecundario },
-                  ]}
-                >
-                  {totalPedidos > 0
-                    ? traduzir("inicio.amigosPedidos", {
-                        quantidade: totalPedidos,
-                      })
-                    : traduzir("inicio.amigosQuantidade", {
-                        quantidade: totalAmigos,
-                      })}
-                </Text>
-              </View>
-              <ChevronRight color={tema.cores.textoSutil} size={20} />
-            </Pressable>
-          </AnimatedEntry>
+              {traduzir("inicio.proximoExplicacao")}
+            </Text>
+          </View>
         ) : null}
       </ScrollView>
     </SafeAreaView>
@@ -547,67 +487,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
   },
-  avatarAcao: { borderRadius: 20 },
-  avatar: { borderRadius: 20, height: 40, width: 40 },
+  avatarPressable: { borderRadius: 21 },
+  avatar: { borderRadius: 21, height: 42, width: 42 },
   avatarFallback: {
     alignItems: "center",
-    borderRadius: 20,
-    height: 40,
+    borderRadius: 21,
+    height: 42,
     justifyContent: "center",
-    width: 40,
+    width: 42,
   },
-  inicial: { fontSize: 16, fontWeight: "700" },
-  hoje: {
-    borderRadius: 16,
-    borderWidth: 1,
-    height: 44,
-    justifyContent: "center",
-    width: 44,
-  },
+  inicial: { fontSize: 19, fontWeight: "800" },
   hero: {
-    borderRadius: 28,
-    minHeight: 284,
-    overflow: "hidden",
-    padding: 24,
-    elevation: 7,
-    shadowColor: "#2B1712",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 22,
-  },
-  orbeMaior: {
-    borderRadius: 90,
-    height: 180,
-    opacity: 0.08,
-    position: "absolute",
-    right: -64,
-    top: -72,
-    width: 180,
-  },
-  orbeMenor: {
-    borderRadius: 50,
-    bottom: -44,
-    height: 100,
-    left: -30,
-    opacity: 0.06,
-    position: "absolute",
-    width: 100,
-  },
-  planoHero: {
-    borderRadius: 34,
     borderWidth: 1,
-    bottom: -116,
-    height: 230,
-    opacity: 0.08,
-    position: "absolute",
-    right: -52,
-    transform: [{ rotate: "-15deg" }],
-    width: 260,
+    borderRadius: 22,
+    minHeight: 200,
+    overflow: "hidden",
+    padding: 20,
   },
   sobretitulo: {
     fontSize: 12,
     fontWeight: "800",
     letterSpacing: 1.4,
+    marginBottom: 12,
+    opacity: 0.8,
     textTransform: "uppercase",
   },
   heroTopo: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 20 },
@@ -628,7 +530,7 @@ const styles = StyleSheet.create({
     maxWidth: 310,
     opacity: 0.82,
   },
-  carga: { marginVertical: 70 },
+  carga: { marginVertical: 52 },
   estadoHero: { borderRadius: 18, padding: 16 },
   acaoHero: {
     alignItems: "center",
@@ -637,8 +539,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     justifyContent: "center",
-    marginTop: 22,
-    minHeight: 50,
+    marginTop: 18,
+    minHeight: 46,
     overflow: "hidden",
     paddingHorizontal: 18,
   },
@@ -648,14 +550,9 @@ const styles = StyleSheet.create({
   blocoSemana: { gap: 14 },
   tituloSecao: { fontSize: 21, fontWeight: "800", letterSpacing: -0.45 },
   cardAtividade: {
-    borderRadius: 24,
+    borderRadius: 18,
     borderWidth: 1,
-    padding: 20,
-    elevation: 2,
-    shadowColor: "#2B1712",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    padding: 16,
   },
   cabecalhoAtividade: {
     alignItems: "center",
@@ -674,7 +571,7 @@ const styles = StyleSheet.create({
   metricasAtividade: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginVertical: 24,
+    marginVertical: 18,
   },
   metricasAtividadeAmpliadas: { alignItems: "center", flexDirection: "column", gap: 20 },
   metricaAtividade: { alignItems: "center", flex: 1, gap: 7 },
@@ -714,36 +611,6 @@ const styles = StyleSheet.create({
   textoMeta: { flex: 1 },
   tituloMeta: { fontSize: 14, fontWeight: "800" },
   descricaoMeta: { fontSize: 12, lineHeight: 17, marginTop: 3 },
-  cardTitulo: {
-    fontSize: 17,
-    fontWeight: "800",
-    letterSpacing: -0.3,
-    lineHeight: 26,
-  },
-  cardApoio: { fontSize: 13, lineHeight: 19, marginTop: 6 },
-  social: {
-    alignItems: "center",
-    borderRadius: 14,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 14,
-    minHeight: 132,
-    padding: 18,
-    elevation: 2,
-    shadowColor: "#2B1712",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-  },
-  socialIcone: {
-    alignItems: "center",
-    borderRadius: 22,
-    height: 52,
-    justifyContent: "center",
-    width: 52,
-  },
-  socialTexto: { flex: 1 },
-  socialLink: { fontSize: 13, fontWeight: "800", marginTop: 8 },
   notaEtica: {
     alignItems: "center",
     borderRadius: 18,

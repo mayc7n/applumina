@@ -9,6 +9,7 @@ import { StyleSheet } from "react-native";
 
 const mockUseQuery = jest.fn();
 const mockUseWindowDimensions = jest.fn();
+const mockRouterPush = jest.fn();
 
 jest.mock(
   "react-native/Libraries/Utilities/useWindowDimensions",
@@ -18,7 +19,7 @@ jest.mock(
 jest.mock("@tanstack/react-query", () => ({ useQuery: mockUseQuery }));
 
 jest.mock("expo-router", () => ({
-  router: { push: jest.fn() },
+  router: { push: mockRouterPush },
 }));
 
 jest.mock("expo-image", () => ({ Image: () => null }));
@@ -26,7 +27,6 @@ jest.mock("expo-image", () => ({ Image: () => null }));
 jest.mock("lucide-react-native", () => ({
   Activity: () => null,
   ArrowUpRight: () => null,
-  Bell: () => null,
   CheckCircle2: () => null,
   ChevronRight: () => null,
   Flame: () => null,
@@ -85,6 +85,7 @@ function possuiRotuloDiasAtivos(raiz: ReactNode): boolean {
 
 describe("cartão de atividade semanal", () => {
   beforeEach(() => {
+    mockRouterPush.mockReset();
     mockUseQuery.mockReturnValue({
       data: {
         todayTasks: [],
@@ -152,5 +153,79 @@ describe("cartão de atividade semanal", () => {
       height: 112,
       width: 112,
     });
+  });
+
+  test("mantém avatar acessível para a conta e um bloco hoje compacto", () => {
+    mockUseWindowDimensions.mockReturnValue({
+      fontScale: 1,
+      height: 800,
+      scale: 2,
+      width: 360,
+    });
+
+    const tela = TelaInicio();
+    const cabecalho = encontrarElemento(
+      tela,
+      (elemento) => Boolean(elemento.props.inicio),
+    );
+    const avatar = cabecalho?.props.inicio as ReactElement<Record<string, unknown>> | undefined;
+    const blocoHoje = encontrarElemento(
+      tela,
+      (elemento) => {
+        const estilo = StyleSheet.flatten(elemento.props.style as object) as {
+          minHeight?: number;
+        } | undefined;
+        return estilo?.minHeight === 200;
+      },
+    );
+
+    expect(avatar).toMatchObject({
+      props: { accessibilityRole: "button" },
+    });
+    const onPress = avatar?.props.onPress;
+    expect(typeof onPress).toBe("function");
+    if (typeof onPress === "function") onPress();
+    expect(mockRouterPush).toHaveBeenCalledWith("/account");
+    expect(blocoHoje).toBeDefined();
+  });
+
+  test("mantém o bloco hoje leve e reserva a marca para a ação", () => {
+    mockUseWindowDimensions.mockReturnValue({
+      fontScale: 1,
+      height: 800,
+      scale: 2,
+      width: 360,
+    });
+
+    const tela = TelaInicio();
+    const blocoHoje = encontrarElemento(
+      tela,
+      (elemento) => {
+        const estilo = StyleSheet.flatten(elemento.props.style as object) as {
+          minHeight?: number;
+        } | undefined;
+        return estilo?.minHeight === 200;
+      },
+    );
+    const acao = encontrarElemento(
+      blocoHoje,
+      (elemento) =>
+        elemento.props.accessibilityRole === "button" &&
+        typeof elemento.props.onPress === "function",
+    );
+
+    expect(StyleSheet.flatten(blocoHoje?.props.style)).toMatchObject({
+      backgroundColor: "elevado",
+      borderColor: "marcaContorno",
+      borderWidth: 1,
+    });
+    const estiloAcao =
+      typeof acao?.props.style === "function"
+        ? acao.props.style({ pressed: false })
+        : acao?.props.style;
+    expect(StyleSheet.flatten(estiloAcao)).toMatchObject({
+      backgroundColor: "marca",
+    });
+    expect(acao?.props.accessibilityLabel).toBe("inicio.acaoTreino");
   });
 });

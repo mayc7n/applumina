@@ -2,9 +2,7 @@ import type { Task } from "@/types/api";
 
 export type FiltroTarefa =
   | "TODAY"
-  | "UPCOMING"
-  | "OVERDUE"
-  | "DONE"
+  | "PENDING"
   | "ALL";
 
 function normalizar(texto?: string): string {
@@ -31,12 +29,12 @@ export function filtrarTarefas(
     }
 
     const concluida = tarefa.status === "DONE";
-    const data = tarefa.scheduledFor ?? tarefa.dueDate;
-    if (filtro === "DONE") return concluida;
     if (filtro === "ALL") return true;
-    if (concluida || !data) return false;
-    if (filtro === "TODAY") return data === hoje;
-    if (filtro === "UPCOMING") return data > hoje;
-    return data < hoje;
+    if (filtro === "PENDING") return !concluida;
+    if (concluida) return false;
+    if (filtro === "TODAY") {
+      return tarefa.dueDate === hoje || tarefa.scheduledFor === hoje;
+    }
+    return false;
   });
 }

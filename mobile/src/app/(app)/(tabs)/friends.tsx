@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Ban, ShieldCheck, UsersRound } from "lucide-react-native";
+import { Ban, ShieldCheck } from "lucide-react-native";
 import { useState } from "react";
 import {
   Alert,
@@ -149,22 +149,12 @@ export default function TelaAmigos() {
 
         {!autenticado ? (
           <AnimatedEntry>
-            <View
-              style={[
-                styles.visitante,
-                { backgroundColor: tema.cores.marcaSuave, borderColor: tema.cores.marcaContorno },
-              ]}
-            >
-              <View style={[styles.visitanteIcone, { backgroundColor: tema.cores.elevado }]}>
-                <UsersRound color={tema.cores.marca} size={30} />
-              </View>
-              <FeedbackState
-                aoAgir={() => router.push("/login")}
-                descricao={traduzir("amigos.visitanteDescricao")}
-                rotuloAcao={traduzir("comum.entrar")}
-                titulo={traduzir("amigos.vazioTitulo")}
-              />
-            </View>
+            <FeedbackState
+              aoAgir={() => router.push("/login")}
+              descricao={traduzir("amigos.visitanteDescricao")}
+              rotuloAcao={traduzir("comum.entrar")}
+              titulo={traduzir("amigos.vazioTitulo")}
+            />
           </AnimatedEntry>
         ) : carregando ? (
           <ActivityIndicator
@@ -298,8 +288,6 @@ const styles = StyleSheet.create({
   tela: { flex: 1 },
   conteudo: { gap: 24, padding: 20, paddingBottom: 36 },
   bloqueados: { alignItems: "center", borderRadius: 22, height: 44, justifyContent: "center", width: 44 },
-  visitante: { borderRadius: 24, borderWidth: 1, gap: 18, padding: 22 },
-  visitanteIcone: { alignItems: "center", borderRadius: 28, height: 56, justifyContent: "center", width: 56 },
   carregando: { marginTop: 42 },
   erro: { fontSize: 13, lineHeight: 18 },
   solicitacoes: { borderRadius: 22, borderWidth: 1, padding: 14 },

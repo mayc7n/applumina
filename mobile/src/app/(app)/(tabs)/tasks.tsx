@@ -100,7 +100,7 @@ export default function TelaTarefas() {
   async function alternarTarefa(tarefa: Task): Promise<void> {
     definirErroAcao("");
     try {
-      await alternar.mutateAsync(tarefa.id);
+      await alternar.mutateAsync(tarefa);
       if (tarefa.status === "DONE") void Haptics.selectionAsync();
       else void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (erro) {
@@ -109,11 +109,9 @@ export default function TelaTarefas() {
   }
 
   const filtros = [
-    ["TODAY", "tarefas.filtroHoje", CalendarDays],
-    ["UPCOMING", "tarefas.filtroProximas", CalendarClock],
-    ["OVERDUE", "tarefas.filtroAtrasadas", TriangleAlert],
-    ["DONE", "tarefas.filtroConcluidas", CheckCircle2],
-    ["ALL", "tarefas.filtroTodas", List],
+    ["TODAY", "tarefas.filtroHoje"],
+    ["PENDING", "tarefas.filtroPendentes"],
+    ["ALL", "tarefas.filtroTodas"],
   ] as const;
 
   return (
@@ -206,6 +204,7 @@ export default function TelaTarefas() {
                           ? "#FFFFFF33"
                           : tema.cores.marcaContorno,
                       }}
+                      hitSlop={2}
                       key={valor}
                       onPress={() => definirFiltro(valor)}
                       style={({ pressed }) => [
@@ -214,11 +213,7 @@ export default function TelaTarefas() {
                           backgroundColor: selecionado
                             ? tema.cores.marca
                             : tema.cores.sobreposicao,
-                          elevation: selecionado ? 3 : 0,
-                          shadowColor: tema.cores.marca,
-                          shadowOffset: { width: 0, height: 3 },
-                          shadowOpacity: selecionado ? 0.22 : 0,
-                          shadowRadius: 7,
+                          elevation: 0,
                           transform: [{ scale: pressed && reduzirMovimento === false ? 0.96 : 1 }],
                         },
                       ]}
@@ -263,7 +258,7 @@ export default function TelaTarefas() {
                   <TaskRow
                     aoAlternar={() => void alternarTarefa(tarefa)}
                     aoEditar={() => router.push({ pathname: "/tasks/[id]", params: { id: tarefa.id } })}
-                    desabilitada={alternar.isPending && alternar.variables === tarefa.id}
+                    desabilitada={alternar.isPending && alternar.variables?.id === tarefa.id}
                     tarefa={tarefa}
                   />
                 </AnimatedEntry>
@@ -321,22 +316,22 @@ export default function TelaTarefas() {
 
 const styles = StyleSheet.create({
   tela: { flex: 1 },
-  conteudo: { gap: 18, paddingBottom: 18, paddingHorizontal: 20, paddingTop: 18 },
+  conteudo: { gap: 14, paddingBottom: 40, paddingHorizontal: 20, paddingTop: 18 },
   conteudoVisitante: { flex: 1, gap: 22, paddingBottom: 32, paddingHorizontal: 20, paddingTop: 18 },
   acaoCabecalho: { alignItems: "center", borderRadius: 22, height: 44, justifyContent: "center", width: 44 },
-  criacaoIcone: { alignItems: "center", borderRadius: 17, height: 42, justifyContent: "center", width: 42 },
-  dockCaptura: { alignItems: "center", borderRadius: 22, borderWidth: 1, flexDirection: "row", gap: 8, marginHorizontal: 16, marginTop: 8, minHeight: 66, paddingHorizontal: 10, paddingVertical: 8, shadowColor: "#000000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.14, shadowRadius: 18 },
-  ferramentas: { borderRadius: 22, borderWidth: 1, gap: 12, padding: 12 },
-  ferramentasCabecalho: { alignItems: "center", flexDirection: "row", gap: 9, paddingHorizontal: 2 },
-  ferramentasIcone: { alignItems: "center", borderRadius: 10, height: 32, justifyContent: "center", width: 32 },
-  ferramentasTitulo: { flex: 1, fontSize: 14, fontWeight: "800" },
-  resultados: { alignItems: "center", borderRadius: 999, justifyContent: "center", minHeight: 28, minWidth: 34, paddingHorizontal: 8 },
-  resultadosTexto: { fontSize: 12, fontWeight: "800" },
-  busca: { alignItems: "center", borderRadius: 16, borderWidth: 1, flexDirection: "row", gap: 9, minHeight: 50, paddingHorizontal: 14 },
+  criacao: { borderRadius: 18, borderWidth: 1, gap: 10, padding: 12 },
+  criacaoCabecalho: { alignItems: "center", flexDirection: "row", gap: 12 },
+  criacaoIcone: { alignItems: "center", borderRadius: 15, height: 36, justifyContent: "center", width: 36 },
+  criacaoTextos: { flex: 1, gap: 2 },
+  criacaoTitulo: { fontSize: 16, fontWeight: "800", letterSpacing: -0.25 },
+  criacaoAjuda: { fontSize: 12, lineHeight: 17 },
+  criacaoEntrada: { alignItems: "center", borderRadius: 14, borderWidth: 1, flexDirection: "row", gap: 8, minHeight: 50, paddingHorizontal: 12, paddingVertical: 4 },
+  ferramentas: { gap: 10 },
+  busca: { alignItems: "center", borderRadius: 13, borderWidth: 1, flexDirection: "row", gap: 9, minHeight: 46, paddingHorizontal: 13 },
   entrada: { flex: 1, fontSize: 16, paddingVertical: 9 },
   botaoCriar: { minHeight: 44, paddingHorizontal: 14 },
   filtros: { gap: 8, paddingRight: 4 },
-  filtro: { alignItems: "center", borderRadius: 999, flexDirection: "row", gap: 6, justifyContent: "center", minHeight: 42, overflow: "hidden", paddingHorizontal: 15 },
+  filtro: { alignItems: "center", borderRadius: 999, flexDirection: "row", gap: 6, justifyContent: "center", minHeight: 44, overflow: "hidden", paddingHorizontal: 15 },
   filtroTexto: { fontSize: 13, fontWeight: "700" },
   erro: { fontSize: 13, lineHeight: 19 },
   carregando: { marginTop: 42 },
