@@ -90,6 +90,14 @@ export default function LayoutAbas() {
       screenOptions={{
         headerShown: false,
         animation: reduzirMovimento === false ? "shift" : "none",
+        tabBarAllowFontScaling: true,
+        tabBarVisibilityAnimationConfig:
+          reduzirMovimento === false
+            ? undefined
+            : {
+                hide: { animation: "timing", config: { duration: 0 } },
+                show: { animation: "timing", config: { duration: 0 } },
+              },
         tabBarActiveTintColor: tema.cores.marca,
         tabBarInactiveTintColor: tema.cores.textoSutil,
         tabBarHideOnKeyboard: true,
@@ -113,7 +121,7 @@ export default function LayoutAbas() {
           borderRadius: 16,
           marginHorizontal: 2,
           marginVertical: 2,
-          overflow: "hidden",
+          overflow: "visible",
         },
         tabBarLabelStyle: { fontSize: 10, fontWeight: "700" },
       }}

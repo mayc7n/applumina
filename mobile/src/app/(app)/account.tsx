@@ -111,7 +111,7 @@ export default function TelaConta() {
   if (!autenticado) {
     return (
       <SafeAreaView
-        edges={["top", "left", "right"]}
+        edges={["top", "left", "right", "bottom"]}
         style={[styles.tela, { backgroundColor: tema.cores.fundo }]}
       >
         <ScrollView contentContainerStyle={styles.conteudo}>
@@ -226,7 +226,7 @@ export default function TelaConta() {
   return (
     <SafeAreaView
       style={[styles.tela, { backgroundColor: tema.cores.fundo }]}
-      edges={["top", "left", "right"]}
+      edges={["top", "left", "right", "bottom"]}
     >
       <ScrollView contentContainerStyle={styles.conteudo}>
         <ScreenHeader

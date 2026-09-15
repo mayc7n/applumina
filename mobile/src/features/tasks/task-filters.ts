@@ -29,11 +29,12 @@ export function filtrarTarefas(
     }
 
     const concluida = tarefa.status === "DONE";
-    const data = tarefa.scheduledFor ?? tarefa.dueDate;
     if (filtro === "ALL") return true;
     if (filtro === "PENDING") return !concluida;
-    if (concluida || !data) return false;
-    if (filtro === "TODAY") return data === hoje;
+    if (concluida) return false;
+    if (filtro === "TODAY") {
+      return tarefa.dueDate === hoje || tarefa.scheduledFor === hoje;
+    }
     return false;
   });
 }

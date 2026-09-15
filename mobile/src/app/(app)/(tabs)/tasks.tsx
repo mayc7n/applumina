@@ -248,6 +248,7 @@ export default function TelaTarefas() {
                           ? "#FFFFFF33"
                           : tema.cores.marcaContorno,
                       }}
+                      hitSlop={2}
                       key={valor}
                       onPress={() => definirFiltro(valor)}
                       style={({ pressed }) => [
@@ -339,7 +340,7 @@ const styles = StyleSheet.create({
   entrada: { flex: 1, fontSize: 16, paddingVertical: 9 },
   botaoCriar: { minHeight: 44, paddingHorizontal: 14 },
   filtros: { gap: 8, paddingRight: 4 },
-  filtro: { alignItems: "center", borderRadius: 999, flexDirection: "row", gap: 6, justifyContent: "center", minHeight: 42, overflow: "hidden", paddingHorizontal: 15 },
+  filtro: { alignItems: "center", borderRadius: 999, flexDirection: "row", gap: 6, justifyContent: "center", minHeight: 44, overflow: "hidden", paddingHorizontal: 15 },
   filtroTexto: { fontSize: 13, fontWeight: "700" },
   erro: { fontSize: 13, lineHeight: 19 },
   carregando: { marginTop: 42 },

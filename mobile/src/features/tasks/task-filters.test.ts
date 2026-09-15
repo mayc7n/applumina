@@ -28,4 +28,19 @@ describe("filtros de tarefas", () => {
   test("busca sem depender de acentos", () => {
     expect(filtrarTarefas(tarefas, "ALL", "materia calculo", "2030-06-10").map(({ id }) => id)).toEqual(["3"]);
   });
+
+  test("considera hoje quando a data de vencimento ou a data agendada coincide", () => {
+    const comDatasDistintas: Task = {
+      ...base,
+      id: "5",
+      title: "Revisar hoje",
+      status: "TODO",
+      dueDate: "2030-06-10",
+      scheduledFor: "2030-06-12",
+    };
+
+    expect(filtrarTarefas([comDatasDistintas], "TODAY", "", "2030-06-10")).toEqual([
+      comDatasDistintas,
+    ]);
+  });
 });

@@ -1,6 +1,13 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, test } from "@jest/globals";
 
 import { criarEsquemaDenuncia } from "./safety-schema";
+
+const fonteDenuncia = readFileSync(
+  resolve(__dirname, "../../app/(app)/friends/safety/[id].tsx"),
+  "utf8",
+);
 
 const traduzir = ((chave: string) => chave) as Parameters<
   typeof criarEsquemaDenuncia
@@ -26,5 +33,9 @@ describe("formulário de denúncia", () => {
     expect(
       esquema.parse({ category: "SPAM", details: "  contexto  " }),
     ).toEqual({ category: "SPAM", details: "contexto" });
+  });
+
+  test("mantém o limite visual alinhado ao schema", () => {
+    expect(fonteDenuncia).toContain("maxLength={1000}");
   });
 });

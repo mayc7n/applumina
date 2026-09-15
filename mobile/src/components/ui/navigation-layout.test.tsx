@@ -49,8 +49,14 @@ interface TabsPropsTest {
   children: ReactNode;
   screenOptions: {
     animation: string;
+    tabBarAllowFontScaling: boolean;
     tabBarHideOnKeyboard: boolean;
+    tabBarItemStyle: Record<string, unknown>;
     tabBarStyle: Record<string, unknown>;
+    tabBarVisibilityAnimationConfig?: {
+      hide: { animation: string; config: { duration: number } };
+      show: { animation: string; config: { duration: number } };
+    };
   };
 }
 
@@ -75,6 +81,10 @@ describe("movimento da navegação inferior", () => {
       const abas = LayoutAbas() as ReactElement<TabsPropsTest>;
 
       expect(abas.props.screenOptions.animation).toBe("none");
+      expect(abas.props.screenOptions.tabBarVisibilityAnimationConfig).toEqual({
+        hide: { animation: "timing", config: { duration: 0 } },
+        show: { animation: "timing", config: { duration: 0 } },
+      });
     },
   );
 
@@ -93,7 +103,11 @@ describe("movimento da navegação inferior", () => {
       "friends",
     ]);
     expect(abas.props.screenOptions).toMatchObject({
+      tabBarAllowFontScaling: true,
       tabBarHideOnKeyboard: true,
+      tabBarItemStyle: {
+        overflow: "visible",
+      },
       tabBarStyle: {
         height: 62,
         marginBottom: 6,

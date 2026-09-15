@@ -11,6 +11,8 @@ describe("estado visitante de amigos", () => {
   test("não aninha um cartão dentro de outro cartão", () => {
     const inicioVisitante = fonteAmigos.indexOf("{!autenticado ? (");
     const fimVisitante = fonteAmigos.indexOf(") : carregando ?", inicioVisitante);
+    expect(inicioVisitante).toBeGreaterThanOrEqual(0);
+    expect(fimVisitante).toBeGreaterThan(inicioVisitante);
     const trechoVisitante = fonteAmigos.slice(inicioVisitante, fimVisitante);
 
     expect(trechoVisitante).toContain("<FeedbackState");

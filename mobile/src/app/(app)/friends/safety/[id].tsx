@@ -170,6 +170,7 @@ export default function TelaSegurancaAmigo() {
                 <Pressable
                   accessibilityRole="radio"
                   accessibilityState={{ selected: categoria === item }}
+                  hitSlop={2}
                   key={item}
                   onPress={() => {
                     setCategoria(item);
@@ -200,7 +201,7 @@ export default function TelaSegurancaAmigo() {
             ) : null}
             <FormField
               erro={erroDetalhes}
-              maxLength={1001}
+              maxLength={1000}
               multiline
               onChangeText={setDetalhes}
               placeholder={traduzir("amigos.denunciaDetalhesPlaceholder")}
@@ -242,6 +243,6 @@ const styles = StyleSheet.create({
   tituloSecao: { fontSize: 18, fontWeight: "800" },
   descricao: { fontSize: 14, lineHeight: 20 },
   categorias: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  categoria: { borderRadius: 20, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10 },
+  categoria: { borderRadius: 20, borderWidth: 1, minHeight: 44, paddingHorizontal: 12, paddingVertical: 10 },
   detalhes: { minHeight: 100 },
 });
