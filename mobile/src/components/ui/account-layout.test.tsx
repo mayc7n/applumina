@@ -26,5 +26,6 @@ describe("ordem da conta", () => {
 
     expect(indices.every((indice) => indice >= 0)).toBe(true);
     expect(indices).toEqual([...indices].sort((a, b) => a - b));
+    expect(fonteConta).toContain('onPress={() => router.back()}');
   });
 });

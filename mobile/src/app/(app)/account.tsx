@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import {
+  ArrowLeft,
   CircleAlert,
   CircleCheck,
   ChevronRight,
@@ -114,7 +115,23 @@ export default function TelaConta() {
         style={[styles.tela, { backgroundColor: tema.cores.fundo }]}
       >
         <ScrollView contentContainerStyle={styles.conteudo}>
-          <ScreenHeader titulo={traduzir("conta.titulo")} />
+          <ScreenHeader
+            inicio={
+              <Pressable
+                accessibilityLabel={traduzir("autenticacao.voltar")}
+                accessibilityRole="button"
+                hitSlop={4}
+                onPress={() => router.back()}
+                style={({ pressed }) => [
+                  styles.voltar,
+                  { backgroundColor: pressed ? tema.cores.sobreposicao : "transparent" },
+                ]}
+              >
+                <ArrowLeft color={tema.cores.texto} size={24} />
+              </Pressable>
+            }
+            titulo={traduzir("conta.titulo")}
+          />
           <View
             style={[
               styles.visitante,
@@ -212,7 +229,23 @@ export default function TelaConta() {
       edges={["top", "left", "right"]}
     >
       <ScrollView contentContainerStyle={styles.conteudo}>
-        <ScreenHeader titulo={traduzir("conta.titulo")} />
+        <ScreenHeader
+          inicio={
+            <Pressable
+              accessibilityLabel={traduzir("autenticacao.voltar")}
+              accessibilityRole="button"
+              hitSlop={4}
+              onPress={() => router.back()}
+              style={({ pressed }) => [
+                styles.voltar,
+                { backgroundColor: pressed ? tema.cores.sobreposicao : "transparent" },
+              ]}
+            >
+              <ArrowLeft color={tema.cores.texto} size={24} />
+            </Pressable>
+          }
+          titulo={traduzir("conta.titulo")}
+        />
         <AnimatedEntry>
           <View
             style={[
@@ -558,6 +591,13 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     paddingHorizontal: 20,
     paddingTop: 18,
+  },
+  voltar: {
+    alignItems: "center",
+    borderRadius: 22,
+    height: 44,
+    justifyContent: "center",
+    width: 44,
   },
   perfil: {
     borderRadius: 22,
