@@ -135,7 +135,7 @@ export interface Workout {
   activityDate: string;
   durationMins: number;
   notes?: string;
-  privacy: "PRIVATE" | "FRIENDS";
+  privacy: "PRIVATE" | "FRIENDS" | "PUBLIC";
   createdAt?: string;
 }
 
@@ -145,6 +145,7 @@ export interface CreateWorkoutInput {
   activityDate: string;
   durationMins: number;
   notes?: string;
+  privacy?: "PRIVATE" | "FRIENDS" | "PUBLIC";
 }
 
 export type UpdateWorkoutInput = CreateWorkoutInput;

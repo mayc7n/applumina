@@ -40,6 +40,7 @@ import {
 import { useIdioma } from "@/i18n/idioma";
 import { obterMensagemErroApi } from "@/lib/api/errors";
 import { apiSessoes } from "@/lib/api/resources";
+import { useListaTreinos } from "@/features/workouts/hooks";
 import { useArmazenamentoAutenticacao } from "@/store/auth-store";
 import { useTemaApp } from "@/theme/theme";
 import type { UserSession } from "@/types/api";
@@ -61,6 +62,7 @@ export default function TelaConta() {
   const autenticado = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado === "autenticado",
   );
+  const consultaTreinos = useListaTreinos(usuario?.id);
   const chaveSessoes = chaveConsultaSessoes(usuario?.id);
   const consultaSessoes = useQuery({
     queryKey: chaveSessoes,
@@ -130,7 +132,7 @@ export default function TelaConta() {
                 <ArrowLeft color={tema.cores.texto} size={24} />
               </Pressable>
             }
-            titulo={traduzir("conta.titulo")}
+            titulo={traduzir("navegacao.perfil")}
           />
           <View
             style={[
@@ -244,7 +246,7 @@ export default function TelaConta() {
               <ArrowLeft color={tema.cores.texto} size={24} />
             </Pressable>
           }
-          titulo={traduzir("conta.titulo")}
+          titulo={traduzir("navegacao.perfil")}
         />
         <AnimatedEntry>
           <View
@@ -295,6 +297,19 @@ export default function TelaConta() {
             </View>
           </View>
         </AnimatedEntry>
+
+        <View style={styles.grupoConta}>
+          <View style={styles.tituloLinha}>
+            <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>{traduzir("perfil.historico")}</Text>
+            <Text style={[styles.contagemTreinos, { color: tema.cores.marca }]}>{consultaTreinos.data?.length ?? 0}</Text>
+          </View>
+          <View
+            style={[styles.historicoPerfil, { backgroundColor: tema.cores.elevado, borderColor: tema.cores.borda }]}
+          >
+            {consultaTreinos.data?.slice(0, 5).map((treino) => <Pressable key={treino.id} onPress={() => router.push({ pathname: "/workouts/[id]", params: { id: treino.id } })} style={styles.linhaTreino}><Text style={[styles.dataTreino, { color: tema.cores.texto }]}>{treino.activityDate}</Text><Text style={[styles.duracaoTreino, { color: tema.cores.textoSecundario }]}>{treino.durationMins} min</Text></Pressable>)}
+            {!consultaTreinos.data?.length ? <Text style={[styles.vazioHistorico, { color: tema.cores.textoSecundario }]}>{traduzir("perfil.semHistorico")}</Text> : null}
+          </View>
+        </View>
 
         <View style={styles.grupoConta}>
           <Text style={[styles.tituloSecao, { color: tema.cores.texto }]}>
@@ -639,6 +654,13 @@ const styles = StyleSheet.create({
   nome: { fontSize: 17, fontWeight: "700" },
   nomePerfil: { fontSize: 22, fontWeight: "900", lineHeight: 28, textAlign: "center" },
   emailPerfil: { fontSize: 13, lineHeight: 18, opacity: 0.88 },
+  tituloLinha: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
+  contagemTreinos: { fontSize: 16, fontWeight: "800" },
+  historicoPerfil: { borderRadius: 20, borderWidth: 1, gap: 2, overflow: "hidden", padding: 8 },
+  linhaTreino: { alignItems: "center", borderRadius: 12, flexDirection: "row", justifyContent: "space-between", minHeight: 48, paddingHorizontal: 12 },
+  dataTreino: { fontSize: 14, fontWeight: "700" },
+  duracaoTreino: { fontSize: 13 },
+  vazioHistorico: { fontSize: 14, padding: 12 },
   planoPill: { borderRadius: 999, paddingHorizontal: 11, paddingVertical: 6, position: "absolute", right: 16, top: 16, zIndex: 2 },
   plano: { fontSize: 11, fontWeight: "800" },
   icone: {

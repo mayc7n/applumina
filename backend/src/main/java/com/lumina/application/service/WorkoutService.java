@@ -82,7 +82,7 @@ public class WorkoutService {
             .activityDate(request.activityDate())
             .durationMins(request.durationMins())
             .notes(trimToNull(request.notes()))
-            .privacy(WorkoutPrivacy.PRIVATE)
+            .privacy(request.privacy() == null ? WorkoutPrivacy.PRIVATE : request.privacy())
             .build());
         return toResponse(workout);
     }
@@ -95,6 +95,7 @@ public class WorkoutService {
         workout.setActivityDate(request.activityDate());
         workout.setDurationMins(request.durationMins());
         workout.setNotes(trimToNull(request.notes()));
+        if (request.privacy() != null) workout.setPrivacy(request.privacy());
         return toResponse(workout);
     }
 

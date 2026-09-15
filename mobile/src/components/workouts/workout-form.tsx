@@ -171,6 +171,16 @@ export function WorkoutForm({ salvando, aoSalvar, treino, dataInicial }: Workout
         value={valores.notes}
       />
 
+      <View style={styles.grupo}>
+        <Text style={[styles.rotulo, { color: tema.cores.texto }]}>{traduzir("treinos.visibilidade")}</Text>
+        <GrupoSelecao rotulo={traduzir("treinos.visibilidade")} style={styles.opcoes}>
+          {(["PRIVATE", "FRIENDS", "PUBLIC"] as const).map((privacy) => {
+            const selecionada = valores.privacy === privacy;
+            return <Pressable accessibilityRole="radio" accessibilityState={{ selected: selecionada }} key={privacy} onPress={() => atualizar("privacy", privacy)} style={[styles.opcao, { backgroundColor: selecionada ? tema.cores.marca : tema.cores.sobreposicao }]}><Text style={[styles.opcaoTexto, { color: selecionada ? tema.cores.sobreMarca : tema.cores.textoSecundario }]}>{traduzir(`treinos.privacidade.${privacy.toLowerCase()}` as never)}</Text></Pressable>;
+          })}
+        </GrupoSelecao>
+      </View>
+
       {!treino ? (
         <View style={[styles.privacidade, { borderColor: tema.cores.borda }]}>
           <Text

@@ -31,6 +31,7 @@ describe("formulário de treino", () => {
       activityDate: "2030-07-11",
       durationMins: "60",
       notes: "Evolução técnica",
+      privacy: "PRIVATE",
     });
   });
 
@@ -69,6 +70,7 @@ describe("formulário de treino", () => {
       activityDate: "2030-06-10",
       durationMins: 75,
       notes: "Primeira via completa",
+      privacy: "PRIVATE",
     });
   });
 

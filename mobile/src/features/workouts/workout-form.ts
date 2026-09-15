@@ -6,6 +6,7 @@ export interface ValoresFormularioTreino {
   activityDate: string;
   durationMins: string;
   notes: string;
+  privacy: "PRIVATE" | "FRIENDS" | "PUBLIC";
 }
 
 export type ErrosFormularioTreino = Partial<
@@ -42,6 +43,7 @@ export function valoresIniciaisTreino(
       activityDate: treino.activityDate,
       durationMins: String(treino.durationMins),
       notes: treino.notes ?? "",
+      privacy: treino.privacy,
     };
   }
 
@@ -51,6 +53,7 @@ export function valoresIniciaisTreino(
     activityDate: dataInicial ?? dataLocal(hoje),
     durationMins: "",
     notes: "",
+    privacy: "PRIVATE",
   };
 }
 
@@ -97,5 +100,6 @@ export function montarEntradaTreino(
     activityDate: valores.activityDate,
     durationMins: Number(valores.durationMins),
     notes: notes || undefined,
+    privacy: valores.privacy,
   };
 }

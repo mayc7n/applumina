@@ -3,6 +3,7 @@ package com.lumina.api.dto;
 import java.time.LocalDate;
 
 import com.lumina.domain.workout.entity.WorkoutType;
+import com.lumina.domain.workout.entity.WorkoutPrivacy;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -14,5 +15,6 @@ public record CreateWorkoutRequest(
     @Size(max = 100) String customActivity,
     @NotNull LocalDate activityDate,
     @NotNull @Min(1) @Max(1_440) Integer durationMins,
-    @Size(max = 2_000) String notes
+    @Size(max = 2_000) String notes,
+    WorkoutPrivacy privacy
 ) {}

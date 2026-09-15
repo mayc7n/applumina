@@ -4,6 +4,7 @@ import {
   Dumbbell,
   Home,
   UsersRound,
+  UserRound,
   type LucideIcon,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
@@ -165,6 +166,15 @@ export default function LayoutAbas() {
           title: traduzir("navegacao.amigos"),
           tabBarIcon: ({ focused: ativo, size: tamanho }) => (
             <IconeAba ativo={ativo} Icone={UsersRound} tamanho={tamanho} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: traduzir("navegacao.perfil"),
+          tabBarIcon: ({ focused: ativo, size: tamanho }) => (
+            <IconeAba ativo={ativo} Icone={UserRound} tamanho={tamanho} />
           ),
         }}
       />

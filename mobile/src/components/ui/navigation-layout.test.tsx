@@ -111,6 +111,7 @@ describe("movimento da navegação inferior", () => {
       "tasks",
       "workouts",
       "friends",
+      "profile",
     ]);
     expect(abas.props.screenOptions).toMatchObject({
       tabBarAllowFontScaling: true,

@@ -1,0 +1,1 @@
+ALTER TYPE workout_privacy ADD VALUE IF NOT EXISTS 'PUBLIC';

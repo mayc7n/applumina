@@ -81,6 +81,9 @@ const portuguesBrasil = {
   "navegacao.treinos": "Treinos",
   "navegacao.amigos": "Amigos",
   "navegacao.conta": "Conta",
+  "navegacao.perfil": "Meu perfil",
+  "perfil.historico": "Histórico de treinos",
+  "perfil.semHistorico": "Seus treinos aparecerão aqui.",
   "inicio.bomDia": "Bom dia",
   "inicio.boaTarde": "Boa tarde",
   "inicio.boaNoite": "Boa noite",
@@ -356,6 +359,10 @@ const portuguesBrasil = {
   "treinos.observacoesPlaceholder": "Como foi o treino?",
   "treinos.privacidade":
     "Este registro começa privado. Compartilhamento será sempre opcional.",
+  "treinos.visibilidade": "Visibilidade do treino",
+  "treinos.privacidade.private": "Somente eu",
+  "treinos.privacidade.friends": "Amigos",
+  "treinos.privacidade.public": "Público",
   "treinos.validacaoData": "Use uma data válida no formato AAAA-MM-DD.",
   "treinos.validacaoDuracao": "Informe de 1 a 1.440 minutos.",
   "treinos.validacaoPersonalizada":
@@ -546,6 +553,9 @@ const ingles: Record<ChaveTraducao, string> = {
   "navegacao.treinos": "Workouts",
   "navegacao.amigos": "Friends",
   "navegacao.conta": "Account",
+  "navegacao.perfil": "My profile",
+  "perfil.historico": "Workout history",
+  "perfil.semHistorico": "Your workouts will appear here.",
   "inicio.bomDia": "Good morning",
   "inicio.boaTarde": "Good afternoon",
   "inicio.boaNoite": "Good evening",
@@ -821,6 +831,10 @@ const ingles: Record<ChaveTraducao, string> = {
   "treinos.observacoesPlaceholder": "How did the workout go?",
   "treinos.privacidade":
     "This record starts private. Sharing will always be optional.",
+  "treinos.visibilidade": "Workout visibility",
+  "treinos.privacidade.private": "Only me",
+  "treinos.privacidade.friends": "Friends",
+  "treinos.privacidade.public": "Public",
   "treinos.validacaoData": "Use a valid date in YYYY-MM-DD format.",
   "treinos.validacaoDuracao": "Enter between 1 and 1,440 minutes.",
   "treinos.validacaoPersonalizada":

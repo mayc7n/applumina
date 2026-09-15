@@ -62,7 +62,8 @@ class WorkoutServiceTest {
             "  ignored  ",
             LocalDate.of(2030, 6, 10),
             45,
-            "  Treino de pernas  "
+            "  Treino de pernas  ",
+            null
         );
 
         var response = workoutService.create(userId, request);
@@ -83,6 +84,7 @@ class WorkoutServiceTest {
             " ",
             LocalDate.of(2030, 6, 10),
             30,
+            null,
             null
         );
 
@@ -168,7 +170,8 @@ class WorkoutServiceTest {
             "  Escalada indoor  ",
             LocalDate.of(2030, 7, 11),
             60,
-            "  Evolução técnica  "
+            "  Evolução técnica  ",
+            null
         );
 
         WorkoutResponse response = workoutService.update(userId, workoutId, request);
