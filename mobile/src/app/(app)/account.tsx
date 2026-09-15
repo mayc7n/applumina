@@ -26,6 +26,7 @@ import {
   StyleSheet,
   Text,
   View,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -39,7 +40,7 @@ import {
 } from "@/features/auth/sessions";
 import { useIdioma } from "@/i18n/idioma";
 import { obterMensagemErroApi } from "@/lib/api/errors";
-import { apiSessoes } from "@/lib/api/resources";
+import { apiSessoes, apiUsuarios } from "@/lib/api/resources";
 import { useListaTreinos } from "@/features/workouts/hooks";
 import { useArmazenamentoAutenticacao } from "@/store/auth-store";
 import { useTemaApp } from "@/theme/theme";
@@ -53,12 +54,14 @@ export default function TelaConta() {
     texto: string;
     erro: boolean;
   } | null>(null);
+  const [bio, definirBio] = useState("");
   const usuario = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.usuario,
   );
   const sair = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.sair,
   );
+  const inicializar = useArmazenamentoAutenticacao((estado) => estado.inicializar);
   const autenticado = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado === "autenticado",
   );
@@ -291,9 +294,13 @@ export default function TelaConta() {
               <Text style={[styles.nomePerfil, { color: tema.cores.texto }]}>
                 {usuario?.displayName}
               </Text>
-              <Text style={[styles.emailPerfil, { color: tema.cores.textoSecundario }]}>
+              <Text
+                style={[styles.emailPerfil, { color: tema.cores.textoSecundario }]}
+              >
                 {usuario?.email}
               </Text>
+              <TextInput accessibilityLabel={traduzir("perfil.bio")} maxLength={500} multiline onChangeText={definirBio} placeholder={traduzir("perfil.bioPlaceholder")} placeholderTextColor={tema.cores.textoSutil} style={[styles.bioInput, { borderColor: tema.cores.borda, color: tema.cores.texto }]} value={bio || usuario?.bio || ""} />
+              <AppButton onPress={() => void apiUsuarios.atualizarPerfil({ bio: bio || usuario?.bio || "" }).then(() => inicializar())} rotulo={traduzir("perfil.salvarBio")} variante="secondary" />
             </View>
           </View>
         </AnimatedEntry>
@@ -654,6 +661,7 @@ const styles = StyleSheet.create({
   nome: { fontSize: 17, fontWeight: "700" },
   nomePerfil: { fontSize: 22, fontWeight: "900", lineHeight: 28, textAlign: "center" },
   emailPerfil: { fontSize: 13, lineHeight: 18, opacity: 0.88 },
+  bioInput: { borderRadius: 12, borderWidth: 1, fontSize: 14, minHeight: 64, padding: 10, textAlignVertical: "top", width: "100%" },
   tituloLinha: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
   contagemTreinos: { fontSize: 16, fontWeight: "800" },
   historicoPerfil: { borderRadius: 20, borderWidth: 1, gap: 2, overflow: "hidden", padding: 8 },

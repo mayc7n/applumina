@@ -24,6 +24,7 @@ import type {
   TaskProject,
   TokenPair,
   UpdateTaskInput,
+  UpdateProfileInput,
   User,
   UserSession,
   Workout,
@@ -53,6 +54,7 @@ export const apiAutenticacaoMobile = {
 
 export const apiUsuarios = {
   atual: () => obterApi<User>("/users/me"),
+  atualizarPerfil: (entrada: UpdateProfileInput) => atualizarParcialApi<User>("/users/me", entrada),
   alterarSenha: (entrada: ChangePasswordInput) =>
     atualizarParcialApi<void>("/users/me/password", entrada),
   excluir: (entrada: DeleteAccountInput) =>
