@@ -1,4 +1,5 @@
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Fragment } from "react";
 
 import { AppButton } from "@/components/ui/app-button";
 import { useTemaApp } from "@/theme/theme";
@@ -14,6 +15,7 @@ interface WorkoutDaySheetProps {
   onFechar: () => void;
   onRegistrar: (data: string) => void;
   onAbrirTreino: (id: string) => void;
+  onAdicionarMomento: (id: string) => void;
 }
 
 export function WorkoutDaySheet({
@@ -26,6 +28,7 @@ export function WorkoutDaySheet({
   onFechar,
   onRegistrar,
   onAbrirTreino,
+  onAdicionarMomento,
 }: WorkoutDaySheetProps) {
   const tema = useTemaApp();
   if (!dia) return null;
@@ -39,10 +42,10 @@ export function WorkoutDaySheet({
           <Text style={[styles.summary, { color: tema.cores.textoSecundario }]}>{dia.workoutCount} · {dia.totalMinutes} min</Text>
           <ScrollView contentContainerStyle={styles.list}>
             {dia.workouts.map((treino) => (
+              <Fragment key={treino.id}>
               <Pressable
                 accessibilityLabel={`${rotulos[treino.type]} ${treino.durationMins} minutos`}
                 accessibilityRole="button"
-                key={treino.id}
                 onPress={() => onAbrirTreino(treino.id)}
                 style={({ pressed }) => [styles.row, { borderColor: tema.cores.borda, backgroundColor: pressed ? tema.cores.marcaSuave : tema.cores.sobreposicao }]}
               >
@@ -50,6 +53,10 @@ export function WorkoutDaySheet({
                 <Text style={[styles.rowTitle, { color: tema.cores.texto }]}>{treino.customActivity || rotulos[treino.type]}</Text>
                 <Text style={[styles.rowMinutes, { color: tema.cores.textoSecundario }]}>{treino.durationMins} min</Text>
               </Pressable>
+              <Pressable accessibilityLabel="Adicionar momento" accessibilityRole="button" onPress={() => onAdicionarMomento(treino.id)} style={[styles.moment, { borderColor: tema.cores.marca }]}>
+                <Text style={[styles.momentText, { color: tema.cores.marca }]}>+ foto</Text>
+              </Pressable>
+              </Fragment>
             ))}
           </ScrollView>
           <AppButton onPress={() => onRegistrar(dia.date)} rotulo={rotuloRegistrar} />
@@ -71,4 +78,6 @@ const styles = StyleSheet.create({
   dot: { borderRadius: 5, height: 9, width: 9 },
   rowTitle: { flex: 1, fontSize: 15, fontWeight: "700" },
   rowMinutes: { fontSize: 13 },
+  moment: { alignItems: "center", borderRadius: 12, borderWidth: 1, minHeight: 40, justifyContent: "center", paddingHorizontal: 10 },
+  momentText: { fontSize: 12, fontWeight: "800" },
 });

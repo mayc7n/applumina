@@ -1,7 +1,9 @@
 import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import { ChevronLeft } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -26,11 +28,12 @@ import {
 } from "@/features/workouts/hooks";
 import { useIdioma } from "@/i18n/idioma";
 import { obterMensagemErroApi } from "@/lib/api/errors";
+import { apiTreinos } from "@/lib/api/resources";
 import { useArmazenamentoAutenticacao } from "@/store/auth-store";
 import { useTemaApp } from "@/theme/theme";
 import type { CreateWorkoutInput, Workout, WorkoutType } from "@/types/api";
 
-function DetalheTreino({ treino, traduzir, onEditar, onExcluir }: { treino: Workout; traduzir: ReturnType<typeof useIdioma>["traduzir"]; onEditar: () => void; onExcluir: () => void }) {
+function DetalheTreino({ treino, traduzir, onEditar, onExcluir, onMomento }: { treino: Workout; traduzir: ReturnType<typeof useIdioma>["traduzir"]; onEditar: () => void; onExcluir: () => void; onMomento: () => void }) {
   const tema = useTemaApp();
   const rotulos: Partial<Record<WorkoutType, string>> = {
     WALKING: traduzir("treinos.caminhada"), RUNNING: traduzir("treinos.corrida"), STRENGTH: traduzir("treinos.forca"), CYCLING: traduzir("treinos.ciclismo"), SWIMMING: traduzir("treinos.natacao"), CUSTOM: traduzir("treinos.personalizada"),
@@ -39,6 +42,7 @@ function DetalheTreino({ treino, traduzir, onEditar, onExcluir }: { treino: Work
     <View style={styles.detalheCabecalho}><Text style={[styles.detalheTipo, { color: tema.cores.texto }]}>{treino.customActivity || rotulos[treino.type] || treino.type}</Text><Text style={[styles.detalheData, { color: tema.cores.textoSecundario }]}>{treino.activityDate}</Text></View>
     <Text style={[styles.detalheDuracao, { color: tema.cores.marca }]}>{treino.durationMins} {traduzir("treinos.minutos")}</Text>
     {treino.notes ? <Text style={[styles.detalheNotas, { color: tema.cores.textoSecundario }]}>{treino.notes}</Text> : null}
+    <AppButton onPress={onMomento} rotulo={traduzir("treinos.adicionarMomento")} variante="secondary" />
     <AppButton onPress={onEditar} rotulo={traduzir("treinos.editar")} />
     <AppButton onPress={onExcluir} rotulo={traduzir("treinos.excluir")} variante="danger" />
   </View>;
@@ -47,7 +51,7 @@ function DetalheTreino({ treino, traduzir, onEditar, onExcluir }: { treino: Work
 export default function TelaEditarTreino() {
   const tema = useTemaApp();
   const { traduzir } = useIdioma();
-  const parametros = useLocalSearchParams<{ id: string }>();
+  const parametros = useLocalSearchParams<{ id: string; moment?: string }>();
   const [editando, definirEditando] = useState(false);
   const autenticado = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado === "autenticado",
@@ -58,6 +62,20 @@ export default function TelaEditarTreino() {
   const consulta = useTreino(parametros.id, userId);
   const editar = useEditarTreino(userId);
   const excluir = useExcluirTreino(userId);
+
+  useEffect(() => {
+    if (parametros.moment !== "1" || !consulta.data) return;
+    void adicionarMomento();
+  }, [consulta.data, parametros.moment]);
+
+  async function adicionarMomento(): Promise<void> {
+    const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissao.granted) return;
+    const resultado = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: true, quality: 0.82, exif: false });
+    if (resultado.canceled) return;
+    const processada = await ImageManipulator.manipulateAsync(resultado.assets[0].uri, [{ resize: { width: 1600 } }], { compress: 0.82, format: ImageManipulator.SaveFormat.JPEG });
+    await apiTreinos.enviarMomento(parametros.id, processada.uri, "image/jpeg");
+  }
 
   async function salvar(entrada: CreateWorkoutInput): Promise<void> {
     await editar.mutateAsync({ id: parametros.id, entrada });
@@ -165,7 +183,7 @@ export default function TelaEditarTreino() {
               {editando ? <>
                 <WorkoutForm aoSalvar={salvar} salvando={editar.isPending || excluir.isPending} treino={consulta.data} />
                 <AppButton disabled={editar.isPending || excluir.isPending} onPress={() => definirEditando(false)} rotulo={traduzir("treinos.cancelar")} variante="secondary" />
-              </> : <DetalheTreino onEditar={() => definirEditando(true)} onExcluir={confirmarExclusao} treino={consulta.data} traduzir={traduzir} />}
+              </> : <DetalheTreino onEditar={() => definirEditando(true)} onExcluir={confirmarExclusao} onMomento={() => void adicionarMomento()} treino={consulta.data} traduzir={traduzir} />}
             </View>
           )}
         </ScrollView>
