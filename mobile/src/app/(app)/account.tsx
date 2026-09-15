@@ -230,12 +230,6 @@ export default function TelaConta() {
               ]}
             >
               <View
-                accessibilityElementsHidden
-                importantForAccessibility="no-hide-descendants"
-                pointerEvents="none"
-                style={[styles.trilhoPerfil, { backgroundColor: tema.cores.marca }]}
-              />
-              <View
                 style={[
                   styles.avatar,
                   {
@@ -566,34 +560,22 @@ const styles = StyleSheet.create({
     paddingTop: 18,
   },
   perfil: {
-    borderRadius: 26,
+    borderRadius: 22,
     borderWidth: 1,
-    minHeight: 260,
+    minHeight: 220,
     overflow: "hidden",
-    elevation: 7,
-    shadowColor: "#2B1712",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.16,
-    shadowRadius: 22,
+    elevation: 1,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
   },
   perfilVisual: {
     alignItems: "center",
     borderBottomWidth: 1,
     justifyContent: "center",
-    minHeight: 152,
+    minHeight: 126,
     overflow: "hidden",
-  },
-  trilhoPerfil: {
-    bottom: 0,
-    elevation: 8,
-    position: "absolute",
-    right: 0,
-    shadowColor: "#C63C24",
-    shadowOffset: { width: -5, height: 0 },
-    shadowOpacity: 0.55,
-    shadowRadius: 12,
-    top: 0,
-    width: 6,
   },
   visitante: {
     borderRadius: 20,
@@ -608,11 +590,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     height: 88,
     justifyContent: "center",
-    elevation: 3,
-    shadowColor: "#2B1712",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 9,
+    elevation: 1,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
     width: 88,
     zIndex: 1,
   },
@@ -637,13 +619,13 @@ const styles = StyleSheet.create({
   secaoSessoes: {
     borderRadius: 22,
     borderWidth: 1,
-    elevation: 2,
+    elevation: 1,
     gap: 15,
     padding: 18,
     shadowColor: "#2B1712",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
   },
   cabecalhoSecao: { alignItems: "flex-start", flexDirection: "row", gap: 13 },
   tituloSecao: { fontSize: 18, fontWeight: "700" },
