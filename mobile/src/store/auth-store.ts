@@ -24,12 +24,15 @@ interface AuthState {
   estado: EstadoAutenticacao;
   usuario: User | null;
   geracaoSessao: number;
+  versaoIdioma: number;
+  idiomaSalvando: boolean;
   inicializar: () => Promise<void>;
   entrar: (entrada: LoginInput) => Promise<void>;
   cadastrar: (entrada: RegisterInput) => Promise<void>;
   sair: () => Promise<void>;
   excluirConta: (entrada: DeleteAccountInput) => Promise<void>;
   atualizarIdioma: (idioma: IdiomaApp) => void;
+  finalizarAtualizacaoIdioma: () => void;
   marcarNaoAutenticado: () => void;
 }
 
@@ -52,38 +55,70 @@ function limparDadosPrivados(): void {
   clienteConsultas.clear();
 }
 
-export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
+let versaoInicializacao = 0;
+
+export const useArmazenamentoAutenticacao = create<AuthState>((definir, obter) => ({
   estado: "inicializando",
   usuario: null,
   geracaoSessao: 0,
+  versaoIdioma: 0,
+  idiomaSalvando: false,
 
   inicializar: async () => {
+    const origem = obter();
+    const versao = ++versaoInicializacao;
+    const inicializacaoAtual = () =>
+      versao === versaoInicializacao &&
+      origem.geracaoSessao === obter().geracaoSessao &&
+      origem.usuario?.id === obter().usuario?.id;
+
     try {
       const refreshToken = await obterTokenRenovacao();
+      if (!inicializacaoAtual()) return;
       if (!refreshToken) {
         limparDadosPrivados();
         definir((atual) => ({
           estado: "naoAutenticado",
           usuario: null,
           geracaoSessao: atual.geracaoSessao + 1,
+          idiomaSalvando: false,
         }));
         return;
       }
       await renovarTokenAcesso();
+      if (!inicializacaoAtual()) return;
       const usuario = await apiUsuarios.atual();
+      if (!inicializacaoAtual()) return;
       limparDadosPrivados();
-      definir((atual) => ({
-        estado: "autenticado",
-        usuario,
-        geracaoSessao: atual.geracaoSessao + 1,
-      }));
+      definir((atual) => {
+        const mesmaSessao =
+          atual.estado === "autenticado" && atual.usuario?.id === usuario.id;
+        // Uma leitura que cruzou um PATCH não pode repor o locale anterior,
+        // mesmo se a confirmação ou o rollback já tiverem terminado.
+        const preservarIdioma = mesmaSessao && (
+          origem.idiomaSalvando ||
+          atual.idiomaSalvando ||
+          origem.versaoIdioma !== atual.versaoIdioma
+        );
+        return {
+          estado: "autenticado",
+          usuario: preservarIdioma && atual.usuario
+            ? { ...usuario, locale: atual.usuario.locale }
+            : usuario,
+          geracaoSessao: mesmaSessao ? atual.geracaoSessao : atual.geracaoSessao + 1,
+          idiomaSalvando: mesmaSessao && atual.idiomaSalvando,
+        };
+      });
     } catch {
+      if (!inicializacaoAtual()) return;
       await limparSessao();
+      if (!inicializacaoAtual()) return;
       limparDadosPrivados();
       definir((atual) => ({
         estado: "naoAutenticado",
         usuario: null,
         geracaoSessao: atual.geracaoSessao + 1,
+        idiomaSalvando: false,
       }));
     }
   },
@@ -97,6 +132,7 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
       estado: "autenticado",
       usuario,
       geracaoSessao: atual.geracaoSessao + 1,
+      idiomaSalvando: false,
     }));
   },
 
@@ -109,6 +145,7 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
       estado: "autenticado",
       usuario,
       geracaoSessao: atual.geracaoSessao + 1,
+      idiomaSalvando: false,
     }));
   },
 
@@ -123,6 +160,7 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
         estado: "naoAutenticado",
         usuario: null,
         geracaoSessao: atual.geracaoSessao + 1,
+        idiomaSalvando: false,
       }));
     }
   },
@@ -137,13 +175,25 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
         estado: "naoAutenticado",
         usuario: null,
         geracaoSessao: atual.geracaoSessao + 1,
+        idiomaSalvando: false,
       }));
     }
   },
 
   atualizarIdioma: (idioma) =>
+    definir((atual) => {
+      if (atual.estado !== "autenticado" || !atual.usuario) return atual;
+      return {
+        usuario: { ...atual.usuario, locale: idioma },
+        versaoIdioma: atual.versaoIdioma + 1,
+        idiomaSalvando: true,
+      };
+    }),
+
+  finalizarAtualizacaoIdioma: () =>
     definir((atual) => ({
-      usuario: atual.usuario ? { ...atual.usuario, locale: idioma } : null,
+      versaoIdioma: atual.versaoIdioma + 1,
+      idiomaSalvando: false,
     })),
 
   marcarNaoAutenticado: () => {
@@ -152,6 +202,7 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
       estado: "naoAutenticado",
       usuario: null,
       geracaoSessao: atual.geracaoSessao + 1,
+      idiomaSalvando: false,
     }));
   },
 }));

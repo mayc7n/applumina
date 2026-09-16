@@ -60,7 +60,12 @@ export default function TelaConta() {
   } | null>(null);
   const [bio, definirBio] = useState("");
   const [enviandoAvatar, definirEnviandoAvatar] = useState(false);
-  const [idiomaSalvando, definirIdiomaSalvando] = useState(false);
+  const idiomaSalvando = useArmazenamentoAutenticacao(
+    (estado) => estado.idiomaSalvando,
+  );
+  const geracaoSessao = useArmazenamentoAutenticacao(
+    (estado) => estado.geracaoSessao,
+  );
   const usuario = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.usuario,
   );
@@ -70,6 +75,9 @@ export default function TelaConta() {
   const inicializar = useArmazenamentoAutenticacao((estado) => estado.inicializar);
   const atualizarIdioma = useArmazenamentoAutenticacao(
     (estado) => estado.atualizarIdioma,
+  );
+  const finalizarAtualizacaoIdioma = useArmazenamentoAutenticacao(
+    (estado) => estado.finalizarAtualizacaoIdioma,
   );
   const autenticado = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado === "autenticado",
@@ -238,19 +246,31 @@ export default function TelaConta() {
     encerrarUmaSessao.isPending || encerrarOutrasSessoes.isPending;
 
   async function salvarIdioma(novoIdioma: typeof idioma): Promise<void> {
-    if (idiomaSalvando || novoIdioma === idioma) return;
+    const userId = usuario?.id;
+    const sessaoDeOrigemAtiva = () => {
+      const atual = useArmazenamentoAutenticacao.getState();
+      return atual.estado === "autenticado" &&
+        atual.usuario?.id === userId &&
+        atual.geracaoSessao === geracaoSessao;
+    };
+    if (
+      !userId || !sessaoDeOrigemAtiva() ||
+      useArmazenamentoAutenticacao.getState().idiomaSalvando ||
+      novoIdioma === idioma
+    ) return;
 
     const idiomaAnterior = idioma;
-    definirIdiomaSalvando(true);
     atualizarIdioma(novoIdioma);
     try {
       await apiUsuarios.atualizarPerfil({ locale: novoIdioma });
+      if (!sessaoDeOrigemAtiva()) return;
       Alert.alert(traduzirNoIdioma(novoIdioma, "conta.idiomaSucesso"));
     } catch {
+      if (!sessaoDeOrigemAtiva()) return;
       atualizarIdioma(idiomaAnterior);
-      Alert.alert(traduzir("conta.idiomaErro"));
+      Alert.alert(traduzirNoIdioma(idiomaAnterior, "conta.idiomaErro"));
     } finally {
-      definirIdiomaSalvando(false);
+      if (sessaoDeOrigemAtiva()) finalizarAtualizacaoIdioma();
     }
   }
 

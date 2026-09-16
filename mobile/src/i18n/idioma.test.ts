@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from "@jest/globals";
+import { afterEach, describe, expect, jest, test } from "@jest/globals";
 import React from "react";
 import { act, create } from "react-test-renderer";
 
@@ -58,9 +58,15 @@ describe("traduzirNoIdioma", () => {
 });
 
 describe("useIdioma", () => {
+  let arvore: ReturnType<typeof create> | undefined;
+  afterEach(() => {
+    act(() => arvore?.unmount());
+    useArmazenamentoAutenticacao.setState(useArmazenamentoAutenticacao.getInitialState());
+  });
+
   test("prioriza o idioma salvo da conta sobre o idioma do aparelho", () => {
     mockUseLocales.mockReturnValue([{ languageTag: "pt-BR", languageCode: "pt" }]);
-    useArmazenamentoAutenticacao.setState({ usuario: criarUsuario("en") });
+    useArmazenamentoAutenticacao.setState({ estado: "autenticado", usuario: criarUsuario("en") });
     let idiomaAtual: string | undefined;
 
     function ConsumidorIdioma() {
@@ -69,9 +75,27 @@ describe("useIdioma", () => {
     }
 
     act(() => {
-      create(React.createElement(ConsumidorIdioma));
+      arvore = create(React.createElement(ConsumidorIdioma));
     });
 
     expect(idiomaAtual).toBe("en");
+  });
+
+  test.each([
+    ["autenticado", "pt-BR", "pt-BR"],
+    ["autenticado", "fr", "en"],
+    ["naoAutenticado", "pt-BR", "en"],
+    ["naoAutenticado", undefined, "en"],
+  ] satisfies ["autenticado" | "naoAutenticado", string | undefined, string][])("resolve estado %s e locale %s em aparelho inglês como %s", (estado, locale, esperado) => {
+    mockUseLocales.mockReturnValue([{ languageTag: "en-US", languageCode: "en" }]);
+    useArmazenamentoAutenticacao.setState({ estado, usuario: locale ? criarUsuario(locale) : null });
+    let idiomaAtual: string | undefined;
+    function ConsumidorIdioma() {
+      idiomaAtual = useIdioma().idioma;
+      return null;
+    }
+    act(() => { arvore = create(React.createElement(ConsumidorIdioma)); });
+    // Inclusive o default histórico pt-BR do User é autoritativo após autenticar.
+    expect(idiomaAtual).toBe(esperado);
   });
 });

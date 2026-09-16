@@ -1,6 +1,6 @@
 import { describe, expect, jest, test } from "@jest/globals";
 import type { ReactElement, ReactNode } from "react";
-import { Pressable, Text } from "react-native";
+import { Pressable, StyleSheet, Text, View, type TextProps, type ViewStyle } from "react-native";
 
 import { LanguageSelector } from "./language-selector";
 
@@ -20,10 +20,14 @@ jest.mock("@/theme/theme", () => ({
 
 type Elemento = ReactElement<{
   accessibilityRole?: string;
-  accessibilityState?: { disabled?: boolean; selected?: boolean };
+  accessibilityState?: { checked?: boolean; disabled?: boolean; selected?: boolean };
   children?: ReactNode;
   disabled?: boolean;
   onPress?: () => void;
+  style?: TextProps["style"] | ((estado: { pressed: boolean }) => ViewStyle[]);
+  numberOfLines?: number;
+  allowFontScaling?: boolean;
+  maxFontSizeMultiplier?: number;
 }>;
 
 function elementosDoTipo(elemento: ReactNode, tipo: unknown): Elemento[] {
@@ -54,8 +58,8 @@ describe("LanguageSelector", () => {
     expect(rotulos).toEqual(expect.arrayContaining(["Português (Brasil)", "English"]));
     expect(opcoes).toHaveLength(2);
     expect(opcoes[0].props.accessibilityRole).toBe("radio");
-    expect(opcoes[0].props.accessibilityState).toMatchObject({ selected: true });
-    expect(opcoes[1].props.accessibilityState).toMatchObject({ selected: false });
+    expect(opcoes[0].props.accessibilityState).toMatchObject({ selected: true, checked: true });
+    expect(opcoes[1].props.accessibilityState).toMatchObject({ selected: false, checked: false });
 
     opcoes[1].props.onPress?.();
 
@@ -74,6 +78,37 @@ describe("LanguageSelector", () => {
     for (const opcao of elementosDoTipo(seletor, Pressable)) {
       expect(opcao.props.disabled).toBe(true);
       expect(opcao.props.accessibilityState).toMatchObject({ disabled: true });
+    }
+  });
+
+  test("acomoda rótulos longos e fontes ampliadas sem limitar linhas ou altura", () => {
+    const rotuloLongo = "Português (Brasil) — preferência de idioma para toda a conta";
+    const seletor = LanguageSelector({
+      idioma: "en",
+      salvando: false,
+      onChange: jest.fn(),
+      rotuloIngles: "English — preferred language for the entire account",
+      rotuloPortugues: rotuloLongo,
+    });
+    const opcoes = elementosDoTipo(seletor, Pressable);
+    expect(opcoes[1].props.accessibilityState).toMatchObject({ selected: true, checked: true });
+    expect(elementosDoTipo(seletor, Text)[0].props.children).toBe(rotuloLongo);
+
+    for (const opcao of opcoes) {
+      const estilo = opcao.props.style;
+      const caixa = StyleSheet.flatten(typeof estilo === "function" ? estilo({ pressed: false }) : estilo);
+      expect(caixa).toMatchObject({ minHeight: 44, paddingVertical: 12 });
+      expect(caixa?.height).toBeUndefined();
+      expect(caixa?.maxHeight).toBeUndefined();
+      expect(caixa?.overflow).not.toBe("hidden");
+      const indicador = elementosDoTipo(opcao, View)[0];
+      expect(StyleSheet.flatten(indicador.props.style as ViewStyle)).toMatchObject({ flexShrink: 0 });
+    }
+    for (const rotulo of elementosDoTipo(seletor, Text)) {
+      expect(StyleSheet.flatten(rotulo.props.style as TextProps["style"])).toMatchObject({ flex: 1, flexShrink: 1 });
+      expect(rotulo.props.numberOfLines).toBeUndefined();
+      expect(rotulo.props.allowFontScaling).not.toBe(false);
+      expect(rotulo.props.maxFontSizeMultiplier).toBeUndefined();
     }
   });
 });

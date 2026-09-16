@@ -257,7 +257,7 @@ const portuguesBrasil = {
   "conta.nenhumaOutraSessao": "Nenhum outro aparelho conectado.",
   "conta.idiomaTitulo": "Idioma",
   "conta.idiomaSistema":
-    "O Lumina acompanha o idioma do aparelho: Português (Brasil) ou English.",
+    "Escolha Português (Brasil) ou English como idioma da sua conta no Lumina.",
   "conta.idiomaPortugues": "Português (Brasil)",
   "conta.idiomaIngles": "English",
   "conta.idiomaSucesso": "Idioma atualizado.",
@@ -742,7 +742,7 @@ const ingles: Record<ChaveTraducao, string> = {
   "conta.nenhumaOutraSessao": "No other connected devices.",
   "conta.idiomaTitulo": "Language",
   "conta.idiomaSistema":
-    "Lumina follows your device language: Português (Brasil) or English.",
+    "Choose Português (Brasil) or English as the language for your Lumina account.",
   "conta.idiomaPortugues": "Português (Brasil)",
   "conta.idiomaIngles": "English",
   "conta.idiomaSucesso": "Language updated.",
@@ -1002,7 +1002,7 @@ export function resolverIdioma(
 export function useIdioma() {
   const locais = useLocales();
   const preferencia = useArmazenamentoAutenticacao(
-    (estado) => estado.usuario?.locale,
+    (estado) => estado.estado === "autenticado" ? estado.usuario?.locale : undefined,
   );
   const idioma = resolverIdioma(
     preferencia,

@@ -33,7 +33,11 @@ export function LanguageSelector({
           <Pressable
             accessibilityLabel={opcao.rotulo}
             accessibilityRole="radio"
-            accessibilityState={{ disabled: salvando, selected: selecionada }}
+            accessibilityState={{
+              checked: selecionada,
+              disabled: salvando,
+              selected: selecionada,
+            }}
             disabled={salvando}
             hitSlop={6}
             key={opcao.idioma}
@@ -82,6 +86,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   indicador: {
+    flexShrink: 0,
     borderRadius: 8,
     borderWidth: 1,
     height: 16,
@@ -95,8 +100,11 @@ const styles = StyleSheet.create({
     gap: 10,
     minHeight: 44,
     paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   rotulo: {
+    flex: 1,
+    flexShrink: 1,
     fontSize: 14,
     fontWeight: "600",
   },
