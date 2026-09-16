@@ -154,8 +154,8 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir, obter) =
     definir((atual) => ({
       geracaoSessao: atual.geracaoSessao + 1,
     }));
-    const refreshToken = await obterTokenRenovacao();
     try {
+      const refreshToken = await obterTokenRenovacao();
       if (refreshToken) await apiAutenticacaoMobile.sair(refreshToken);
     } finally {
       await limparSessao();

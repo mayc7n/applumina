@@ -144,6 +144,30 @@ describe("coordenação de perfil e sessão", () => {
     expect(auth.getState()).toMatchObject({ estado: "autenticado", usuario, geracaoSessao: 1 });
   });
 
+  test("limpa e desbloqueia a sessão quando a leitura do refresh token rejeita", async () => {
+    auth.setState({
+      ...auth.getInitialState(),
+      estado: "autenticado",
+      usuario,
+      geracaoSessao: 1,
+      idiomaSalvando: true,
+    });
+    clienteConsultas.setQueryData(["privado"], usuario);
+    jest.mocked(sessao.obterTokenRenovacao).mockRejectedValue(
+      new Error("SecureStore indisponível"),
+    );
+
+    await expect(auth.getState().sair()).rejects.toThrow("SecureStore indisponível");
+
+    expect(sessao.limparSessao).toHaveBeenCalledTimes(1);
+    expect(auth.getState()).toMatchObject({
+      estado: "naoAutenticado",
+      usuario: null,
+      idiomaSalvando: false,
+    });
+    expect(clienteConsultas.getQueryData(["privado"])).toBeUndefined();
+  });
+
   test("interrompe a leitura de perfil se a sessão mudar enquanto renova o token", async () => {
     const renovacao = promessaControlada<void>();
     jest.mocked(renovarTokenAcesso).mockReturnValueOnce(renovacao.promessa);
