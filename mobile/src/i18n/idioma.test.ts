@@ -8,9 +8,8 @@ const mockUseLocales = jest.fn();
 
 jest.mock("expo-localization", () => ({ useLocales: mockUseLocales }));
 
-const { resolverIdioma, useIdioma } = jest.requireActual<typeof import("./idioma")>(
-  "./idioma",
-);
+const { resolverIdioma, traduzirNoIdioma, useIdioma } =
+  jest.requireActual<typeof import("./idioma")>("./idioma");
 const {
   useArmazenamentoAutenticacao,
 } = jest.requireActual<typeof import("@/store/auth-store")>(
@@ -47,6 +46,14 @@ describe("resolverIdioma", () => {
 
   test("usa o fallback do aparelho para locale desconhecido", () => {
     expect(resolverIdioma("fr", "en-US")).toBe("en");
+  });
+});
+
+describe("traduzirNoIdioma", () => {
+  test("mostra o sucesso de idioma no idioma que acabou de ser selecionado", () => {
+    expect(traduzirNoIdioma("en", "conta.idiomaSucesso")).toBe(
+      "Language updated.",
+    );
   });
 });
 

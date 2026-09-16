@@ -42,7 +42,7 @@ import {
   chaveConsultaSessoes,
   ordenarSessoes,
 } from "@/features/auth/sessions";
-import { useIdioma } from "@/i18n/idioma";
+import { traduzirNoIdioma, useIdioma } from "@/i18n/idioma";
 import { obterMensagemErroApi } from "@/lib/api/errors";
 import { apiSessoes, apiUsuarios } from "@/lib/api/resources";
 import { useListaTreinos } from "@/features/workouts/hooks";
@@ -245,7 +245,7 @@ export default function TelaConta() {
     atualizarIdioma(novoIdioma);
     try {
       await apiUsuarios.atualizarPerfil({ locale: novoIdioma });
-      Alert.alert(traduzir("conta.idiomaSucesso"));
+      Alert.alert(traduzirNoIdioma(novoIdioma, "conta.idiomaSucesso"));
     } catch {
       atualizarIdioma(idiomaAnterior);
       Alert.alert(traduzir("conta.idiomaErro"));

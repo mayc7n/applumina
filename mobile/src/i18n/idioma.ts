@@ -974,6 +974,18 @@ const ingles: Record<ChaveTraducao, string> = {
 
 type VariaveisTraducao = Record<string, string | number>;
 
+export function traduzirNoIdioma(
+  idioma: IdiomaApp,
+  chave: ChaveTraducao,
+  variaveis?: VariaveisTraducao,
+): string {
+  let texto = (idioma === "en" ? ingles : portuguesBrasil)[chave];
+  for (const [nome, valor] of Object.entries(variaveis ?? {})) {
+    texto = texto.replaceAll(`{${nome}}`, String(valor));
+  }
+  return texto;
+}
+
 function resolverLocale(idioma: string | undefined): IdiomaApp | undefined {
   if (idioma === "en" || idioma?.startsWith("en-")) return "en";
   if (idioma === "pt" || idioma?.startsWith("pt-")) return "pt-BR";
@@ -996,17 +1008,10 @@ export function useIdioma() {
     preferencia,
     locais[0]?.languageTag ?? locais[0]?.languageCode,
   );
-  const dicionario = idioma === "en" ? ingles : portuguesBrasil;
-
   const traduzir = useCallback(
-    (chave: ChaveTraducao, variaveis?: VariaveisTraducao) => {
-      let texto: string = dicionario[chave];
-      for (const [nome, valor] of Object.entries(variaveis ?? {})) {
-        texto = texto.replaceAll(`{${nome}}`, String(valor));
-      }
-      return texto;
-    },
-    [dicionario],
+    (chave: ChaveTraducao, variaveis?: VariaveisTraducao) =>
+      traduzirNoIdioma(idioma, chave, variaveis),
+    [idioma],
   );
 
   return { idioma, traduzir } as const;

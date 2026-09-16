@@ -18,6 +18,12 @@ describe("ordem da conta", () => {
     expect(seletorIdioma).toBeLessThan(privacidade);
   });
 
+  test("usa o idioma selecionado para o alerta de sucesso", () => {
+    expect(fonteConta).toContain(
+      'traduzirNoIdioma(novoIdioma, "conta.idiomaSucesso")',
+    );
+  });
+
   test("apresenta preferências, privacidade, aparelhos e saída nessa ordem", () => {
     const indices = [
       fonteConta.search(
