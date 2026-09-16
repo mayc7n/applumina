@@ -29,6 +29,8 @@ import com.lumina.api.middleware.GlobalExceptionHandler.ResourceNotFoundExceptio
 import com.lumina.domain.user.entity.User;
 import com.lumina.domain.user.repository.UserRepository;
 import com.lumina.domain.workout.entity.Workout;
+import com.lumina.domain.workout.entity.WorkoutMedia;
+import com.lumina.domain.workout.entity.WorkoutMediaStatus;
 import com.lumina.domain.workout.entity.WorkoutPrivacy;
 import com.lumina.domain.workout.entity.WorkoutType;
 import com.lumina.domain.workout.repository.WorkoutRepository;
@@ -124,6 +126,16 @@ class WorkoutServiceTest {
         third.setActivityDate(LocalDate.of(2030, 7, 12));
         when(workoutRepository.findByUserIdAndActivityDateBetweenOrderByActivityDateAscCreatedAtAsc(userId, from, to))
             .thenReturn(List.of(first, second, third));
+        when(workoutMediaRepository.findByWorkoutIdInAndUserId(
+            List.of(first.getId(), second.getId(), third.getId()), userId
+        )).thenReturn(List.of(WorkoutMedia.builder()
+            .workout(first)
+            .user(User.builder().id(userId).build())
+            .storageKey("workouts/first.jpg")
+            .status(WorkoutMediaStatus.READY)
+            .contentType("image/jpeg")
+            .byteSize(1024)
+            .build()));
 
         var days = workoutService.calendar(userId, from, to);
 
@@ -133,8 +145,42 @@ class WorkoutServiceTest {
         assertThat(days.get(0).totalMinutes()).isEqualTo(105);
         assertThat(days.get(0).workouts()).extracting("id")
             .containsExactly(first.getId().toString(), second.getId().toString());
-        assertThat(days.get(0).hasMoment()).isFalse();
+        assertThat(days.get(0).hasMoment()).isTrue();
+        assertThat(days.get(0).workouts().get(0).momentPath())
+            .isEqualTo("/workouts/" + first.getId() + "/moment");
+        assertThat(days.get(0).workouts().get(1).momentPath()).isNull();
         assertThat(days.get(1).date()).isEqualTo("2030-07-12");
+        verify(workoutMediaRepository).findByWorkoutIdInAndUserId(
+            List.of(first.getId(), second.getId(), third.getId()), userId
+        );
+    }
+
+    @Test
+    void ignoresPendingFailedAndNonImageMediaInCalendar() {
+        LocalDate date = LocalDate.of(2030, 7, 11);
+        Workout pendingWorkout = existingWorkout(UUID.randomUUID(), userId);
+        pendingWorkout.setActivityDate(date);
+        Workout failedWorkout = existingWorkout(UUID.randomUUID(), userId);
+        failedWorkout.setActivityDate(date);
+        Workout textWorkout = existingWorkout(UUID.randomUUID(), userId);
+        textWorkout.setActivityDate(date);
+        when(workoutRepository.findByUserIdAndActivityDateBetweenOrderByActivityDateAscCreatedAtAsc(userId, date, date))
+            .thenReturn(List.of(pendingWorkout, failedWorkout, textWorkout));
+        when(workoutMediaRepository.findByWorkoutIdInAndUserId(
+            List.of(pendingWorkout.getId(), failedWorkout.getId(), textWorkout.getId()), userId
+        )).thenReturn(List.of(
+            calendarMedia(pendingWorkout, WorkoutMediaStatus.PENDING, "image/jpeg"),
+            calendarMedia(failedWorkout, WorkoutMediaStatus.FAILED, "image/jpeg"),
+            calendarMedia(textWorkout, WorkoutMediaStatus.READY, "text/plain")
+        ));
+
+        var day = workoutService.calendar(userId, date, date).get(0);
+
+        assertThat(day.hasMoment()).isFalse();
+        assertThat(day.workouts()).extracting(workout -> workout.momentPath()).containsOnlyNulls();
+        verify(workoutMediaRepository).findByWorkoutIdInAndUserId(
+            List.of(pendingWorkout.getId(), failedWorkout.getId(), textWorkout.getId()), userId
+        );
     }
 
     @Test
@@ -214,6 +260,17 @@ class WorkoutServiceTest {
             .notes("Treino de pernas")
             .privacy(WorkoutPrivacy.PRIVATE)
             .createdAt(Instant.parse("2030-06-10T12:00:00Z"))
+            .build();
+    }
+
+    private WorkoutMedia calendarMedia(Workout workout, WorkoutMediaStatus status, String contentType) {
+        return WorkoutMedia.builder()
+            .workout(workout)
+            .user(workout.getUser())
+            .storageKey("workouts/" + workout.getId())
+            .status(status)
+            .contentType(contentType)
+            .byteSize(1024)
             .build();
     }
 }

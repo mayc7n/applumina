@@ -13,6 +13,7 @@ public record WorkoutCalendarDayResponse(
         String id,
         String type,
         String customActivity,
-        int durationMins
+        int durationMins,
+        String momentPath
     ) {}
 }

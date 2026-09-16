@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,8 @@ import com.lumina.api.middleware.GlobalExceptionHandler.BusinessException;
 import com.lumina.api.middleware.GlobalExceptionHandler.ResourceNotFoundException;
 import com.lumina.domain.user.repository.UserRepository;
 import com.lumina.domain.workout.entity.Workout;
+import com.lumina.domain.workout.entity.WorkoutMedia;
+import com.lumina.domain.workout.entity.WorkoutMediaStatus;
 import com.lumina.domain.workout.entity.WorkoutPrivacy;
 import com.lumina.domain.workout.entity.WorkoutType;
 import com.lumina.domain.workout.repository.WorkoutRepository;
@@ -53,8 +56,18 @@ public class WorkoutService {
         var workouts = workoutRepository
             .findByUserIdAndActivityDateBetweenOrderByActivityDateAscCreatedAtAsc(userId, from, to)
             ;
-        var idsWithMedia = workoutMediaRepository.findByWorkoutIdInAndUserId(workouts.stream().map(Workout::getId).toList(), userId)
-            .stream().map(media -> media.getWorkout().getId()).collect(java.util.stream.Collectors.toSet());
+        var workoutIds = workouts.stream().map(Workout::getId).toList();
+        Map<UUID, WorkoutMedia> mediaByWorkout = workoutIds.isEmpty()
+            ? Map.of()
+            : workoutMediaRepository.findByWorkoutIdInAndUserId(workoutIds, userId).stream()
+                .filter(media -> media.getStatus() == WorkoutMediaStatus.READY)
+                .filter(media -> media.getContentType().startsWith("image/"))
+                .collect(Collectors.toMap(
+                    media -> media.getWorkout().getId(),
+                    media -> media,
+                    (first, ignored) -> first,
+                    LinkedHashMap::new
+                ));
         return workouts.stream()
             .collect(Collectors.groupingBy(
                 Workout::getActivityDate,
@@ -63,7 +76,7 @@ public class WorkoutService {
             ))
             .entrySet()
             .stream()
-            .map(entry -> toCalendarDay(entry.getKey(), entry.getValue(), idsWithMedia))
+            .map(entry -> toCalendarDay(entry.getKey(), entry.getValue(), mediaByWorkout))
             .toList();
     }
 
@@ -130,17 +143,24 @@ public class WorkoutService {
         );
     }
 
-    private WorkoutCalendarDayResponse toCalendarDay(LocalDate date, List<Workout> workouts, java.util.Set<UUID> idsWithMedia) {
+    private WorkoutCalendarDayResponse toCalendarDay(
+        LocalDate date,
+        List<Workout> workouts,
+        Map<UUID, WorkoutMedia> mediaByWorkout
+    ) {
         return new WorkoutCalendarDayResponse(
             date.toString(),
             workouts.size(),
             workouts.stream().mapToInt(Workout::getDurationMins).sum(),
-            workouts.stream().anyMatch(workout -> idsWithMedia.contains(workout.getId())),
+            workouts.stream().anyMatch(workout -> mediaByWorkout.containsKey(workout.getId())),
             workouts.stream().map(workout -> new WorkoutCalendarDayResponse.WorkoutSummary(
                 workout.getId().toString(),
                 workout.getType().name(),
                 workout.getCustomActivity(),
-                workout.getDurationMins()
+                workout.getDurationMins(),
+                mediaByWorkout.containsKey(workout.getId())
+                    ? "/workouts/" + workout.getId() + "/moment"
+                    : null
             )).toList()
         );
     }
