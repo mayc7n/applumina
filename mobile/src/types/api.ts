@@ -39,7 +39,15 @@ export interface ChangePasswordInput {
   currentPassword: string;
   newPassword: string;
 }
-export interface UpdateProfileInput { bio?: string; displayName?: string; profilePublic?: boolean; }
+
+export type IdiomaApp = "pt-BR" | "en";
+
+export interface UpdateProfileInput {
+  bio?: string;
+  displayName?: string;
+  profilePublic?: boolean;
+  locale?: IdiomaApp;
+}
 
 export interface ForgotPasswordInput { email: string; }
 export interface ResetPasswordInput { token: string; newPassword: string; }

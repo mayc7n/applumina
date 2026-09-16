@@ -11,6 +11,7 @@ import {
 import { clienteConsultas } from "@/providers/query-provider";
 import type {
   DeleteAccountInput,
+  IdiomaApp,
   LoginInput,
   RegisterInput,
   TokenPair,
@@ -28,6 +29,7 @@ interface AuthState {
   cadastrar: (entrada: RegisterInput) => Promise<void>;
   sair: () => Promise<void>;
   excluirConta: (entrada: DeleteAccountInput) => Promise<void>;
+  atualizarIdioma: (idioma: IdiomaApp) => void;
   marcarNaoAutenticado: () => void;
 }
 
@@ -138,6 +140,11 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir) => ({
       }));
     }
   },
+
+  atualizarIdioma: (idioma) =>
+    definir((atual) => ({
+      usuario: atual.usuario ? { ...atual.usuario, locale: idioma } : null,
+    })),
 
   marcarNaoAutenticado: () => {
     limparDadosPrivados();

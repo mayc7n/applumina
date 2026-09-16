@@ -1,6 +1,9 @@
 import { useLocales } from "expo-localization";
 import { useCallback } from "react";
 
+import { useArmazenamentoAutenticacao } from "@/store/auth-store";
+import type { IdiomaApp } from "@/types/api";
+
 const portuguesBrasil = {
   "comum.preparando": "Preparando seu Lumina…",
   "comum.tentarNovamente": "Tentar novamente",
@@ -963,9 +966,28 @@ const ingles: Record<ChaveTraducao, string> = {
 
 type VariaveisTraducao = Record<string, string | number>;
 
+function resolverLocale(idioma: string | undefined): IdiomaApp | undefined {
+  if (idioma === "en" || idioma?.startsWith("en-")) return "en";
+  if (idioma === "pt" || idioma?.startsWith("pt-")) return "pt-BR";
+  return undefined;
+}
+
+export function resolverIdioma(
+  preferencia: string | undefined,
+  idiomaDispositivo: string | undefined,
+): IdiomaApp {
+  return resolverLocale(preferencia) ?? resolverLocale(idiomaDispositivo) ?? "pt-BR";
+}
+
 export function useIdioma() {
   const locais = useLocales();
-  const idioma = locais[0]?.languageCode === "en" ? "en" : "pt-BR";
+  const preferencia = useArmazenamentoAutenticacao(
+    (estado) => estado.usuario?.locale,
+  );
+  const idioma = resolverIdioma(
+    preferencia,
+    locais[0]?.languageTag ?? locais[0]?.languageCode,
+  );
   const dicionario = idioma === "en" ? ingles : portuguesBrasil;
 
   const traduzir = useCallback(
