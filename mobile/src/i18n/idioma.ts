@@ -258,6 +258,10 @@ const portuguesBrasil = {
   "conta.idiomaTitulo": "Idioma",
   "conta.idiomaSistema":
     "O Lumina acompanha o idioma do aparelho: Português (Brasil) ou English.",
+  "conta.idiomaPortugues": "Português (Brasil)",
+  "conta.idiomaIngles": "English",
+  "conta.idiomaSucesso": "Idioma atualizado.",
+  "conta.idiomaErro": "Não foi possível atualizar o idioma. Tente novamente.",
   "conta.preferenciasTitulo": "Preferências",
   "conta.sair": "Sair da conta",
   "conta.sairDescricao": "Encerre a sessão somente neste aparelho.",
@@ -739,6 +743,10 @@ const ingles: Record<ChaveTraducao, string> = {
   "conta.idiomaTitulo": "Language",
   "conta.idiomaSistema":
     "Lumina follows your device language: Português (Brasil) or English.",
+  "conta.idiomaPortugues": "Português (Brasil)",
+  "conta.idiomaIngles": "English",
+  "conta.idiomaSucesso": "Language updated.",
+  "conta.idiomaErro": "We could not update the language. Try again.",
   "conta.preferenciasTitulo": "Preferences",
   "conta.sair": "Sign out",
   "conta.sairDescricao": "Sign out only on this device.",

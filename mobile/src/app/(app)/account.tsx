@@ -37,6 +37,7 @@ import { AppButton } from "@/components/ui/app-button";
 import { AnimatedEntry } from "@/components/ui/animated-entry";
 import { FeedbackState } from "@/components/ui/feedback-state";
 import { ScreenHeader } from "@/components/ui/screen-header";
+import { LanguageSelector } from "@/components/account/language-selector";
 import {
   chaveConsultaSessoes,
   ordenarSessoes,
@@ -59,6 +60,7 @@ export default function TelaConta() {
   } | null>(null);
   const [bio, definirBio] = useState("");
   const [enviandoAvatar, definirEnviandoAvatar] = useState(false);
+  const [idiomaSalvando, definirIdiomaSalvando] = useState(false);
   const usuario = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.usuario,
   );
@@ -66,6 +68,9 @@ export default function TelaConta() {
     (armazenamento) => armazenamento.sair,
   );
   const inicializar = useArmazenamentoAutenticacao((estado) => estado.inicializar);
+  const atualizarIdioma = useArmazenamentoAutenticacao(
+    (estado) => estado.atualizarIdioma,
+  );
   const autenticado = useArmazenamentoAutenticacao(
     (armazenamento) => armazenamento.estado === "autenticado",
   );
@@ -232,6 +237,23 @@ export default function TelaConta() {
   const alterandoSessoes =
     encerrarUmaSessao.isPending || encerrarOutrasSessoes.isPending;
 
+  async function salvarIdioma(novoIdioma: typeof idioma): Promise<void> {
+    if (idiomaSalvando || novoIdioma === idioma) return;
+
+    const idiomaAnterior = idioma;
+    definirIdiomaSalvando(true);
+    atualizarIdioma(novoIdioma);
+    try {
+      await apiUsuarios.atualizarPerfil({ locale: novoIdioma });
+      Alert.alert(traduzir("conta.idiomaSucesso"));
+    } catch {
+      atualizarIdioma(idiomaAnterior);
+      Alert.alert(traduzir("conta.idiomaErro"));
+    } finally {
+      definirIdiomaSalvando(false);
+    }
+  }
+
   async function escolherAvatar(): Promise<void> {
     const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissao.granted) return;
@@ -347,10 +369,25 @@ export default function TelaConta() {
             ]}
           >
             <Text style={[styles.emailConfiguracao, { color: tema.cores.textoSecundario }]}>{usuario?.email}</Text>
-            <ConfiguracaoConta
-              Icone={Languages}
-              descricao={traduzir("conta.idiomaSistema")}
-              titulo={traduzir("conta.idiomaTitulo")}
+            <View style={styles.configuracao}>
+              <View style={[styles.icone, { backgroundColor: tema.cores.marcaSuave }]}>
+                <Languages color={tema.cores.marca} size={21} />
+              </View>
+              <View style={styles.textoCartao}>
+                <Text style={[styles.tituloCartao, { color: tema.cores.texto }]}>
+                  {traduzir("conta.idiomaTitulo")}
+                </Text>
+                <Text style={[styles.descricaoCartao, { color: tema.cores.textoSecundario }]}>
+                  {traduzir("conta.idiomaSistema")}
+                </Text>
+              </View>
+            </View>
+            <LanguageSelector
+              idioma={idioma}
+              onChange={(novoIdioma) => void salvarIdioma(novoIdioma)}
+              rotuloIngles={traduzir("conta.idiomaIngles")}
+              rotuloPortugues={traduzir("conta.idiomaPortugues")}
+              salvando={idiomaSalvando}
             />
           </View>
         </View>

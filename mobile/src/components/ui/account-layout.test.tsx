@@ -8,6 +8,16 @@ const fonteConta = readFileSync(
 );
 
 describe("ordem da conta", () => {
+  test("apresenta o seletor de idioma nas preferências antes da privacidade", () => {
+    const preferencias = fonteConta.indexOf('traduzir("conta.preferenciasTitulo")');
+    const seletorIdioma = fonteConta.indexOf("<LanguageSelector");
+    const privacidade = fonteConta.indexOf('traduzir("conta.privacidadeTitulo")');
+
+    expect(preferencias).toBeGreaterThanOrEqual(0);
+    expect(seletorIdioma).toBeGreaterThan(preferencias);
+    expect(seletorIdioma).toBeLessThan(privacidade);
+  });
+
   test("apresenta preferências, privacidade, aparelhos e saída nessa ordem", () => {
     const indices = [
       fonteConta.search(
