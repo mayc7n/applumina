@@ -206,4 +206,37 @@ describe("idioma na Conta com store e seletor reais", () => {
     await act(async () => patch.resolver({ ...usuario, locale: "en" }));
     esperarIdioma("en", false);
   });
+
+  test("ignora PATCH resolvido enquanto o logout ainda aguarda a rede", async () => {
+    escolher("en");
+    const logout = promessaControlada<void>();
+    jest.mocked(apiAutenticacaoMobile.sair).mockReturnValue(logout.promessa);
+
+    let saida!: Promise<void>;
+    act(() => {
+      saida = auth.getState().sair();
+    });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(apiAutenticacaoMobile.sair).toHaveBeenCalled();
+
+    await act(async () => patch.resolver({ ...usuario, locale: "en" }));
+    expect(Alert.alert).not.toHaveBeenCalled();
+    expect(auth.getState().usuario?.locale).toBe("en");
+
+    await act(async () => {
+      logout.resolver();
+      await saida;
+    });
+    expect(auth.getState().usuario).toBeNull();
+
+    jest.mocked(apiUsuarios.atual).mockResolvedValue({ ...usuario, locale: "pt-BR" });
+    await act(async () => {
+      await auth.getState().entrar({ email: usuario.email, password: "senha" });
+    });
+    expect(auth.getState().usuario).toMatchObject({ id: usuario.id, locale: "pt-BR" });
+    expect(Alert.alert).not.toHaveBeenCalled();
+  });
 });

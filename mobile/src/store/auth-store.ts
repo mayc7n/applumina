@@ -150,6 +150,10 @@ export const useArmazenamentoAutenticacao = create<AuthState>((definir, obter) =
   },
 
   sair: async () => {
+    // Invalida imediatamente callbacks de operações da sessão que está saindo.
+    definir((atual) => ({
+      geracaoSessao: atual.geracaoSessao + 1,
+    }));
     const refreshToken = await obterTokenRenovacao();
     try {
       if (refreshToken) await apiAutenticacaoMobile.sair(refreshToken);
