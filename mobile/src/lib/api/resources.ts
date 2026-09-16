@@ -34,6 +34,7 @@ import type {
   WorkoutMedia,
   FriendRequest,
   SocialUser,
+  SocialFeedItem,
   CreateUserReportInput,
 } from "@/types/api";
 
@@ -114,6 +115,7 @@ export const apiTreinos = {
 };
 
 export const apiAmigos = {
+  feed: () => obterApi<SocialFeedItem[]>("/social/feed"),
   publicarTreino: (workoutId: string, privacy: "FRIENDS" | "PUBLIC", caption?: string) => enviarApi<string>(`/social/workouts/${workoutId}/posts`, { privacy, caption }),
   listar: () => obterApi<SocialUser[]>("/social/friends"),
   listarSolicitacoes: () =>

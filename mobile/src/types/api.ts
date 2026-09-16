@@ -199,6 +199,18 @@ export interface SocialUser {
   friendshipStatus: FriendshipStatus | null;
 }
 
+export interface SocialFeedItem {
+  id: string;
+  user: SocialUser;
+  type: string;
+  title: string;
+  description?: string;
+  emoji: string;
+  likeCount: number;
+  liked: boolean;
+  createdAt: string;
+}
+
 export interface FriendRequest {
   id: string;
   user: SocialUser;

@@ -5,6 +5,15 @@ import { apiAmigos } from "@/lib/api/resources";
 import { chavesAmigosUsuario } from "./friend-query-keys";
 import { reconciliarConflitoSolicitacaoAmizade } from "./friend-conflict";
 
+export function useFeedSocial(userId?: string) {
+  const chaves = chavesAmigosUsuario(userId);
+  return useQuery({
+    queryKey: chaves.feed,
+    queryFn: apiAmigos.feed,
+    enabled: Boolean(userId),
+  });
+}
+
 export function useListaAmigos(userId?: string) {
   const chaves = chavesAmigosUsuario(userId);
   return useQuery({

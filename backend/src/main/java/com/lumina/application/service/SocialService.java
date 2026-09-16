@@ -1,5 +1,8 @@
 package com.lumina.application.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lumina.api.dto.*;
 import com.lumina.api.middleware.GlobalExceptionHandler.BusinessException;
 import com.lumina.api.middleware.GlobalExceptionHandler.ConflictException;
@@ -16,13 +19,18 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.hibernate.exception.ConstraintViolationException;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 @Service
@@ -32,11 +40,45 @@ public class SocialService {
     private static final Sort FRIENDS_SORT = Sort.by(
         Sort.Order.desc("createdAt"), Sort.Order.asc("id")
     );
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final String FEED_QUERY = """
+        SELECT p.id AS post_id, p.type, p.content, p.likes_count,
+               EXISTS (
+                   SELECT 1 FROM post_likes own_like
+                   WHERE own_like.post_id = p.id AND own_like.user_id = ?
+               ) AS liked,
+               p.created_at,
+               u.id AS user_id, u.display_name, u.username, u.last_seen_at
+        FROM social_posts p
+        JOIN users u ON u.id = p.user_id
+        WHERE u.deleted_at IS NULL
+          AND u.status = 'ACTIVE'
+          AND (
+              p.user_id = ?
+              OR (
+                  (p.privacy = 'PUBLIC'
+                   OR (p.privacy = 'FRIENDS' AND EXISTS (
+                       SELECT 1 FROM friendships friendship
+                       WHERE friendship.status = 'ACCEPTED'
+                         AND ((friendship.requester_id = ? AND friendship.addressee_id = p.user_id)
+                           OR (friendship.addressee_id = ? AND friendship.requester_id = p.user_id))
+                   )))
+                  AND NOT EXISTS (
+                      SELECT 1 FROM user_blocks block
+                      WHERE (block.blocker_id = ? AND block.blocked_id = p.user_id)
+                         OR (block.blocker_id = p.user_id AND block.blocked_id = ?)
+                  )
+              )
+          )
+        ORDER BY p.created_at DESC, p.id ASC
+        LIMIT 100
+        """;
 
     private final FriendshipRepository friendshipRepository;
     private final UserRepository userRepository;
     private final UserBlockRepository userBlockRepository;
     private final UserReportRepository userReportRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     @Transactional(readOnly = true)
     public List<SocialUserResponse> friends(UUID userId) {
@@ -176,7 +218,47 @@ public class SocialService {
 
     @Transactional(readOnly = true)
     public List<SocialFeedItemResponse> feed(UUID userId) {
-        return List.of();
+        return jdbcTemplate.query(
+            FEED_QUERY,
+            (resultSet, rowNumber) -> toFeedItem(resultSet),
+            userId, userId, userId, userId, userId, userId
+        );
+    }
+
+    private SocialFeedItemResponse toFeedItem(ResultSet resultSet) throws SQLException {
+        JsonNode content;
+        try {
+            content = OBJECT_MAPPER.readTree(resultSet.getString("content"));
+        } catch (JsonProcessingException exception) {
+            throw new DataRetrievalFailureException("Post social inválido", exception);
+        }
+
+        String type = resultSet.getString("type");
+        String caption = content.path("caption").asText("").strip();
+        OffsetDateTime createdAt = resultSet.getObject("created_at", OffsetDateTime.class);
+        OffsetDateTime lastSeenAt = resultSet.getObject("last_seen_at", OffsetDateTime.class);
+        boolean online = lastSeenAt != null
+            && lastSeenAt.toInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES));
+        SocialUserResponse author = new SocialUserResponse(
+            resultSet.getObject("user_id", UUID.class).toString(),
+            resultSet.getString("display_name"),
+            resultSet.getString("username"),
+            null,
+            online,
+            0,
+            null
+        );
+        return new SocialFeedItemResponse(
+            resultSet.getObject("post_id", UUID.class).toString(),
+            author,
+            type,
+            content.path("title").asText(type),
+            caption.isEmpty() ? null : caption,
+            type.equals("WORKOUT") ? "🏋️" : "✨",
+            resultSet.getInt("likes_count"),
+            resultSet.getBoolean("liked"),
+            createdAt.toInstant().toString()
+        );
     }
 
     private User other(Friendship friendship, UUID userId) {

@@ -7,6 +7,7 @@ export function chavesAmigosUsuario(userId?: string) {
     lista: [...base, "lista"] as const,
     solicitacoes: [...base, "solicitacoes"] as const,
     bloqueados: [...base, "bloqueados"] as const,
+    feed: [...base, "feed"] as const,
     busca: (query: string) => [...base, "busca", query] as const,
   };
 }

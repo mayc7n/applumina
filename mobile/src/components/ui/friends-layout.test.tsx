@@ -9,7 +9,7 @@ const fonteAmigos = readFileSync(
 
 describe("estado visitante de amigos", () => {
   test("não aninha um cartão dentro de outro cartão", () => {
-    const inicioVisitante = fonteAmigos.indexOf("{!autenticado ? (");
+    const inicioVisitante = fonteAmigos.indexOf("const cabecalho = !autenticado ? (");
     const fimVisitante = fonteAmigos.indexOf(") : carregando ?", inicioVisitante);
     expect(inicioVisitante).toBeGreaterThanOrEqual(0);
     expect(fimVisitante).toBeGreaterThan(inicioVisitante);

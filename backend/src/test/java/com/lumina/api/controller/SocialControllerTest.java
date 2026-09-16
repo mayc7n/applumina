@@ -3,6 +3,7 @@ package com.lumina.api.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -15,6 +16,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.lumina.application.service.SocialService;
+import com.lumina.api.dto.SocialFeedItemResponse;
+import com.lumina.api.dto.SocialUserResponse;
 import com.lumina.infrastructure.security.UserPrincipal;
 import com.lumina.api.middleware.GlobalExceptionHandler;
 import org.springframework.test.web.servlet.MockMvc;
@@ -79,6 +82,31 @@ class SocialControllerTest {
         mvc.perform(get("/social/blocks")).andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true));
         verify(socialService).blockedUsers(actorId);
+    }
+
+    @Test
+    void returnsFeedEnvelopeForAuthenticatedActor() throws Exception {
+        var item = new SocialFeedItemResponse(
+            "post-1",
+            new SocialUserResponse("user-1", "Maya", "maya", null, true, 0, null),
+            "WORKOUT",
+            "WORKOUT",
+            "Treino leve",
+            "🏋️",
+            2,
+            false,
+            "2030-06-10T12:00:00Z"
+        );
+        when(socialService.feed(actorId)).thenReturn(java.util.List.of(item));
+
+        mvc.perform(get("/social/feed"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data[0].id").value("post-1"))
+            .andExpect(jsonPath("$.data[0].user.username").value("maya"))
+            .andExpect(jsonPath("$.data[0].liked").value(false));
+
+        verify(socialService).feed(actorId);
     }
 
     @Test

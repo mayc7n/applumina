@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.lenient;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,19 +34,17 @@ import org.hibernate.exception.ConstraintViolationException;
 
 import com.lumina.domain.social.entity.Friendship;
 import com.lumina.domain.social.repository.FriendshipRepository;
-import com.lumina.domain.task.entity.Task;
-import com.lumina.domain.task.entity.TaskStatus;
-import com.lumina.domain.task.repository.TaskRepository;
 import com.lumina.domain.user.entity.User;
 import com.lumina.domain.user.repository.UserRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class SocialServiceTest {
     @Mock private FriendshipRepository friendshipRepository;
     @Mock private UserRepository userRepository;
-    @Mock private TaskRepository taskRepository;
     @Mock private UserBlockRepository userBlockRepository;
     @Mock private UserReportRepository userReportRepository;
+    @Mock private JdbcTemplate jdbcTemplate;
 
     private SocialService socialService;
     private UUID userId;
@@ -56,7 +53,10 @@ class SocialServiceTest {
 
     @BeforeEach
     void setUp() {
-        socialService = new SocialService(friendshipRepository, userRepository, userBlockRepository, userReportRepository);
+        socialService = new SocialService(
+            friendshipRepository, userRepository, userBlockRepository, userReportRepository,
+            jdbcTemplate
+        );
         userId = UUID.randomUUID();
         user = User.builder().id(userId).displayName("Pessoa").username("pessoa").build();
         otherUser = User.builder()
@@ -207,31 +207,6 @@ class SocialServiceTest {
 
         assertThatThrownBy(() -> socialService.request(userId, otherUser.getId()))
             .isSameAs(unrelatedViolation);
-    }
-
-    @Test
-    void doesNotExposeCompletedTaskWithoutExplicitConsent() {
-        Friendship friendship = Friendship.builder()
-            .requester(user)
-            .addressee(otherUser)
-            .status("ACCEPTED")
-            .build();
-        Task completedTask = Task.builder()
-            .id(UUID.randomUUID())
-            .user(otherUser)
-            .title("Tarefa privada")
-            .status(TaskStatus.DONE)
-            .completedAt(Instant.parse("2030-06-10T12:00:00Z"))
-            .build();
-        lenient().when(friendshipRepository.findAcceptedByUserId(eq(userId), any(Pageable.class)))
-            .thenReturn(List.of(friendship));
-        lenient().when(taskRepository.findRecentCompletedByUsers(any(), any(Pageable.class)))
-            .thenReturn(List.of(completedTask));
-
-        var feed = socialService.feed(userId);
-
-        assertThat(feed).isEmpty();
-        verifyNoInteractions(friendshipRepository, taskRepository);
     }
 
     private DataIntegrityViolationException integrityViolation(String constraintName) {

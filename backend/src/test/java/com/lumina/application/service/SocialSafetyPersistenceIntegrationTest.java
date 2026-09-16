@@ -39,7 +39,7 @@ import com.lumina.infrastructure.security.UserPrincipal;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(DatabaseUserContextAspect.class)
+@Import({DatabaseUserContextAspect.class, SocialService.class})
 @Testcontainers
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class SocialSafetyPersistenceIntegrationTest {
@@ -53,6 +53,7 @@ class SocialSafetyPersistenceIntegrationTest {
 
     @Autowired private UserBlockRepository userBlockRepository;
     @Autowired private UserReportRepository userReportRepository;
+    @Autowired private SocialService socialService;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private PlatformTransactionManager transactionManager;
 
@@ -106,13 +107,145 @@ class SocialSafetyPersistenceIntegrationTest {
         ).hasMessageContaining("row-level security policy");
     }
 
+    @Test
+    void exposesVisiblePublicPostsWithoutExposingAnotherUsersPrivatePosts() {
+        UUID publicPostId = UUID.randomUUID();
+        ownerJdbc.update(
+            "INSERT INTO social_posts (id, user_id, type, content, privacy) VALUES (?, ?, 'WORKOUT', ?::jsonb, 'PUBLIC'::social_privacy)",
+            publicPostId, bobId, "{\"caption\":\"Treino leve\",\"durationMins\":40}"
+        );
+        ownerJdbc.update(
+            "INSERT INTO social_posts (user_id, type, content, privacy) VALUES (?, 'WORKOUT', ?::jsonb, 'PRIVATE'::social_privacy)",
+            charlieId, "{\"caption\":\"Registro privado\",\"durationMins\":20}"
+        );
+
+        authenticated(aliceId, () -> {
+            var feed = socialService.feed(aliceId);
+
+            assertThat(feed).singleElement().satisfies(item -> {
+                assertThat(item.id()).isEqualTo(publicPostId.toString());
+                assertThat(item.user().username()).isEqualTo("bob");
+                assertThat(item.description()).isEqualTo("Treino leve");
+                assertThat(item.likeCount()).isZero();
+                assertThat(item.liked()).isFalse();
+            });
+        });
+    }
+
+    @Test
+    void excludesPublicPostsFromUsersBlockedByTheCurrentAccount() {
+        ownerJdbc.update(
+            "INSERT INTO social_posts (user_id, type, content, privacy) VALUES (?, 'WORKOUT', ?::jsonb, 'PUBLIC'::social_privacy)",
+            charlieId, "{\"caption\":\"Não deveria aparecer\"}"
+        );
+        ownerJdbc.update(
+            "INSERT INTO user_blocks (blocker_id, blocked_id) VALUES (?, ?)",
+            aliceId, charlieId
+        );
+
+        authenticated(aliceId, () -> assertThat(socialService.feed(aliceId)).isEmpty());
+    }
+
+    @Test
+    void includesAcceptedFriendsPostsButNotPendingFriendsPosts() {
+        UUID acceptedPostId = insertPost(bobId, "FRIENDS", "Amigos aceitos");
+        insertPost(charlieId, "FRIENDS", "Amizade pendente");
+        insertFriendship(aliceId, bobId, "ACCEPTED");
+        insertFriendship(aliceId, charlieId, "PENDING");
+
+        authenticated(aliceId, () -> assertThat(socialService.feed(aliceId))
+            .extracting(item -> item.id())
+            .containsExactly(acceptedPostId.toString()));
+    }
+
+    @Test
+    void includesOwnPrivatePostAndReportsTheCurrentUsersLike() {
+        UUID ownPostId = insertPost(aliceId, "PRIVATE", "Meu registro");
+        UUID likedPostId = insertPost(bobId, "PUBLIC", "Post curtido");
+        ownerJdbc.update(
+            "INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)",
+            likedPostId, aliceId
+        );
+
+        authenticated(aliceId, () -> {
+            var feed = socialService.feed(aliceId);
+
+            assertThat(feed).hasSize(2);
+            assertThat(feed).filteredOn(item -> item.id().equals(ownPostId.toString()))
+                .singleElement().satisfies(item ->
+                    assertThat(item.description()).isEqualTo("Meu registro"));
+            assertThat(feed).filteredOn(item -> item.id().equals(likedPostId.toString()))
+                .singleElement().satisfies(item -> {
+                    assertThat(item.liked()).isTrue();
+                    assertThat(item.likeCount()).isZero();
+                });
+        });
+    }
+
+    @Test
+    void excludesInactiveAndDeletedAuthorsFromTheFeed() {
+        insertPost(bobId, "PUBLIC", "Usuário inativo");
+        insertPost(charlieId, "PUBLIC", "Usuário excluído");
+        ownerJdbc.update("UPDATE users SET status = 'INACTIVE'::user_status WHERE id = ?", bobId);
+        ownerJdbc.update(
+            "UPDATE users SET status = 'DELETED'::user_status, deleted_at = NOW() WHERE id = ?",
+            charlieId
+        );
+
+        authenticated(aliceId, () -> assertThat(socialService.feed(aliceId)).isEmpty());
+    }
+
+    @Test
+    void limitsFeedToTheMostRecentHundredPosts() {
+        for (int index = 0; index < 101; index++) {
+            insertPost(bobId, "PUBLIC", "Post " + index);
+        }
+
+        authenticated(aliceId, () -> assertThat(socialService.feed(aliceId)).hasSize(100));
+    }
+
+    @Test
+    void rowLevelSecurityExcludesPublicPostsWhenTheOtherUserBlockedTheCurrentAccount() {
+        UUID publicPostId = UUID.randomUUID();
+        ownerJdbc.update(
+            "INSERT INTO social_posts (id, user_id, type, content, privacy) VALUES (?, ?, 'WORKOUT', ?::jsonb, 'PUBLIC'::social_privacy)",
+            publicPostId, charlieId, "{\"caption\":\"Não deveria aparecer\"}"
+        );
+        ownerJdbc.update(
+            "INSERT INTO user_blocks (blocker_id, blocked_id) VALUES (?, ?)",
+            charlieId, aliceId
+        );
+
+        authenticated(aliceId, () -> assertThat(jdbc.queryForObject(
+            "SELECT COUNT(*) FROM social_posts WHERE id = ?",
+            Integer.class,
+            publicPostId
+        )).isZero());
+    }
+
     private UUID insertUser(String username) {
         UUID id = UUID.randomUUID();
         ownerJdbc.update(
-            "INSERT INTO users (id, email, username, display_name) VALUES (?, ?, ?, ?)",
+            "INSERT INTO users (id, email, username, display_name, status, email_verified) VALUES (?, ?, ?, ?, 'ACTIVE'::user_status, TRUE)",
             id, username + "@example.test", username, username
         );
         return id;
+    }
+
+    private UUID insertPost(UUID userId, String privacy, String caption) {
+        UUID id = UUID.randomUUID();
+        ownerJdbc.update(
+            "INSERT INTO social_posts (id, user_id, type, content, privacy) VALUES (?, ?, 'WORKOUT', ?::jsonb, ?::social_privacy)",
+            id, userId, "{\"caption\":\"" + caption + "\"}", privacy
+        );
+        return id;
+    }
+
+    private void insertFriendship(UUID requesterId, UUID addresseeId, String status) {
+        ownerJdbc.update(
+            "INSERT INTO friendships (requester_id, addressee_id, status) VALUES (?, ?, ?)",
+            requesterId, addresseeId, status
+        );
     }
 
     private UserBlock block(UUID blockerId, UUID blockedId) {

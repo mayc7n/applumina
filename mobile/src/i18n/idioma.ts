@@ -411,6 +411,15 @@ const portuguesBrasil = {
     "Conheça a rede privada. Busca e interações exigem uma conta.",
   "amigos.privacidade":
     "Privacidade padrão: Somente eu. Compartilhar sempre será opcional.",
+  "amigos.feedTitulo": "O que seus amigos compartilharam",
+  "amigos.feedVazioTitulo": "Nada compartilhado por enquanto",
+  "amigos.feedVazioDescricao":
+    "Quando seus amigos escolherem compartilhar um treino, ele aparecerá aqui.",
+  "amigos.feedErroTitulo": "Não foi possível carregar o feed",
+  "amigos.feedErroDescricao": "Tente novamente para ver o que seus amigos compartilharam.",
+  "amigos.feedTreino": "Treino compartilhado",
+  "amigos.feedAtualizacao": "Atualização",
+  "amigos.feedCurtidas": "{quantidade} curtidas",
   "amigos.buscarPessoas": "Buscar pessoas",
   "amigos.buscaAjuda": "Encontre alguém pelo nome ou nome de usuário.",
   "amigos.buscaCampo": "Nome ou usuário",
@@ -896,6 +905,15 @@ const ingles: Record<ChaveTraducao, string> = {
     "Explore the private network. Search and interactions require an account.",
   "amigos.privacidade":
     "Default privacy: Only me. Sharing will always be optional.",
+  "amigos.feedTitulo": "What your friends shared",
+  "amigos.feedVazioTitulo": "Nothing shared yet",
+  "amigos.feedVazioDescricao":
+    "When your friends choose to share a workout, it will appear here.",
+  "amigos.feedErroTitulo": "Could not load the feed",
+  "amigos.feedErroDescricao": "Try again to see what your friends shared.",
+  "amigos.feedTreino": "Shared workout",
+  "amigos.feedAtualizacao": "Update",
+  "amigos.feedCurtidas": "{quantidade} likes",
   "amigos.buscarPessoas": "Find people",
   "amigos.buscaAjuda": "Find someone by name or username.",
   "amigos.buscaCampo": "Name or username",
