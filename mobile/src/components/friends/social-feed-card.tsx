@@ -79,6 +79,14 @@ export function SocialFeedCard({
 
       <View style={styles.conteudo}>
         <Text style={[styles.tipo, { color: tema.cores.marca }]}>{rotuloTipo}</Text>
+        {item.title && item.title !== item.type ? (
+          <Text
+            numberOfLines={2}
+            style={[styles.titulo, { color: tema.cores.texto }]}
+          >
+            {item.title}
+          </Text>
+        ) : null}
         {item.description ? (
           <Text style={[styles.descricao, { color: tema.cores.texto }]}>
             {item.description}
@@ -116,6 +124,7 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 24 },
   conteudo: { gap: 6 },
   tipo: { fontSize: 12, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" },
+  titulo: { fontSize: 17, fontWeight: "800", lineHeight: 22 },
   descricao: { fontSize: 16, lineHeight: 23 },
   rodape: { alignItems: "center", flexDirection: "row", gap: 6 },
   curtidas: { fontSize: 12, lineHeight: 16 },

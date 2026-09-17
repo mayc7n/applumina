@@ -38,7 +38,7 @@ const item: SocialFeedItem = {
     friendshipStatus: "ACCEPTED",
   },
   type: "WORKOUT",
-  title: "WORKOUT",
+  title: "Força de terça",
   description: "Treino leve",
   emoji: "🏋️",
   likeCount: 3,
@@ -65,6 +65,7 @@ describe("card do feed social", () => {
     expect(texto).toContain("Maya Campos");
     expect(texto).toContain("maya");
     expect(texto).toContain("Treino");
+    expect(texto).toContain("Força de terça");
     expect(texto).toContain("Treino leve");
     expect(texto).toContain("3 curtidas");
     expect(texto).not.toContain("button");
