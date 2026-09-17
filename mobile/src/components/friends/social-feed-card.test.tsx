@@ -1,5 +1,6 @@
 import { describe, expect, jest, test } from "@jest/globals";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
+import { View } from "react-native";
 
 import type { SocialFeedItem } from "@/types/api";
 
@@ -75,5 +76,8 @@ describe("card do feed social", () => {
     expect(texto).toContain("10 de jun. de 2030");
     expect(texto).toContain("3 curtidas");
     expect(texto).not.toContain("button");
+    const raiz = renderizacao?.root.findByType(View);
+    expect(raiz?.props.accessible).toBe(true);
+    expect(raiz?.props.accessibilityLabel).toContain("Força de terça");
   });
 });

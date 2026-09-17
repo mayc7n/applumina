@@ -25,6 +25,12 @@ export function SocialFeedCard({
     month: "short",
     year: "numeric",
   }).format(new Date(item.createdAt));
+  const tituloAcessibilidade =
+    item.title && item.title !== item.type ? `, ${item.title}` : "";
+  const descricaoAcessibilidade = item.description
+    ? `, ${item.description}`
+    : "";
+  const rotuloAcessibilidade = `${item.user.displayName}, @${item.user.username}${item.user.isOnline ? `, ${rotuloOnline}` : ""}, ${rotuloTipo}${tituloAcessibilidade}${descricaoAcessibilidade}, ${data}, ${rotuloCurtidas}`;
   const iniciais = item.user.displayName
     .trim()
     .split(/\s+/)
@@ -35,6 +41,8 @@ export function SocialFeedCard({
 
   return (
     <View
+      accessible
+      accessibilityLabel={rotuloAcessibilidade}
       accessibilityRole="text"
       style={[
         styles.card,
@@ -42,9 +50,6 @@ export function SocialFeedCard({
       ]}
     >
       <View
-        accessible
-        accessibilityLabel={`${item.user.displayName}, @${item.user.username}${item.user.isOnline ? `, ${rotuloOnline}` : ""}`}
-        accessibilityRole="text"
         style={styles.cabecalho}
       >
         <View
@@ -61,8 +66,9 @@ export function SocialFeedCard({
           </Text>
           {item.user.isOnline ? (
             <View
+              accessibilityElementsHidden
               accessibilityLabel={rotuloOnline}
-              accessibilityRole="text"
+              importantForAccessibility="no"
               style={[
                 styles.online,
                 {
@@ -102,13 +108,13 @@ export function SocialFeedCard({
       </View>
 
       <View style={styles.rodape}>
-        <View accessible accessibilityRole="text" style={styles.metadado}>
+        <View style={styles.metadado}>
           <CalendarDays color={tema.cores.textoSutil} size={16} />
           <Text style={[styles.curtidas, { color: tema.cores.textoSecundario }]}>
             {data}
           </Text>
         </View>
-        <View accessible accessibilityRole="text" style={styles.metadado}>
+        <View style={styles.metadado}>
           <Heart color={tema.cores.textoSutil} size={16} />
           <Text style={[styles.curtidas, { color: tema.cores.textoSecundario }]}>
             {rotuloCurtidas}
