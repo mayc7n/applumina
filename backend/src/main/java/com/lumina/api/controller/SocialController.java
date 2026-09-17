@@ -2,16 +2,23 @@ package com.lumina.api.controller;
 
 import com.lumina.api.dto.*;
 import com.lumina.application.service.SocialService;
+import com.lumina.api.middleware.GlobalExceptionHandler.BusinessException;
+import com.lumina.infrastructure.media.WorkoutMediaStorage;
 import com.lumina.infrastructure.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.io.IOException;
 
 @RestController
 @Validated
@@ -19,12 +26,18 @@ import java.util.*;
 public class SocialController {
     private final SocialService socialService;
     private final com.lumina.application.service.WorkoutPostService workoutPostService;
+    private final WorkoutMediaStorage workoutMediaStorage;
 
-    public SocialController(SocialService socialService) { this(socialService, null); }
-    @org.springframework.beans.factory.annotation.Autowired
+    public SocialController(SocialService socialService) { this(socialService, null, null); }
     public SocialController(SocialService socialService, com.lumina.application.service.WorkoutPostService workoutPostService) {
+        this(socialService, workoutPostService, null);
+    }
+    @org.springframework.beans.factory.annotation.Autowired
+    public SocialController(SocialService socialService, com.lumina.application.service.WorkoutPostService workoutPostService,
+        WorkoutMediaStorage workoutMediaStorage) {
         this.socialService = socialService;
         this.workoutPostService = workoutPostService;
+        this.workoutMediaStorage = workoutMediaStorage;
     }
 
     @PostMapping("/workouts/{workoutId}/posts")
@@ -61,6 +74,24 @@ public class SocialController {
     @GetMapping("/feed")
     public ApiResponse<List<SocialFeedItemResponse>> feed(@AuthenticationPrincipal UserPrincipal principal) {
         return ApiResponse.success(socialService.feed(principal.getUserId()));
+    }
+
+    @GetMapping("/posts/{postId}/media")
+    public ResponseEntity<ByteArrayResource> media(
+        @AuthenticationPrincipal UserPrincipal principal, @PathVariable UUID postId
+    ) {
+        var visibleMedia = socialService.findVisibleMedia(principal.getUserId(), postId);
+        byte[] bytes;
+        try {
+            bytes = workoutMediaStorage.read(visibleMedia.storageKey());
+        } catch (IOException exception) {
+            throw new BusinessException("MEDIA_UNAVAILABLE", "Mídia indisponível", HttpStatus.SERVICE_UNAVAILABLE);
+        }
+        return ResponseEntity.ok()
+            .cacheControl(CacheControl.noStore().cachePrivate())
+            .contentType(MediaType.parseMediaType(visibleMedia.contentType()))
+            .contentLength(bytes.length)
+            .body(new ByteArrayResource(bytes));
     }
 
     @GetMapping("/friends")

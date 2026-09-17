@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.lumina.application.service.SocialService;
+import com.lumina.infrastructure.media.WorkoutMediaStorage;
 import com.lumina.api.dto.SocialFeedItemResponse;
 import com.lumina.api.dto.SocialUserResponse;
 import com.lumina.infrastructure.security.UserPrincipal;
@@ -32,6 +33,7 @@ import org.springframework.http.MediaType;
 @ExtendWith(MockitoExtension.class)
 class SocialControllerTest {
     @Mock private SocialService socialService;
+    @Mock private WorkoutMediaStorage workoutMediaStorage;
 
     private SocialController controller;
     private MockMvc mvc;
@@ -39,7 +41,7 @@ class SocialControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new SocialController(socialService);
+        controller = new SocialController(socialService, null, workoutMediaStorage);
         mvc = MockMvcBuilders.standaloneSetup(controller)
             .setControllerAdvice(new GlobalExceptionHandler())
             .setCustomArgumentResolvers(new HandlerMethodArgumentResolver() {
@@ -107,6 +109,24 @@ class SocialControllerTest {
             .andExpect(jsonPath("$.data[0].liked").value(false));
 
         verify(socialService).feed(actorId);
+    }
+
+    @Test
+    void returnsAuthorizedPostMediaAsPrivateBinaryResponse() throws Exception {
+        UUID postId = UUID.randomUUID();
+        byte[] bytes = new byte[] { 1, 2, 3 };
+        when(socialService.findVisibleMedia(actorId, postId))
+            .thenReturn(new SocialService.VisibleMedia("social-media.jpg", "image/jpeg"));
+        when(workoutMediaStorage.read("social-media.jpg")).thenReturn(bytes);
+
+        mvc.perform(get("/social/posts/{postId}/media", postId))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.IMAGE_JPEG))
+            .andExpect(content().bytes(bytes))
+            .andExpect(header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")));
+
+        verify(socialService).findVisibleMedia(actorId, postId);
+        verify(workoutMediaStorage).read("social-media.jpg");
     }
 
     @Test

@@ -133,6 +133,43 @@ class SocialSafetyPersistenceIntegrationTest {
     }
 
     @Test
+    void exposesMediaOnlyWhenItsSocialPostIsVisible() {
+        UUID workoutId = UUID.randomUUID();
+        UUID mediaId = UUID.randomUUID();
+        UUID publicPostId = UUID.randomUUID();
+        ownerJdbc.update(
+            "INSERT INTO workouts (id, user_id, type, activity_date, duration_mins, privacy) VALUES (?, ?, 'RUNNING'::workout_type, '2030-06-10', 40, 'PRIVATE'::workout_privacy)",
+            workoutId, bobId
+        );
+        ownerJdbc.update(
+            "INSERT INTO workout_media (id, workout_id, user_id, storage_key, status, content_type, byte_size) VALUES (?, ?, ?, ?, 'READY', 'image/jpeg', 3)",
+            mediaId, workoutId, bobId, "social-media.jpg"
+        );
+        ownerJdbc.update(
+            "INSERT INTO social_posts (id, user_id, type, content, privacy) VALUES (?, ?, 'WORKOUT', ?::jsonb, 'PUBLIC'::social_privacy)",
+            publicPostId, bobId, "{\"mediaId\":\"" + mediaId + "\",\"caption\":\"Treino visível\"}"
+        );
+
+        authenticated(aliceId, () -> {
+            var media = socialService.findVisibleMedia(aliceId, publicPostId);
+
+            assertThat(media.storageKey()).isEqualTo("social-media.jpg");
+            assertThat(media.contentType()).isEqualTo("image/jpeg");
+            assertThat(socialService.feed(aliceId)).singleElement()
+                .extracting(item -> item.mediaUrl())
+                .isEqualTo("/social/posts/" + publicPostId + "/media");
+        });
+
+        ownerJdbc.update(
+            "INSERT INTO user_blocks (blocker_id, blocked_id) VALUES (?, ?)",
+            aliceId, bobId
+        );
+
+        assertThatThrownBy(() -> authenticated(aliceId, () -> socialService.findVisibleMedia(aliceId, publicPostId)))
+            .isInstanceOf(com.lumina.api.middleware.GlobalExceptionHandler.ResourceNotFoundException.class);
+    }
+
+    @Test
     void excludesPublicPostsFromUsersBlockedByTheCurrentAccount() {
         ownerJdbc.update(
             "INSERT INTO social_posts (user_id, type, content, privacy) VALUES (?, 'WORKOUT', ?::jsonb, 'PUBLIC'::social_privacy)",

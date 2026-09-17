@@ -48,9 +48,13 @@ public class SocialService {
                    WHERE own_like.post_id = p.id AND own_like.user_id = ?
                ) AS liked,
                p.created_at,
-               u.id AS user_id, u.display_name, u.username, u.last_seen_at
+               u.id AS user_id, u.display_name, u.username, u.last_seen_at,
+               media.id AS media_id
         FROM social_posts p
         JOIN users u ON u.id = p.user_id
+        LEFT JOIN workout_media media
+            ON media.id::text = NULLIF(p.content->>'mediaId', '')
+           AND media.status = 'READY'
         WHERE u.deleted_at IS NULL
           AND u.status = 'ACTIVE'
           AND (
@@ -72,6 +76,35 @@ public class SocialService {
           )
         ORDER BY p.created_at DESC, p.id ASC
         LIMIT 100
+        """;
+    private static final String VISIBLE_MEDIA_QUERY = """
+        SELECT media.storage_key, media.content_type
+        FROM social_posts p
+        JOIN users u ON u.id = p.user_id
+        JOIN workout_media media
+          ON media.id::text = NULLIF(p.content->>'mediaId', '')
+         AND media.status = 'READY'
+        WHERE p.id = ?
+          AND u.deleted_at IS NULL
+          AND u.status = 'ACTIVE'
+          AND (
+              p.user_id = ?
+              OR (
+                  (p.privacy = 'PUBLIC'
+                   OR (p.privacy = 'FRIENDS' AND EXISTS (
+                       SELECT 1 FROM friendships friendship
+                       WHERE friendship.status = 'ACCEPTED'
+                         AND ((friendship.requester_id = ? AND friendship.addressee_id = p.user_id)
+                           OR (friendship.addressee_id = ? AND friendship.requester_id = p.user_id))
+                   )))
+                  AND NOT EXISTS (
+                      SELECT 1 FROM user_blocks block
+                      WHERE (block.blocker_id = ? AND block.blocked_id = p.user_id)
+                         OR (block.blocker_id = p.user_id AND block.blocked_id = ?)
+                  )
+              )
+          )
+        LIMIT 1
         """;
 
     private final FriendshipRepository friendshipRepository;
@@ -225,6 +258,17 @@ public class SocialService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public VisibleMedia findVisibleMedia(UUID userId, UUID postId) {
+        return jdbcTemplate.query(
+            VISIBLE_MEDIA_QUERY,
+            (resultSet, rowNumber) -> new VisibleMedia(
+                resultSet.getString("storage_key"), resultSet.getString("content_type")
+            ),
+            postId, userId, userId, userId, userId, userId
+        ).stream().findFirst().orElseThrow(() -> new ResourceNotFoundException("Mídia não encontrada"));
+    }
+
     private SocialFeedItemResponse toFeedItem(ResultSet resultSet) throws SQLException {
         JsonNode content;
         try {
@@ -257,9 +301,14 @@ public class SocialService {
             type.equals("WORKOUT") ? "🏋️" : "✨",
             resultSet.getInt("likes_count"),
             resultSet.getBoolean("liked"),
-            createdAt.toInstant().toString()
+            createdAt.toInstant().toString(),
+            resultSet.getObject("media_id") == null
+                ? null
+                : "/social/posts/" + resultSet.getObject("post_id", UUID.class) + "/media"
         );
     }
+
+    public record VisibleMedia(String storageKey, String contentType) {}
 
     private User other(Friendship friendship, UUID userId) {
         return friendship.getRequester().getId().equals(userId) ? friendship.getAddressee() : friendship.getRequester();
