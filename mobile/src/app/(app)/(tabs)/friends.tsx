@@ -169,6 +169,14 @@ export default function TelaAmigos() {
         titulo={traduzir("amigos.titulo")}
       />
       <FriendsSearch userId={userId} />
+      {curtirPost.isError ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          style={[styles.erro, { color: tema.cores.perigo }]}
+        >
+          {traduzir("amigos.feedErroCurtida")}
+        </Text>
+      ) : null}
       <FriendSection titulo={traduzir("amigos.feedTitulo")}>
         {feed.isLoading ? (
           <ActivityIndicator color={tema.cores.marca} />
