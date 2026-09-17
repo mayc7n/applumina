@@ -3,7 +3,7 @@ import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import { ChevronLeft } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -64,19 +64,19 @@ export default function TelaEditarTreino() {
   const editar = useEditarTreino(userId);
   const excluir = useExcluirTreino(userId);
 
-  useEffect(() => {
-    if (parametros.moment !== "1" || !consulta.data) return;
-    void adicionarMomento();
-  }, [consulta.data, parametros.moment]);
-
-  async function adicionarMomento(): Promise<void> {
+  const adicionarMomento = useCallback(async (): Promise<void> => {
     const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissao.granted) return;
     const resultado = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: true, quality: 0.82, exif: false });
     if (resultado.canceled) return;
     const processada = await ImageManipulator.manipulateAsync(resultado.assets[0].uri, [{ resize: { width: 1600 } }], { compress: 0.82, format: ImageManipulator.SaveFormat.JPEG });
     await apiTreinos.enviarMomento(parametros.id, processada.uri, "image/jpeg");
-  }
+  }, [parametros.id]);
+
+  useEffect(() => {
+    if (parametros.moment !== "1" || !consulta.data) return;
+    void adicionarMomento();
+  }, [adicionarMomento, consulta.data, parametros.moment]);
 
   async function salvar(entrada: CreateWorkoutInput): Promise<void> {
     await editar.mutateAsync({ id: parametros.id, entrada });
