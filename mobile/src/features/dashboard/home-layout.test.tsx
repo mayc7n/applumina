@@ -10,6 +10,7 @@ import { StyleSheet } from "react-native";
 const mockUseQuery = jest.fn();
 const mockUseWindowDimensions = jest.fn();
 const mockRouterPush = jest.fn();
+let mockAutenticado = true;
 
 jest.mock(
   "react-native/Libraries/Utilities/useWindowDimensions",
@@ -27,8 +28,10 @@ jest.mock("expo-image", () => ({ Image: () => null }));
 jest.mock("lucide-react-native", () => ({
   Activity: () => null,
   ArrowUpRight: () => null,
+  CheckSquare2: () => null,
   CheckCircle2: () => null,
   ChevronRight: () => null,
+  Plus: () => null,
   Sprout: () => null,
   UsersRound: () => null,
 }));
@@ -43,8 +46,10 @@ jest.mock("@/i18n/idioma", () => ({
 jest.mock("@/store/auth-store", () => ({
   useArmazenamentoAutenticacao: (seletor: (estado: unknown) => unknown) =>
     seletor({
-      estado: "autenticado",
-      usuario: { displayName: "Ana", id: "user-1" },
+      estado: mockAutenticado ? "autenticado" : "nao_autenticado",
+      usuario: mockAutenticado
+        ? { displayName: "Ana", id: "user-1" }
+        : undefined,
     }),
 }));
 
@@ -86,6 +91,7 @@ function possuiRotuloDiasAtivos(raiz: ReactNode): boolean {
 describe("cartão de atividade semanal", () => {
   beforeEach(() => {
     mockRouterPush.mockReset();
+    mockAutenticado = true;
     mockUseQuery.mockReturnValue({
       data: {
         todayTasks: [],
@@ -131,12 +137,6 @@ describe("cartão de atividade semanal", () => {
       metricas,
       (elemento) => elemento.props.tamanho === 112,
     );
-    const anelAmpliado = encontrarElemento(
-      metricas,
-      (elemento) =>
-        elemento.props.accessibilityLabel === "inicio.tarefasRotulo: 12345",
-    );
-
     expect(StyleSheet.flatten(metricas?.props.style)).toMatchObject({
       flexDirection: "column",
     });
@@ -149,10 +149,6 @@ describe("cartão de atividade semanal", () => {
       numberOfLines: 1,
     });
     expect(arcoAmpliado).toBeDefined();
-    expect(StyleSheet.flatten(anelAmpliado?.props.style)).toMatchObject({
-      height: 112,
-      width: 112,
-    });
   });
 
   test("mantém avatar acessível para a conta e um bloco hoje compacto", () => {
@@ -215,7 +211,8 @@ describe("cartão de atividade semanal", () => {
     );
 
     expect(StyleSheet.flatten(blocoHoje?.props.style)).toMatchObject({
-      borderRadius: 22,
+      borderBottomRightRadius: 28,
+      borderTopLeftRadius: 28,
       borderWidth: 1,
     });
     const estiloAcao =
@@ -226,5 +223,67 @@ describe("cartão de atividade semanal", () => {
       backgroundColor: "marca",
     });
     expect(acao?.props.accessibilityLabel).toBe("inicio.acaoTreino");
+  });
+
+  test("apresenta ações rápidas e trilho de ritmo para pessoa autenticada", () => {
+    mockUseWindowDimensions.mockReturnValue({
+      fontScale: 1,
+      height: 800,
+      scale: 2,
+      width: 360,
+    });
+
+    const tela = TelaInicio();
+    const botoes = [] as ReactElement<Record<string, unknown>>[];
+    const percorrer = (raiz: ReactNode): void => {
+      if (!isValidElement<Record<string, unknown>>(raiz)) return;
+      if (
+        raiz.props.accessibilityRole === "button" &&
+        (raiz.props.accessibilityLabel === "inicio.novaTarefa" ||
+          raiz.props.accessibilityLabel === "inicio.novoTreino")
+      ) {
+        botoes.push(raiz);
+      }
+      for (const filho of Children.toArray(raiz.props.children as ReactNode)) {
+        percorrer(filho);
+      }
+    };
+    percorrer(tela);
+
+    const ritmo = encontrarElemento(
+      tela,
+      (elemento) => elemento.props.titulo === "inicio.ritmoTitulo",
+    );
+
+    expect(botoes).toHaveLength(2);
+    expect(ritmo?.props.dias).toHaveLength(7);
+    expect(typeof botoes[0].props.onPress).toBe("function");
+    expect(typeof botoes[1].props.onPress).toBe("function");
+    const onPressTarefa = botoes[0].props.onPress;
+    const onPressTreino = botoes[1].props.onPress;
+    if (typeof onPressTarefa === "function") onPressTarefa();
+    if (typeof onPressTreino === "function") onPressTreino();
+    expect(mockRouterPush).toHaveBeenNthCalledWith(1, "/tasks/new");
+    expect(mockRouterPush).toHaveBeenNthCalledWith(2, "/workouts/new");
+  });
+
+  test("não mostra ações autenticadas para visitante", () => {
+    mockAutenticado = false;
+    mockUseWindowDimensions.mockReturnValue({
+      fontScale: 1,
+      height: 800,
+      scale: 2,
+      width: 360,
+    });
+
+    const tela = TelaInicio();
+    const acaoRapida = encontrarElemento(
+      tela,
+      (elemento) =>
+        elemento.props.accessibilityLabel === "inicio.novaTarefa" ||
+        elemento.props.accessibilityLabel === "inicio.novoTreino",
+    );
+
+    expect(acaoRapida).toBeUndefined();
   });
 });

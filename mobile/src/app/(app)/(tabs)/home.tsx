@@ -4,7 +4,9 @@ import { router } from "expo-router";
 import {
   Activity,
   ArrowUpRight,
+  CheckSquare2,
   CheckCircle2,
+  Plus,
   Sprout,
 } from "lucide-react-native";
 import {
@@ -23,9 +25,12 @@ import { LuminaMark } from "@/components/brand/lumina-mark";
 import { WeeklyArc } from "@/components/progress/weekly-arc";
 import { AnimatedEntry } from "@/components/ui/animated-entry";
 import { FeedbackState } from "@/components/ui/feedback-state";
-import { GlassSurface } from "@/components/ui/glass-surface";
 import { ScreenHeader } from "@/components/ui/screen-header";
-import { resumirSemana } from "@/features/dashboard/home-metrics";
+import { WeekRhythm } from "@/components/progress/week-rhythm";
+import {
+  criarDiasRitmoSemana,
+  resumirSemana,
+} from "@/features/dashboard/home-metrics";
 import { chavesTarefasUsuario } from "@/features/tasks/task-query-keys";
 import { useIdioma } from "@/i18n/idioma";
 import { apiPainel } from "@/lib/api/resources";
@@ -67,6 +72,15 @@ export default function TelaInicio() {
   const tarefasHoje = consulta.data?.todayTasks ?? [];
   const tarefaPendente = tarefasHoje.find((tarefa) => tarefa.status !== "DONE");
   const resumo = resumirSemana(consulta.data?.weeklyData ?? []);
+  const diasRitmo = consulta.data
+    ? criarDiasRitmoSemana(
+        consulta.data.weeklyData,
+        new Date(),
+        idioma,
+        traduzir("inicio.ritmoDiaAtivo"),
+        traduzir("inicio.ritmoDiaVazio"),
+      )
+    : [];
   const metricasAmpliadas = fontScale >= 1.3;
   const tamanhoAnel = metricasAmpliadas ? 112 : 84;
 
@@ -137,9 +151,13 @@ export default function TelaInicio() {
         />
 
         <AnimatedEntry>
-          <GlassSurface
+          <View
             style={[
               styles.hero,
+              {
+                backgroundColor: tema.cores.elevado,
+                borderColor: tema.cores.marcaContorno,
+              },
             ]}
           >
             <Text style={[styles.sobretitulo, { color: tema.cores.marca }]}>
@@ -241,15 +259,83 @@ export default function TelaInicio() {
                 ) : null}
               </>
             )}
-          </GlassSurface>
+          </View>
         </AnimatedEntry>
+
+        {autenticado ? (
+          <AnimatedEntry>
+            <View style={styles.acoesRapidas}>
+              <Text style={[styles.rotuloAcoes, { color: tema.cores.textoSutil }]}>
+                {traduzir("inicio.acoesRapidas")}
+              </Text>
+              <View style={styles.linhaAcoes}>
+                <Pressable
+                  accessibilityLabel={traduzir("inicio.novaTarefa")}
+                  accessibilityRole="button"
+                  hitSlop={8}
+                  onPress={() => router.push("/tasks/new")}
+                  style={({ pressed }) => [
+                    styles.acaoRapida,
+                    {
+                      backgroundColor: tema.cores.elevado,
+                      borderColor: tema.cores.borda,
+                      opacity: pressed ? 0.76 : 1,
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.iconeAcaoRapida,
+                      { backgroundColor: tema.cores.marcaSuave },
+                    ]}
+                  >
+                    <CheckSquare2 color={tema.cores.marca} size={19} />
+                  </View>
+                  <Text style={[styles.textoAcaoRapida, { color: tema.cores.texto }]}>
+                    {traduzir("inicio.novaTarefa")}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  accessibilityLabel={traduzir("inicio.novoTreino")}
+                  accessibilityRole="button"
+                  hitSlop={8}
+                  onPress={() => router.push("/workouts/new")}
+                  style={({ pressed }) => [
+                    styles.acaoRapida,
+                    {
+                      backgroundColor: tema.cores.elevado,
+                      borderColor: tema.cores.borda,
+                      opacity: pressed ? 0.76 : 1,
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.iconeAcaoRapida,
+                      { backgroundColor: tema.cores.marcaSuave },
+                    ]}
+                  >
+                    <Plus color={tema.cores.marca} size={20} />
+                  </View>
+                  <Text style={[styles.textoAcaoRapida, { color: tema.cores.texto }]}>
+                    {traduzir("inicio.novoTreino")}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </AnimatedEntry>
+        ) : null}
 
         {autenticado && consulta.data ? (
           <AnimatedEntry>
             <View style={styles.blocoSemana}>
-              <GlassSurface
+              <View
                 style={[
                   styles.cardAtividade,
+                  {
+                    backgroundColor: tema.cores.elevado,
+                    borderColor: tema.cores.borda,
+                  },
                 ]}
               >
                 <View style={styles.cabecalhoAtividade}>
@@ -278,6 +364,14 @@ export default function TelaInicio() {
                   </View>
                 </View>
 
+                <WeekRhythm
+                  descricao={traduzir("inicio.ritmoDescricao", {
+                    quantidade: resumo.diasAtivos,
+                  })}
+                  dias={diasRitmo}
+                  titulo={traduzir("inicio.ritmoTitulo")}
+                />
+
                 <View
                   style={[
                     styles.metricasAtividade,
@@ -287,7 +381,12 @@ export default function TelaInicio() {
                   <View
                     style={[
                       styles.metricaAtividade,
+                      styles.metricaCompacta,
                       metricasAmpliadas && styles.metricaAtividadeAmpliada,
+                      {
+                        backgroundColor: tema.cores.sobreposicao,
+                        borderColor: tema.cores.borda,
+                      },
                     ]}
                   >
                     <View style={styles.anelMetrica}>
@@ -343,11 +442,7 @@ export default function TelaInicio() {
                     <View
                       accessible
                       accessibilityLabel={`${traduzir("inicio.tarefasRotulo")}: ${resumo.tarefasConcluidas}`}
-                      style={[
-                        styles.anelResumo,
-                        metricasAmpliadas && styles.anelResumoAmpliado,
-                        { borderColor: tema.cores.sucesso },
-                      ]}
+                      style={styles.valorMetricaCompacta}
                     >
                       <Text
                         adjustsFontSizeToFit
@@ -371,17 +466,18 @@ export default function TelaInicio() {
                   <View
                     style={[
                       styles.metricaAtividade,
+                      styles.metricaCompacta,
                       metricasAmpliadas && styles.metricaAtividadeAmpliada,
+                      {
+                        backgroundColor: tema.cores.sobreposicao,
+                        borderColor: tema.cores.borda,
+                      },
                     ]}
                   >
                     <View
                       accessible
                       accessibilityLabel={`${traduzir("inicio.focoRotulo")}: ${traduzir("inicio.minutos", { quantidade: resumo.minutosFoco })}`}
-                      style={[
-                        styles.anelResumo,
-                        metricasAmpliadas && styles.anelResumoAmpliado,
-                        { borderColor: tema.cores.informacao },
-                      ]}
+                      style={styles.valorMetricaCompacta}
                     >
                       <Text
                         adjustsFontSizeToFit
@@ -439,7 +535,7 @@ export default function TelaInicio() {
                     </Text>
                   </View>
                 </View>
-              </GlassSurface>
+              </View>
             </View>
           </AnimatedEntry>
         ) : null}
@@ -486,8 +582,11 @@ const styles = StyleSheet.create({
   },
   inicial: { fontSize: 19, fontWeight: "800" },
   hero: {
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 28,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 16,
     borderWidth: 1,
-    borderRadius: 22,
     minHeight: 200,
     overflow: "hidden",
     padding: 20,
@@ -531,6 +630,32 @@ const styles = StyleSheet.create({
   acaoHeroTexto: { fontSize: 15, fontWeight: "800" },
   linkEntrar: { alignSelf: "flex-start", minHeight: 44, paddingVertical: 12 },
   linkEntrarTexto: { fontSize: 14, fontWeight: "700", opacity: 0.9 },
+  acoesRapidas: { gap: 10 },
+  rotuloAcoes: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1.1,
+    textTransform: "uppercase",
+  },
+  linhaAcoes: { flexDirection: "row", gap: 10 },
+  acaoRapida: {
+    alignItems: "center",
+    borderRadius: 18,
+    borderWidth: 1,
+    flex: 1,
+    flexDirection: "row",
+    gap: 10,
+    minHeight: 62,
+    paddingHorizontal: 12,
+  },
+  iconeAcaoRapida: {
+    alignItems: "center",
+    borderRadius: 13,
+    height: 36,
+    justifyContent: "center",
+    width: 36,
+  },
+  textoAcaoRapida: { flex: 1, fontSize: 13, fontWeight: "800" },
   blocoSemana: { gap: 14 },
   tituloSecao: { fontSize: 21, fontWeight: "800", letterSpacing: -0.45 },
   cardAtividade: {
@@ -559,6 +684,13 @@ const styles = StyleSheet.create({
   },
   metricasAtividadeAmpliadas: { alignItems: "center", flexDirection: "column", gap: 20 },
   metricaAtividade: { alignItems: "center", flex: 1, gap: 7 },
+  metricaCompacta: {
+    borderRadius: 16,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 84,
+    paddingHorizontal: 10,
+  },
   metricaAtividadeAmpliada: { flex: 0, width: "100%" },
   anelMetrica: { alignItems: "center", justifyContent: "center" },
   valorAnel: {
@@ -566,15 +698,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     position: "absolute",
   },
-  anelResumo: {
-    alignItems: "center",
-    borderRadius: 42,
-    borderWidth: 7,
-    height: 84,
-    justifyContent: "center",
-    width: 84,
+  valorMetricaCompacta: {
+    alignItems: "baseline",
+    flexDirection: "row",
+    gap: 2,
   },
-  anelResumoAmpliado: { borderRadius: 56, height: 112, width: 112 },
   numeroAnel: { fontSize: 22, fontWeight: "900", letterSpacing: -0.7 },
   unidadeAnel: { fontSize: 10, fontWeight: "700" },
   rotuloAnel: { fontSize: 11, fontWeight: "700", textAlign: "center" },
