@@ -29,7 +29,7 @@ jest.mock("lucide-react-native", () => ({
   ArrowUpRight: () => null,
   CheckCircle2: () => null,
   ChevronRight: () => null,
-  Flame: () => null,
+  Sprout: () => null,
   UsersRound: () => null,
 }));
 
@@ -215,8 +215,7 @@ describe("cartão de atividade semanal", () => {
     );
 
     expect(StyleSheet.flatten(blocoHoje?.props.style)).toMatchObject({
-      backgroundColor: "elevado",
-      borderColor: "marcaContorno",
+      borderRadius: 22,
       borderWidth: 1,
     });
     const estiloAcao =

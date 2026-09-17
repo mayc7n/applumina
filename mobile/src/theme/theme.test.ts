@@ -36,3 +36,22 @@ describe.each([
     expect(contraste(frente, fundo)).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+describe("superfícies glass", () => {
+  test.each(["vidro", "vidroBorda", "vidroReflexo", "vidroSombra"])(
+    "expõe o token %s nos dois modos",
+    (token) => {
+      expect(temaClaro.cores[token as keyof typeof temaClaro.cores]).toEqual(
+        expect.any(String),
+      );
+      expect(temaEscuro.cores[token as keyof typeof temaEscuro.cores]).toEqual(
+        expect.any(String),
+      );
+    },
+  );
+
+  test("adapta a camada de vidro ao modo ativo", () => {
+    expect(temaClaro.cores.vidro).not.toBe(temaEscuro.cores.vidro);
+    expect(temaClaro.cores.vidroBorda).not.toBe(temaEscuro.cores.vidroBorda);
+  });
+});

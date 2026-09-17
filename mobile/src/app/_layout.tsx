@@ -21,6 +21,8 @@ export default function LayoutRaiz() {
     colors: {
       ...temaBaseNavegacao.colors,
       background: tema.cores.fundo,
+      card: tema.cores.vidro,
+      border: tema.cores.vidroBorda,
     },
   };
   const estado = useArmazenamentoAutenticacao(

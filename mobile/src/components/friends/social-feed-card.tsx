@@ -2,6 +2,7 @@ import { CalendarDays, Heart } from "lucide-react-native";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { GlassSurface } from "@/components/ui/glass-surface";
 import { useIdioma } from "@/i18n/idioma";
 import { obterTokenAcesso } from "@/lib/auth/session";
 import { useTemaApp } from "@/theme/theme";
@@ -57,7 +58,7 @@ export function SocialFeedCard({
     .toLocaleUpperCase();
 
   return (
-    <View
+    <GlassSurface
       accessible
       accessibilityLabel={rotuloAcessibilidade}
       accessibilityRole="text"
@@ -90,7 +91,7 @@ export function SocialFeedCard({
                 styles.online,
                 {
                   backgroundColor: tema.cores.sucesso,
-                  borderColor: tema.cores.elevado,
+                  borderColor: tema.cores.vidroBorda,
                 },
               ]}
             />
@@ -164,7 +165,7 @@ export function SocialFeedCard({
           </Text>
         </Pressable>
       </View>
-    </View>
+    </GlassSurface>
   );
 }
 

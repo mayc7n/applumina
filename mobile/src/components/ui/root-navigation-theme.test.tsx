@@ -105,12 +105,14 @@ describe("tema da navegação", () => {
           informacao: "informacao-lumina-clara",
           marca: "marca-lumina-clara",
           texto: "texto-lumina-claro",
+          vidro: "vidro-lumina-claro",
+          vidroBorda: "vidro-borda-lumina-claro",
         },
       },
       {
         background: "fundo-lumina-claro",
-        border: "borda-padrao-claro",
-        card: "cartao-padrao-claro",
+        border: "vidro-borda-lumina-claro",
+        card: "vidro-lumina-claro",
         notification: "notificacao-padrao-claro",
         primary: "primaria-padrao-claro",
         text: "texto-padrao-claro",
@@ -127,18 +129,20 @@ describe("tema da navegação", () => {
           informacao: "informacao-lumina-escura",
           marca: "marca-lumina-escura",
           texto: "texto-lumina-escuro",
+          vidro: "vidro-lumina-escuro",
+          vidroBorda: "vidro-borda-lumina-escuro",
         },
       },
       {
         background: "fundo-lumina-escuro",
-        border: "borda-padrao-escuro",
-        card: "cartao-padrao-escuro",
+        border: "vidro-borda-lumina-escuro",
+        card: "vidro-lumina-escuro",
         notification: "notificacao-padrao-escuro",
         primary: "primaria-padrao-escuro",
         text: "texto-padrao-escuro",
       },
     ],
-  ])("usa somente o fundo do tema %s atrás do dock", (_nome, tema, coresEsperadas) => {
+  ])("usa o fundo e a superfície do tema %s na navegação", (_nome, tema, coresEsperadas) => {
     mockUseTemaApp.mockReturnValue(tema);
 
     const layout = LayoutRaiz();

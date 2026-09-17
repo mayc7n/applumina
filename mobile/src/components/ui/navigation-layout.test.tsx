@@ -8,6 +8,14 @@ const mockTabs = Object.assign(() => null, { Screen: () => null });
 
 jest.mock("expo-router", () => ({ Tabs: mockTabs }));
 
+jest.mock("@/components/ui/glass-surface", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View: NativeView } = require("react-native") as typeof import("react-native");
+  return {
+    GlassSurface: (props: Record<string, unknown>) => <NativeView {...props} />,
+  };
+});
+
 jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ bottom: mockInsetsBottom, left: 0, right: 0, top: 0 }),
 }));
@@ -40,6 +48,10 @@ jest.mock("@/theme/theme", () => ({
       sobreMarca: "#fff",
       texto: "#111",
       textoSutil: "#777",
+      vidro: "rgba(255,255,255,0.72)",
+      vidroBorda: "rgba(255,255,255,0.86)",
+      vidroReflexo: "rgba(255,255,255,0.56)",
+      vidroSombra: "rgba(114,57,43,0.16)",
     },
   }),
 }));
@@ -57,6 +69,7 @@ interface TabsPropsTest {
   screenOptions: {
     animation: "none" | "shift";
     tabBarAllowFontScaling: boolean;
+    tabBarBackground: () => ReactElement<Record<string, unknown>>;
     tabBarHideOnKeyboard: boolean;
     tabBarItemStyle: Record<string, unknown>;
     tabBarLabelStyle: Record<string, unknown>;
@@ -124,6 +137,14 @@ describe("movimento da navegação inferior", () => {
         marginBottom: 6,
         shadowOpacity: 0.06,
       },
+    });
+
+    const fundo = abas.props.screenOptions.tabBarBackground();
+    expect(fundo.props).toMatchObject({
+      accessibilityElementsHidden: true,
+      importantForAccessibility: "no-hide-descendants",
+      pointerEvents: "none",
+      testID: "tab-bar-glass",
     });
   });
 

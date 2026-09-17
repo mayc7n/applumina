@@ -10,6 +10,7 @@ import {
 import { useEffect, useState } from "react";
 import { Animated, StyleSheet, useWindowDimensions, View } from "react-native";
 
+import { GlassSurface } from "@/components/ui/glass-surface";
 import { useIdioma } from "@/i18n/idioma";
 import { useTemaApp } from "@/theme/theme";
 import { criarMovimento } from "@/theme/motion";
@@ -62,20 +63,13 @@ function IconeAba({ ativo, Icone, tamanho }: { ativo: boolean; Icone: LucideIcon
 }
 
 function FundoBarra() {
-  const tema = useTemaApp();
-
   return (
-    <View
+    <GlassSurface
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       pointerEvents="none"
-      style={[
-        styles.barra3D,
-        {
-          backgroundColor: tema.cores.elevado,
-          borderColor: tema.cores.borda,
-        },
-      ]}
+      style={styles.barra3D}
+      testID="tab-bar-glass"
     />
   );
 }
@@ -104,7 +98,7 @@ export default function LayoutAbas() {
         tabBarActiveTintColor: tema.cores.marca,
         tabBarInactiveTintColor: tema.cores.textoSutil,
         tabBarHideOnKeyboard: true,
-        tabBarBackground: () => <FundoBarra />,
+        tabBarBackground: FundoBarra,
         tabBarStyle: {
           backgroundColor: "transparent",
           borderRadius: 20,

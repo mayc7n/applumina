@@ -16,9 +16,18 @@ jest.mock("@/theme/theme", () => ({
       texto: "#111",
       textoSecundario: "#555",
       textoSutil: "#777",
+      vidroBorda: "rgba(255,255,255,0.86)",
     },
   }),
 }));
+
+jest.mock("@/components/ui/glass-surface", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View: NativeView } = require("react-native") as typeof import("react-native");
+  return {
+    GlassSurface: (props: Record<string, unknown>) => <NativeView {...props} />,
+  };
+});
 
 jest.mock("@/i18n/idioma", () => ({
   useIdioma: () => ({ idioma: "pt-BR" }),

@@ -5,7 +5,7 @@ import {
   Activity,
   ArrowUpRight,
   CheckCircle2,
-  Flame,
+  Sprout,
 } from "lucide-react-native";
 import {
   ActivityIndicator,
@@ -23,6 +23,7 @@ import { LuminaMark } from "@/components/brand/lumina-mark";
 import { WeeklyArc } from "@/components/progress/weekly-arc";
 import { AnimatedEntry } from "@/components/ui/animated-entry";
 import { FeedbackState } from "@/components/ui/feedback-state";
+import { GlassSurface } from "@/components/ui/glass-surface";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { resumirSemana } from "@/features/dashboard/home-metrics";
 import { chavesTarefasUsuario } from "@/features/tasks/task-query-keys";
@@ -136,13 +137,9 @@ export default function TelaInicio() {
         />
 
         <AnimatedEntry>
-          <View
+          <GlassSurface
             style={[
               styles.hero,
-              {
-                backgroundColor: tema.cores.elevado,
-                borderColor: tema.cores.marcaContorno,
-              },
             ]}
           >
             <Text style={[styles.sobretitulo, { color: tema.cores.marca }]}>
@@ -244,19 +241,15 @@ export default function TelaInicio() {
                 ) : null}
               </>
             )}
-          </View>
+          </GlassSurface>
         </AnimatedEntry>
 
         {autenticado && consulta.data ? (
           <AnimatedEntry>
             <View style={styles.blocoSemana}>
-              <View
+              <GlassSurface
                 style={[
                   styles.cardAtividade,
-                  {
-                    backgroundColor: tema.cores.elevado,
-                    borderColor: tema.cores.borda,
-                  },
                 ]}
               >
                 <View style={styles.cabecalhoAtividade}>
@@ -446,7 +439,7 @@ export default function TelaInicio() {
                     </Text>
                   </View>
                 </View>
-              </View>
+              </GlassSurface>
             </View>
           </AnimatedEntry>
         ) : null}
@@ -458,7 +451,7 @@ export default function TelaInicio() {
               { backgroundColor: tema.cores.alertaSuave },
             ]}
           >
-            <Flame color={tema.cores.alerta} size={18} />
+            <Sprout color={tema.cores.alerta} size={18} />
             <Text
               style={[
                 styles.notaEticaTexto,
