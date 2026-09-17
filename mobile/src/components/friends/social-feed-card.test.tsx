@@ -29,6 +29,20 @@ jest.mock("lucide-react-native", () => ({
   Heart: () => null,
 }));
 
+const mockImage = (props: Record<string, unknown>) => (
+  <View testID="social-feed-media" {...props} />
+);
+
+jest.mock("expo-image", () => ({
+  Image: mockImage,
+}));
+
+jest.mock("@/lib/auth/session", () => ({
+  obterTokenAcesso: () => "token-de-teste",
+}));
+
+process.env.EXPO_PUBLIC_API_URL = "https://api.example.test/api";
+
 const { SocialFeedCard } = jest.requireActual<
   typeof import("./social-feed-card")
 >("./social-feed-card");
@@ -50,6 +64,7 @@ const item: SocialFeedItem = {
   likeCount: 3,
   liked: false,
   createdAt: "2030-06-10T12:00:00Z",
+  mediaUrl: "/social/posts/post-1/media",
 };
 
 describe("card do feed social", () => {
@@ -79,5 +94,12 @@ describe("card do feed social", () => {
     const raiz = renderizacao?.root.findByType(View);
     expect(raiz?.props.accessible).toBe(true);
     expect(raiz?.props.accessibilityLabel).toContain("Força de terça");
+    expect(renderizacao).toBeDefined();
+    const imagem = renderizacao!.root.findByProps({ testID: "social-feed-media" });
+    expect(imagem.props.accessibilityLabel).toBe("Força de terça");
+    expect(imagem.props.source).toEqual({
+      uri: "https://api.example.test/api/social/posts/post-1/media",
+      headers: { Authorization: "Bearer token-de-teste" },
+    });
   });
 });

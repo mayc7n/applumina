@@ -1,7 +1,9 @@
 import { CalendarDays, Heart } from "lucide-react-native";
+import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useIdioma } from "@/i18n/idioma";
+import { obterTokenAcesso } from "@/lib/auth/session";
 import { useTemaApp } from "@/theme/theme";
 import type { SocialFeedItem } from "@/types/api";
 
@@ -20,6 +22,15 @@ export function SocialFeedCard({
 }: SocialFeedCardProps) {
   const tema = useTemaApp();
   const { idioma } = useIdioma();
+  const tokenAcesso = obterTokenAcesso();
+  const urlApi = process.env.EXPO_PUBLIC_API_URL?.trim().replace(/\/$/, "");
+  const fonteMedia =
+    item.mediaUrl && tokenAcesso && urlApi
+      ? {
+          uri: `${urlApi}${item.mediaUrl}`,
+          headers: { Authorization: `Bearer ${tokenAcesso}` },
+        }
+      : undefined;
   const data = new Intl.DateTimeFormat(idioma, {
     day: "2-digit",
     month: "short",
@@ -90,6 +101,15 @@ export function SocialFeedCard({
         <Text style={[styles.emoji, { color: tema.cores.texto }]}>{item.emoji}</Text>
       </View>
 
+      {fonteMedia ? (
+        <Image
+          accessibilityLabel={item.title}
+          contentFit="cover"
+          source={fonteMedia}
+          style={[styles.media, { backgroundColor: tema.cores.marcaSuave }]}
+        />
+      ) : null}
+
       <View style={styles.conteudo}>
         <Text style={[styles.tipo, { color: tema.cores.marca }]}>{rotuloTipo}</Text>
         {item.title && item.title !== item.type ? (
@@ -143,6 +163,7 @@ const styles = StyleSheet.create({
   nome: { fontSize: 15, fontWeight: "800", lineHeight: 20 },
   usuario: { fontSize: 12, lineHeight: 16 },
   emoji: { fontSize: 24 },
+  media: { borderRadius: 14, height: 180, width: "100%" },
   conteudo: { gap: 6 },
   tipo: { fontSize: 12, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" },
   titulo: { fontSize: 17, fontWeight: "800", lineHeight: 22 },
