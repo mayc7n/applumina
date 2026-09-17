@@ -130,6 +130,27 @@ class SocialControllerTest {
     }
 
     @Test
+    void togglesPostLikeForAuthenticatedActor() throws Exception {
+        UUID postId = UUID.randomUUID();
+        when(socialService.like(actorId, postId))
+            .thenReturn(new com.lumina.api.dto.SocialLikeResponse(true, 4));
+        when(socialService.unlike(actorId, postId))
+            .thenReturn(new com.lumina.api.dto.SocialLikeResponse(false, 3));
+
+        mvc.perform(post("/social/posts/{postId}/like", postId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.liked").value(true))
+            .andExpect(jsonPath("$.data.likeCount").value(4));
+        mvc.perform(delete("/social/posts/{postId}/like", postId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.liked").value(false))
+            .andExpect(jsonPath("$.data.likeCount").value(3));
+
+        verify(socialService).like(actorId, postId);
+        verify(socialService).unlike(actorId, postId);
+    }
+
+    @Test
     void reportReturnsCreatedWithoutPrivateDetails() throws Exception {
         UUID target = UUID.randomUUID();
         mvc.perform(post("/social/reports").contentType(MediaType.APPLICATION_JSON)

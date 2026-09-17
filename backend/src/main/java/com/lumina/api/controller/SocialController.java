@@ -94,6 +94,20 @@ public class SocialController {
             .body(new ByteArrayResource(bytes));
     }
 
+    @PostMapping("/posts/{postId}/like")
+    public ApiResponse<SocialLikeResponse> like(
+        @AuthenticationPrincipal UserPrincipal principal, @PathVariable UUID postId
+    ) {
+        return ApiResponse.success(socialService.like(principal.getUserId(), postId));
+    }
+
+    @DeleteMapping("/posts/{postId}/like")
+    public ApiResponse<SocialLikeResponse> unlike(
+        @AuthenticationPrincipal UserPrincipal principal, @PathVariable UUID postId
+    ) {
+        return ApiResponse.success(socialService.unlike(principal.getUserId(), postId));
+    }
+
     @GetMapping("/friends")
     public ApiResponse<List<SocialUserResponse>> friends(@AuthenticationPrincipal UserPrincipal principal) {
         return ApiResponse.success(socialService.friends(principal.getUserId()));

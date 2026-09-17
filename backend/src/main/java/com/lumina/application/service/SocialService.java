@@ -42,7 +42,8 @@ public class SocialService {
     );
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String FEED_QUERY = """
-        SELECT p.id AS post_id, p.type, p.content, p.likes_count,
+        SELECT p.id AS post_id, p.type, p.content,
+               (SELECT COUNT(*) FROM post_likes visible_like WHERE visible_like.post_id = p.id) AS likes_count,
                EXISTS (
                    SELECT 1 FROM post_likes own_like
                    WHERE own_like.post_id = p.id AND own_like.user_id = ?
@@ -105,6 +106,33 @@ public class SocialService {
               )
           )
         LIMIT 1
+        """;
+    private static final String VISIBLE_POST_QUERY = """
+        SELECT EXISTS (
+            SELECT 1
+            FROM social_posts p
+            JOIN users u ON u.id = p.user_id
+            WHERE p.id = ?
+              AND u.deleted_at IS NULL
+              AND u.status = 'ACTIVE'
+              AND (
+                  p.user_id = ?
+                  OR (
+                      (p.privacy = 'PUBLIC'
+                       OR (p.privacy = 'FRIENDS' AND EXISTS (
+                           SELECT 1 FROM friendships friendship
+                           WHERE friendship.status = 'ACCEPTED'
+                             AND ((friendship.requester_id = ? AND friendship.addressee_id = p.user_id)
+                               OR (friendship.addressee_id = ? AND friendship.requester_id = p.user_id))
+                       )))
+                      AND NOT EXISTS (
+                          SELECT 1 FROM user_blocks block
+                          WHERE (block.blocker_id = ? AND block.blocked_id = p.user_id)
+                             OR (block.blocker_id = p.user_id AND block.blocked_id = ?)
+                      )
+                  )
+              )
+        )
         """;
 
     private final FriendshipRepository friendshipRepository;
@@ -267,6 +295,46 @@ public class SocialService {
             ),
             postId, userId, userId, userId, userId, userId
         ).stream().findFirst().orElseThrow(() -> new ResourceNotFoundException("Mídia não encontrada"));
+    }
+
+    @Transactional
+    public SocialLikeResponse like(UUID userId, UUID postId) {
+        ensureVisiblePost(userId, postId);
+        jdbcTemplate.update(
+            "INSERT INTO post_likes (post_id, user_id) VALUES (?, ?) ON CONFLICT (post_id, user_id) DO NOTHING",
+            postId, userId
+        );
+        return likeState(userId, postId);
+    }
+
+    @Transactional
+    public SocialLikeResponse unlike(UUID userId, UUID postId) {
+        ensureVisiblePost(userId, postId);
+        jdbcTemplate.update("DELETE FROM post_likes WHERE post_id = ? AND user_id = ?", postId, userId);
+        return likeState(userId, postId);
+    }
+
+    private void ensureVisiblePost(UUID userId, UUID postId) {
+        boolean visible = Boolean.TRUE.equals(jdbcTemplate.queryForObject(
+            VISIBLE_POST_QUERY,
+            Boolean.class,
+            postId, userId, userId, userId, userId, userId
+        ));
+        if (!visible) throw new ResourceNotFoundException("Post não encontrado");
+    }
+
+    private SocialLikeResponse likeState(UUID userId, UUID postId) {
+        Integer count = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM post_likes WHERE post_id = ?",
+            Integer.class,
+            postId
+        );
+        Boolean liked = jdbcTemplate.queryForObject(
+            "SELECT EXISTS (SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?)",
+            Boolean.class,
+            postId, userId
+        );
+        return new SocialLikeResponse(Boolean.TRUE.equals(liked), count == null ? 0 : count);
     }
 
     private SocialFeedItemResponse toFeedItem(ResultSet resultSet) throws SQLException {

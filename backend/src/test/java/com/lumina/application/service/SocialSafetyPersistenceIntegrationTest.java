@@ -213,10 +213,37 @@ class SocialSafetyPersistenceIntegrationTest {
                     assertThat(item.description()).isEqualTo("Meu registro"));
             assertThat(feed).filteredOn(item -> item.id().equals(likedPostId.toString()))
                 .singleElement().satisfies(item -> {
-                    assertThat(item.liked()).isTrue();
-                    assertThat(item.likeCount()).isZero();
+                assertThat(item.liked()).isTrue();
+                    assertThat(item.likeCount()).isOne();
                 });
         });
+    }
+
+    @Test
+    void togglesVisiblePostLikeAndRejectsBlockedPost() {
+        UUID postId = insertPost(bobId, "PUBLIC", "Post para curtir");
+
+        authenticated(aliceId, () -> {
+            var liked = socialService.like(aliceId, postId);
+            assertThat(liked.liked()).isTrue();
+            assertThat(liked.likeCount()).isOne();
+            assertThat(socialService.like(aliceId, postId).likeCount()).isOne();
+            assertThat(socialService.feed(aliceId)).singleElement()
+                .extracting(item -> item.likeCount())
+                .isEqualTo(1);
+
+            var unliked = socialService.unlike(aliceId, postId);
+            assertThat(unliked.liked()).isFalse();
+            assertThat(unliked.likeCount()).isZero();
+        });
+
+        ownerJdbc.update(
+            "INSERT INTO user_blocks (blocker_id, blocked_id) VALUES (?, ?)",
+            aliceId, bobId
+        );
+
+        assertThatThrownBy(() -> authenticated(aliceId, () -> socialService.like(aliceId, postId)))
+            .isInstanceOf(com.lumina.api.middleware.GlobalExceptionHandler.ResourceNotFoundException.class);
     }
 
     @Test
