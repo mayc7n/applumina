@@ -1,6 +1,7 @@
-import { Heart } from "lucide-react-native";
+import { CalendarDays, Heart } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 
+import { useIdioma } from "@/i18n/idioma";
 import { useTemaApp } from "@/theme/theme";
 import type { SocialFeedItem } from "@/types/api";
 
@@ -18,6 +19,12 @@ export function SocialFeedCard({
   rotuloTipo,
 }: SocialFeedCardProps) {
   const tema = useTemaApp();
+  const { idioma } = useIdioma();
+  const data = new Intl.DateTimeFormat(idioma, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(item.createdAt));
   const iniciais = item.user.displayName
     .trim()
     .split(/\s+/)
@@ -95,10 +102,18 @@ export function SocialFeedCard({
       </View>
 
       <View style={styles.rodape}>
-        <Heart color={tema.cores.textoSutil} size={16} />
-        <Text style={[styles.curtidas, { color: tema.cores.textoSecundario }]}>
-          {rotuloCurtidas}
-        </Text>
+        <View accessible accessibilityRole="text" style={styles.metadado}>
+          <CalendarDays color={tema.cores.textoSutil} size={16} />
+          <Text style={[styles.curtidas, { color: tema.cores.textoSecundario }]}>
+            {data}
+          </Text>
+        </View>
+        <View accessible accessibilityRole="text" style={styles.metadado}>
+          <Heart color={tema.cores.textoSutil} size={16} />
+          <Text style={[styles.curtidas, { color: tema.cores.textoSecundario }]}>
+            {rotuloCurtidas}
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -127,5 +142,6 @@ const styles = StyleSheet.create({
   titulo: { fontSize: 17, fontWeight: "800", lineHeight: 22 },
   descricao: { fontSize: 16, lineHeight: 23 },
   rodape: { alignItems: "center", flexDirection: "row", gap: 6 },
+  metadado: { alignItems: "center", flexDirection: "row", gap: 6 },
   curtidas: { fontSize: 12, lineHeight: 16 },
 });

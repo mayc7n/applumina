@@ -19,7 +19,12 @@ jest.mock("@/theme/theme", () => ({
   }),
 }));
 
+jest.mock("@/i18n/idioma", () => ({
+  useIdioma: () => ({ idioma: "pt-BR" }),
+}));
+
 jest.mock("lucide-react-native", () => ({
+  CalendarDays: () => null,
   Heart: () => null,
 }));
 
@@ -67,6 +72,7 @@ describe("card do feed social", () => {
     expect(texto).toContain("Treino");
     expect(texto).toContain("Força de terça");
     expect(texto).toContain("Treino leve");
+    expect(texto).toContain("10 de jun. de 2030");
     expect(texto).toContain("3 curtidas");
     expect(texto).not.toContain("button");
   });
