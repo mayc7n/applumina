@@ -161,6 +161,14 @@ export async function excluirApi(url: string, dados?: unknown): Promise<void> {
   await clienteApi.delete(url, { data: dados });
 }
 
+export async function excluirApiComResposta<T>(
+  url: string,
+  dados?: unknown,
+): Promise<T> {
+  const resposta = await clienteApi.delete<ApiEnvelope<T>>(url, { data: dados });
+  return extrairDados(resposta.data);
+}
+
 export async function enviarPublico<T>(
   url: string,
   dados?: unknown,

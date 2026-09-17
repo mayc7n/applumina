@@ -2,6 +2,7 @@ import {
   atualizarApi,
   atualizarParcialApi,
   excluirApi,
+  excluirApiComResposta,
   enviarApi,
   enviarSemConteudoApi,
   enviarPublico,
@@ -35,6 +36,7 @@ import type {
   FriendRequest,
   SocialUser,
   SocialFeedItem,
+  SocialLikeResponse,
   CreateUserReportInput,
 } from "@/types/api";
 
@@ -116,6 +118,10 @@ export const apiTreinos = {
 
 export const apiAmigos = {
   feed: () => obterApi<SocialFeedItem[]>("/social/feed"),
+  curtir: (postId: string) =>
+    enviarApi<SocialLikeResponse>(`/social/posts/${postId}/like`),
+  descurtir: (postId: string) =>
+    excluirApiComResposta<SocialLikeResponse>(`/social/posts/${postId}/like`),
   publicarTreino: (workoutId: string, privacy: "FRIENDS" | "PUBLIC", caption?: string) => enviarApi<string>(`/social/workouts/${workoutId}/posts`, { privacy, caption }),
   listar: () => obterApi<SocialUser[]>("/social/friends"),
   listarSolicitacoes: () =>

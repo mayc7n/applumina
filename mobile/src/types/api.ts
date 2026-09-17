@@ -212,6 +212,11 @@ export interface SocialFeedItem {
   mediaUrl?: string;
 }
 
+export interface SocialLikeResponse {
+  liked: boolean;
+  likeCount: number;
+}
+
 export interface FriendRequest {
   id: string;
   user: SocialUser;

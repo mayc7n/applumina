@@ -1,6 +1,6 @@
 import { CalendarDays, Heart } from "lucide-react-native";
 import { Image } from "expo-image";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useIdioma } from "@/i18n/idioma";
 import { obterTokenAcesso } from "@/lib/auth/session";
@@ -9,6 +9,9 @@ import type { SocialFeedItem } from "@/types/api";
 
 interface SocialFeedCardProps {
   item: SocialFeedItem;
+  aoAlternarCurtida: () => void;
+  curtidaDesabilitada: boolean;
+  rotuloAcaoCurtida: string;
   rotuloCurtidas: string;
   rotuloOnline: string;
   rotuloTipo: string;
@@ -16,6 +19,9 @@ interface SocialFeedCardProps {
 
 export function SocialFeedCard({
   item,
+  aoAlternarCurtida,
+  curtidaDesabilitada,
+  rotuloAcaoCurtida,
   rotuloCurtidas,
   rotuloOnline,
   rotuloTipo,
@@ -134,12 +140,29 @@ export function SocialFeedCard({
             {data}
           </Text>
         </View>
-        <View style={styles.metadado}>
-          <Heart color={tema.cores.textoSutil} size={16} />
+        <Pressable
+          accessibilityLabel={`${rotuloAcaoCurtida}, ${rotuloCurtidas}`}
+          accessibilityRole="button"
+          accessibilityState={{
+            disabled: curtidaDesabilitada,
+            selected: item.liked,
+          }}
+          disabled={curtidaDesabilitada}
+          onPress={aoAlternarCurtida}
+          style={({ pressed }) => [
+            styles.metadado,
+            pressed && styles.metadadoPressionado,
+          ]}
+        >
+          <Heart
+            color={item.liked ? tema.cores.marca : tema.cores.textoSutil}
+            fill={item.liked ? tema.cores.marca : "transparent"}
+            size={16}
+          />
           <Text style={[styles.curtidas, { color: tema.cores.textoSecundario }]}>
             {rotuloCurtidas}
           </Text>
-        </View>
+        </Pressable>
       </View>
     </View>
   );
@@ -170,5 +193,6 @@ const styles = StyleSheet.create({
   descricao: { fontSize: 16, lineHeight: 23 },
   rodape: { alignItems: "center", flexDirection: "row", gap: 6 },
   metadado: { alignItems: "center", flexDirection: "row", gap: 6 },
+  metadadoPressionado: { opacity: 0.7 },
   curtidas: { fontSize: 12, lineHeight: 16 },
 });

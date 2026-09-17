@@ -69,11 +69,15 @@ const item: SocialFeedItem = {
 
 describe("card do feed social", () => {
   test("expõe autor, conteúdo e curtidas como informação sem ação falsa", async () => {
+    const alternarCurtida = jest.fn();
     let renderizacao: ReactTestRenderer | undefined;
     await act(async () => {
       renderizacao = create(
         <SocialFeedCard
+          aoAlternarCurtida={alternarCurtida}
+          curtidaDesabilitada={false}
           item={item}
+          rotuloAcaoCurtida="Curtir"
           rotuloCurtidas="3 curtidas"
           rotuloOnline="Online agora"
           rotuloTipo="Treino"
@@ -90,7 +94,6 @@ describe("card do feed social", () => {
     expect(texto).toContain("Treino leve");
     expect(texto).toContain("10 de jun. de 2030");
     expect(texto).toContain("3 curtidas");
-    expect(texto).not.toContain("button");
     const raiz = renderizacao?.root.findByType(View);
     expect(raiz?.props.accessible).toBe(true);
     expect(raiz?.props.accessibilityLabel).toContain("Força de terça");
@@ -101,5 +104,13 @@ describe("card do feed social", () => {
       uri: "https://api.example.test/api/social/posts/post-1/media",
       headers: { Authorization: "Bearer token-de-teste" },
     });
+    const botao = renderizacao!.root.findByProps({ accessibilityRole: "button" });
+    expect(botao.props.accessibilityLabel).toBe("Curtir, 3 curtidas");
+    expect(botao.props.accessibilityState).toEqual({
+      disabled: false,
+      selected: false,
+    });
+    await act(async () => botao.props.onPress());
+    expect(alternarCurtida).toHaveBeenCalledTimes(1);
   });
 });

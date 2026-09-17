@@ -23,6 +23,7 @@ import { AnimatedEntry } from "@/components/ui/animated-entry";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import {
   useAceitarAmizade,
+  useCurtirPost,
   useFeedSocial,
   useListaAmigos,
   useRejeitarSolicitacaoAmizade,
@@ -50,6 +51,7 @@ export default function TelaAmigos() {
   const aceitar = useAceitarAmizade(userId);
   const rejeitar = useRejeitarSolicitacaoAmizade(userId);
   const remover = useRemoverAmizade(userId);
+  const curtirPost = useCurtirPost(userId);
 
   async function aceitarAmizade(requestId: string): Promise<void> {
     setErroAceite(undefined);
@@ -110,6 +112,10 @@ export default function TelaAmigos() {
   const erroInicial = amigos.isError || solicitacoes.isError;
   const atualizando = amigos.isRefetching || solicitacoes.isRefetching || feed.isRefetching;
   const feedItems = feed.data ?? [];
+
+  function alternarCurtida(item: SocialFeedItem): void {
+    curtirPost.mutate({ postId: item.id, liked: !item.liked });
+  }
 
   const cabecalho = !autenticado ? (
     <>
@@ -312,7 +318,14 @@ export default function TelaAmigos() {
         renderItem={({ item, index }) => (
           <AnimatedEntry atraso={Math.min(index, 6) * 35}>
             <SocialFeedCard
+              aoAlternarCurtida={() => alternarCurtida(item)}
+              curtidaDesabilitada={
+                curtirPost.isPending && curtirPost.variables?.postId === item.id
+              }
               item={item}
+              rotuloAcaoCurtida={traduzir(
+                item.liked ? "amigos.feedDescurtir" : "amigos.feedCurtir",
+              )}
               rotuloCurtidas={traduzir("amigos.feedCurtidas", { quantidade: item.likeCount })}
               rotuloOnline={traduzir("amigos.online")}
               rotuloTipo={item.type === "WORKOUT" ? traduzir("amigos.feedTreino") : traduzir("amigos.feedAtualizacao")}
